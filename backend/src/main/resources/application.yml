@@ -34,6 +34,8 @@ spring:
       host: ${ECOLE_REDIS_HOST:localhost}
       port: ${ECOLE_REDIS_PORT:56379}
       password: ${ECOLE_REDIS_PASSWORD:}
+      # Court : un appel Redis a lieu pendant que la transaction PostgreSQL est ouverte.
+      timeout: 1s
 
 ecole:
   tenant:

@@ -1,5 +1,5 @@
 # Infra locale de développement. Les mots de passe ci-dessous sont des valeurs de dev ;
-# surchargez-les par variables d'environnement ou infra/.env (non versionné, modèle infra/.env.example).
+# surchargez-les par variables d'environnement ou infra/.env (non versionné ; cp infra/env.example infra/.env).
 name: ecole-saas
 
 services:

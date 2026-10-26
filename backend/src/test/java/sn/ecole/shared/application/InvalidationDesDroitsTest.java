@@ -1,5 +1,6 @@
 package sn.ecole.shared.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +28,7 @@ import sn.ecole.shared.domain.TenantRepository;
 /** Séquence d'invalidation autour du commit, sans base ni Redis. */
 class InvalidationDesDroitsTest {
 
+  private final SimpleMeterRegistry metriques = new SimpleMeterRegistry();
   private final AppartenanceRepository appartenances = mock(AppartenanceRepository.class);
   private final CacheRoles cache = mock(CacheRoles.class);
   private final AppartenanceService service =
@@ -34,7 +37,8 @@ class InvalidationDesDroitsTest {
           mock(TenantRepository.class),
           cache,
           mock(ExecutionPourTenant.class),
-          mock(JournalAudit.class));
+          mock(JournalAudit.class),
+          metriques);
   private final UUID utilisateur = UUID.randomUUID();
 
   @BeforeEach
@@ -66,6 +70,11 @@ class InvalidationDesDroitsTest {
     verify(cache, times(1)).nouvelleGeneration(utilisateur);
     TransactionSynchronizationUtils.triggerAfterCommit();
     verify(cache, times(2)).nouvelleGeneration(utilisateur);
+    assertThat(echecs()).isZero();
+  }
+
+  private double echecs() {
+    return metriques.counter(AppartenanceService.METRIQUE_ECHEC_INVALIDATION).count();
   }
 
   @Test
@@ -81,7 +90,7 @@ class InvalidationDesDroitsTest {
   }
 
   @Test
-  void unEchecApresLeCommitEstJournaliseSansExceptionNiAnnulation() {
+  void unEchecApresLeCommitEstCompteSansExceptionNiAnnulation() {
     attribuerDansUneEcole();
     TransactionSynchronizationUtils.triggerBeforeCommit(false);
     doThrow(new DataAccessResourceFailureException("Redis injoignable"))
@@ -90,5 +99,6 @@ class InvalidationDesDroitsTest {
 
     assertThatCode(TransactionSynchronizationUtils::triggerAfterCommit).doesNotThrowAnyException();
     verify(cache, times(2)).nouvelleGeneration(utilisateur);
+    assertThat(echecs()).isEqualTo(1.0);
   }
 }

@@ -1,5 +1,7 @@
 package sn.ecole.shared.application;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Map;
@@ -38,18 +40,27 @@ public class AppartenanceService {
   private final CacheRoles cache;
   private final ExecutionPourTenant execution;
   private final JournalAudit journal;
+  private final Counter echecsSecondeInvalidation;
+
+  /** Métrique : nombre d'échecs de la seconde invalidation (après commit) du cache des rôles. */
+  public static final String METRIQUE_ECHEC_INVALIDATION = "ecole.droits.invalidation.echecs";
 
   public AppartenanceService(
       AppartenanceRepository appartenances,
       TenantRepository tenants,
       CacheRoles cache,
       ExecutionPourTenant execution,
-      JournalAudit journal) {
+      JournalAudit journal,
+      MeterRegistry metriques) {
     this.appartenances = appartenances;
     this.tenants = tenants;
     this.cache = cache;
     this.execution = execution;
     this.journal = journal;
+    this.echecsSecondeInvalidation =
+        Counter.builder(METRIQUE_ECHEC_INVALIDATION)
+            .description("Échecs de l'invalidation du cache des rôles après commit")
+            .register(metriques);
   }
 
   /**
@@ -139,10 +150,12 @@ public class AppartenanceService {
             try {
               cache.nouvelleGeneration(utilisateurId);
             } catch (RuntimeException e) {
-              LOG.error(
+              // Pas de reprise (choix assumé) : signalé par journal et par métrique.
+              echecsSecondeInvalidation.increment();
+              LOG.warn(
                   "Seconde invalidation des droits impossible : une lecture concurrente au commit"
-                      + " peut rester en cache jusqu'à expiration",
-                  e);
+                      + " peut rester en cache jusqu'à expiration ({})",
+                  e.toString());
             }
           }
         });

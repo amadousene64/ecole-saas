@@ -1,7 +1,6 @@
 # Secrets locaux
 .env
 .env.*
-!.env.example
 secrets/
 
 # Claude Code : réglages personnels

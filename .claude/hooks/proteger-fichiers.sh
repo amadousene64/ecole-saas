@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# PreToolUse (Edit|Write|NotebookEdit|Read|Grep) :
-# - Read/Grep : bloque la lecture des secrets (.env*, clés privées, secrets/) ;
-# - écriture : bloque en plus .git/ et la modification d'une migration Flyway existante.
-# Le modèle infra/.env.example (sans secret) reste lisible et modifiable.
+# PreToolUse (Edit|Write|NotebookEdit) : bloque l'écriture dans les fichiers sensibles
+# et la modification d'une migration Flyway déjà existante.
+# La lecture des .env* est interdite par les règles deny de .claude/settings.json ;
+# le modèle sans secret s'appelle infra/env.example (sans point initial).
 
 # Sans jq, on ne peut pas lire le chemin : on bloque plutôt que de tout laisser passer.
 if ! command -v jq >/dev/null 2>&1; then
@@ -11,8 +11,7 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 INPUT=$(cat)
-TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty') &&
-FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.notebook_path // .tool_input.path // empty') || {
+FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty') || {
   echo "Bloqué : entrée du hook illisible." >&2
   exit 2
 }
@@ -23,26 +22,18 @@ NORM=${FILE_PATH//\\//}
 NORM=${NORM,,} # Windows : chemins insensibles à la casse
 BASE=${NORM##*/}
 
-# Fichiers d'environnement (.env, .env.local…) ; le modèle .env.example reste autorisé.
-if [[ "$BASE" == ".env" || "$BASE" == ".envrc" || ( "$BASE" == .env.* && "$BASE" != ".env.example" ) ]]; then
+# Fichiers d'environnement : .env, .env.local, .envrc… sans exception.
+if [[ "$BASE" == .env* ]]; then
   echo "Bloqué : $FILE_PATH est un fichier d'environnement (secrets)." >&2
   exit 2
 fi
 
-for pattern in "/secrets/" "id_rsa" ".pem" ".p12" ".jks"; do
+for pattern in "/secrets/" "/.git/" "id_rsa" ".pem" ".p12" ".jks"; do
   if [[ "$NORM" == *"$pattern"* ]]; then
     echo "Bloqué : $FILE_PATH est un fichier sensible ($pattern)." >&2
     exit 2
   fi
 done
-
-# La suite ne concerne que l'écriture.
-[ "$TOOL" = "Read" ] || [ "$TOOL" = "Grep" ] && exit 0
-
-if [[ "$NORM" == *"/.git/"* ]]; then
-  echo "Bloqué : $FILE_PATH est interne à git." >&2
-  exit 2
-fi
 
 # Une migration Flyway déjà présente ne doit jamais être modifiée.
 if [[ "$NORM" == *"/db/migration/"*".sql" && -f "$FILE_PATH" ]]; then

@@ -51,7 +51,8 @@ Utilisateurs fictifs du realm (mot de passe `Passer-2026-dev`) :
 
 Infra (`docker compose`, valeurs de dev par défaut) : `POSTGRES_PASSWORD`, `ECOLE_OWNER_PASSWORD`,
 `ECOLE_APP_PASSWORD`, `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `RABBITMQ_PASSWORD`,
-`REDIS_PASSWORD`, `MINIO_PASSWORD`. Elles peuvent aussi être mises dans `infra/.env` (non versionné ; modèle : `infra/.env.example`).
+`REDIS_PASSWORD`, `MINIO_PASSWORD`. Elles peuvent aussi être mises dans `infra/.env`, non versionné :
+`cp infra/env.example infra/.env` puis modifiez les valeurs.
 Ces valeurs ne servent qu'à la création du volume PostgreSQL : après un changement,
 `docker compose -f infra/docker-compose.yml down -v` (efface les données locales).
 
