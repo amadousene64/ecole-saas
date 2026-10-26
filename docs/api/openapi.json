@@ -36,10 +36,47 @@
         "summary" : "Utilisateur connecté et ses rôles dans l'école demandée",
         "tags" : [ "moi-controller" ]
       }
+    },
+    "/api/v1/moi/ecoles" : {
+      "get" : {
+        "operationId" : "mesEcoles",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EcoleDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Écoles dans lesquelles l'utilisateur connecté a un rôle",
+        "tags" : [ "moi-controller" ]
+      }
     }
   },
   "components" : {
     "schemas" : {
+      "EcoleDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          }
+        }
+      },
       "MoiDto" : {
         "type" : "object",
         "properties" : {

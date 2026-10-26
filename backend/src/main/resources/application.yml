@@ -1,4 +1,7 @@
 # Valeurs par défaut prudentes (production) ; le profil « dev » les assouplit pour le poste local.
+server:
+  port: 8080
+
 spring:
   application:
     name: ecole-backend

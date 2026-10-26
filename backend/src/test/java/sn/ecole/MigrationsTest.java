@@ -65,9 +65,34 @@ class MigrationsTest extends TestIntegration {
     for (String table : tablesAvecTenant()) {
       List<Map<String, Object>> politiques =
           catalogue.queryForList(
-              "SELECT qual, with_check FROM pg_policies WHERE schemaname = 'ecole' AND tablename = ?",
+              """
+              SELECT policyname, cmd, roles::text AS roles, qual, with_check FROM pg_policies
+              WHERE schemaname = 'ecole' AND tablename = ?""",
               table);
       assertThat(politiques).as("politique RLS de %s", table).isNotEmpty();
+      // Unique exception : lecture seule pour le propriétaire du schéma (ecole_owner, jamais
+      // utilisé par l'application), nécessaire à la fonction SECURITY DEFINER
+      // ecoles_de_utilisateur. Limitée à la table appartenance.
+      List<Map<String, Object>> exceptions =
+          politiques.stream()
+              .filter(p -> "lecture_proprietaire".equals(p.get("policyname")))
+              .toList();
+      if (!exceptions.isEmpty()) {
+        assertThat(table).isEqualTo("appartenance");
+        assertThat(exceptions)
+            .allSatisfy(
+                p ->
+                    assertThat(p)
+                        .containsEntry("cmd", "SELECT")
+                        .containsEntry("roles", "{ecole_owner}")
+                        .containsEntry("qual", "true")
+                        .containsEntry("with_check", null));
+      }
+      politiques =
+          politiques.stream()
+              .filter(p -> !"lecture_proprietaire".equals(p.get("policyname")))
+              .toList();
+      assertThat(politiques).as("politique par école de %s", table).isNotEmpty();
       assertThat(politiques)
           .allSatisfy(
               p -> {
@@ -132,5 +157,36 @@ class MigrationsTest extends TestIntegration {
             WHERE schemaname = 'ecole' AND tableowner = 'ecole_app'""",
             Integer.class);
     assertThat(tablesPossedees).isZero();
+  }
+
+  @Test
+  void aucuneVueNiFonctionDefinerImprevueNeContourneLaRlsDuProprietaire() {
+    // ecole_owner lit toutes les appartenances (politique lecture_proprietaire) : tout objet qu'il
+    // possède et qui s'exécute avec ses droits donnerait accès à toutes les écoles.
+    assertThat(
+            catalogue.queryForList(
+                """
+                SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                WHERE n.nspname = 'ecole' AND c.relkind IN ('v', 'm')
+                  AND NOT coalesce(c.reloptions @> ARRAY['security_invoker=true'], false)""",
+                String.class))
+        .as("vues sans security_invoker")
+        .isEmpty();
+    assertThat(
+            catalogue.queryForList(
+                """
+                SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+                WHERE n.nspname = 'ecole' AND p.prosecdef""",
+                String.class))
+        .as("fonctions SECURITY DEFINER")
+        .containsExactly("ecoles_de_utilisateur");
+  }
+
+  @Test
+  void leRoleApplicatifNEstPasMembreDuProprietaire() {
+    assertThat(
+            catalogue.queryForObject(
+                "SELECT pg_has_role('ecole_app', 'ecole_owner', 'MEMBER')", Boolean.class))
+        .isFalse();
   }
 }

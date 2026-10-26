@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -111,8 +112,8 @@ class FiltreTenant extends OncePerRequestFilter {
 
   private static UUID identifiant(JwtAuthenticationToken jeton) {
     try {
-      return UUID.fromString(jeton.getName());
-    } catch (IllegalArgumentException e) {
+      return UUID.fromString(Objects.requireNonNull(jeton.getName()));
+    } catch (IllegalArgumentException | NullPointerException e) {
       throw new ErreurMetier(
           "JETON_INVALIDE", TypeErreur.NON_AUTHENTIFIE, "Identifiant d'utilisateur invalide.");
     }
