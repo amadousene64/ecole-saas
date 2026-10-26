@@ -14,7 +14,20 @@
     ],
     "deny": [
       "Read(./.env)",
-      "Read(./**/.env*)",
+      "Read(./**/.env)",
+      "Read(./**/.envrc)",
+      "Read(./**/.env.local)",
+      "Read(./**/.env.*.local)",
+      "Read(./**/.env.dev*)",
+      "Read(./**/.env.prod*)",
+      "Read(./**/.env.preprod*)",
+      "Read(./**/.env.stag*)",
+      "Read(./**/.env.test*)",
+      "Read(./**/.env.qa*)",
+      "Read(./**/.env.ci*)",
+      "Read(./**/.env.recette*)",
+      "Read(./**/.env.secret*)",
+      "Read(./**/.env.bak*)",
       "Read(./secrets/**)",
       "Bash(git push --force *)",
       "Bash(rm -rf *)"
@@ -23,7 +36,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write|NotebookEdit",
+        "matcher": "Edit|Write|NotebookEdit|Read|Grep",
         "hooks": [
           {
             "type": "command",
