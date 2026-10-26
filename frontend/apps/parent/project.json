@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "ecole",
   "sourceRoot": "apps/parent/src",
-  "tags": [],
+  "tags": ["type:app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
@@ -28,8 +28,8 @@
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
+              "maximumWarning": "450kb",
+              "maximumError": "500kb"
             },
             {
               "type": "anyComponentStyle",
@@ -54,7 +54,8 @@
       "executor": "@angular/build:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "port": 4201
+        "port": 4201,
+        "proxyConfig": "apps/parent/proxy.conf.json"
       },
       "configurations": {
         "production": {

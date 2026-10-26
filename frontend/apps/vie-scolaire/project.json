@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "ecole",
   "sourceRoot": "apps/vie-scolaire/src",
-  "tags": [],
+  "tags": ["type:app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
@@ -28,8 +28,8 @@
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
+              "maximumWarning": "700kb",
+              "maximumError": "900kb"
             },
             {
               "type": "anyComponentStyle",
@@ -54,7 +54,8 @@
       "executor": "@angular/build:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "port": 4202
+        "port": 4202,
+        "proxyConfig": "apps/vie-scolaire/proxy.conf.json"
       },
       "configurations": {
         "production": {

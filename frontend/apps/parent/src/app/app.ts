@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { CoquilleApplicationLegere } from '@ecole/auth';
+import { LienNavigation } from '@ecole/ui';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
+  imports: [CoquilleApplicationLegere],
   selector: 'ecole-root',
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
+  template:
+    '<ecole-coquille-application-legere titre="Espace parent" [liens]="liens" />',
 })
 export class App {
-  protected title = 'parent';
+  protected readonly liens: LienNavigation[] = [
+    { chemin: '/', libelle: 'Accueil' },
+  ];
 }

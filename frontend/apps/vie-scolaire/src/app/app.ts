@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { CoquilleApplication } from '@ecole/auth';
+import { LienNavigation } from '@ecole/ui';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
+  imports: [CoquilleApplication],
   selector: 'ecole-root',
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
+  template:
+    '<ecole-coquille-application titre="Vie scolaire" [liens]="liens" />',
 })
 export class App {
-  protected title = 'vie-scolaire';
+  protected readonly liens: LienNavigation[] = [
+    { chemin: '/', libelle: 'Accueil' },
+  ];
 }

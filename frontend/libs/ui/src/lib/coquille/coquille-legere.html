@@ -1,0 +1,40 @@
+<a class="saut" href="#contenu">{{ textes.allerAuContenu }}</a>
+<header>
+  <span class="titre">{{ titre() }}</span>
+  @if (ecole(); as nomEcole) {
+  <span class="ecole" [attr.aria-label]="textes.ecoleCourante + ' ' + nomEcole"
+    >{{ nomEcole }}</span
+  >
+  }
+  <span class="espace"></span>
+  @if (utilisateur(); as nom) {
+  <details class="menu" #menu>
+    <summary [attr.aria-label]="textes.menuUtilisateur">{{ nom }}</summary>
+    <div class="panneau">
+      @if (plusieursEcoles()) {
+      <button type="button" (click)="menu.open = false; changerEcole.emit()">
+        {{ textes.changerEcole }}
+      </button>
+      }
+      <button type="button" (click)="menu.open = false; deconnexion.emit()">
+        {{ textes.deconnexion }}
+      </button>
+    </div>
+  </details>
+  }
+</header>
+@if (liens().length > 0) {
+<nav [attr.aria-label]="textes.navigationPrincipale">
+  @for (lien of liens(); track lien.chemin) {
+  <a
+    [routerLink]="lien.chemin"
+    routerLinkActive="actif"
+    ariaCurrentWhenActive="page"
+    >{{ lien.libelle }}</a
+  >
+  }
+</nav>
+}
+<main id="contenu" tabindex="-1">
+  <ng-content />
+</main>

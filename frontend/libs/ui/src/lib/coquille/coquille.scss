@@ -1,0 +1,72 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.saut {
+  position: absolute;
+  left: -999px;
+
+  &:focus {
+    left: 8px;
+    top: 8px;
+    z-index: 1000;
+    padding: 8px 16px;
+    background: var(--mat-sys-surface);
+  }
+}
+
+mat-toolbar {
+  gap: 12px;
+}
+
+.titre {
+  font: var(--mat-sys-title-medium);
+}
+
+.ecole {
+  padding: 2px 12px;
+  border-radius: 12px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.espace {
+  flex: 1;
+}
+
+.conteneur {
+  flex: 1;
+}
+
+mat-sidenav {
+  width: 240px;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}
+
+.lien {
+  justify-content: flex-start;
+
+  &.actif {
+    background: var(--mat-sys-secondary-container);
+  }
+}
+
+main {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  outline: none;
+}
+
+.bouton-menu {
+  @media (min-width: 900px) {
+    display: none;
+  }
+}

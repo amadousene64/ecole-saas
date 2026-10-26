@@ -1,1 +1,3 @@
-/* You can add global styles to this file, and also import other style files */
+@use '../../../libs/ui/src/lib/theme/theme' as ecole;
+
+@include ecole.theme();

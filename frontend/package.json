@@ -2,7 +2,10 @@
   "name": "ecole-frontend",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "api:generate": "ng-openapi-gen -c libs/api-client/ng-openapi-gen.json",
+    "api:update": "node tools/api-update.mjs"
+  },
   "private": true,
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "~2.7.3",
@@ -37,6 +40,7 @@
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-playwright": "^1.6.2",
     "jsdom": "^27.1.0",
+    "ng-openapi-gen": "^1.1.0",
     "nx": "24.0.0",
     "prettier": "^3.8.1",
     "tslib": "^2.3.0",
@@ -47,12 +51,17 @@
   },
   "packageManager": "npm@11.12.1",
   "dependencies": {
+    "@angular/cdk": "^22.2.4",
     "@angular/common": "~22.2.0",
     "@angular/compiler": "~22.2.0",
     "@angular/core": "~22.2.0",
     "@angular/forms": "~22.2.0",
+    "@angular/material": "^22.2.4",
     "@angular/platform-browser": "~22.2.0",
     "@angular/router": "~22.2.0",
+    "@angular/service-worker": "^22.2.3",
+    "angular-auth-oidc-client": "^22.0.2",
     "rxjs": "~7.8.0"
-  }
+  },
+  "sideEffects": false
 }

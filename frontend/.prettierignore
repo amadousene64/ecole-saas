@@ -5,3 +5,6 @@
 /.nx/workspace-data
 .nx/self-healing
 .angular
+
+# Code généré par ng-openapi-gen
+/libs/api-client/src/lib/generated
