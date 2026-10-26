@@ -1,0 +1,443 @@
+{
+  "description": "Cas de test tirés de bulletins réels (identités anonymisées). Le moteur de bulletins doit reproduire exactement les valeurs 'attendu'. Arrondi : 2 décimales, HALF_UP, appliqué seulement à l'affichage.",
+  "cas": [
+    {
+      "id": "lycee-TS2B-semestre2",
+      "cycle": "SECONDAIRE",
+      "niveau": "Tle",
+      "serie": "S2",
+      "periode": "SEMESTRE_2",
+      "effectif": 51,
+      "eleve": {
+        "prenom": "Eleve",
+        "nom": "A",
+        "redoublant": false
+      },
+      "ponderation": {
+        "devoir": 1,
+        "composition": 1
+      },
+      "disciplines": [
+        {
+          "matiere": "Français",
+          "devoir": 15.5,
+          "composition": 15,
+          "coef": 3,
+          "attendu": {
+            "moyenne": 15.25,
+            "points": 45.75,
+            "rang": 1,
+            "appreciation": "Bon travail"
+          }
+        },
+        {
+          "matiere": "Maths",
+          "devoir": 19.5,
+          "composition": 16.5,
+          "coef": 5,
+          "attendu": {
+            "moyenne": 18.0,
+            "points": 90.0,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "Anglais",
+          "devoir": 16.25,
+          "composition": 16.5,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 16.38,
+            "points": 32.75,
+            "rang": 1,
+            "appreciation": "Très bon travail"
+          }
+        },
+        {
+          "matiere": "SVT",
+          "devoir": 20,
+          "composition": 17.5,
+          "coef": 6,
+          "attendu": {
+            "moyenne": 18.75,
+            "points": 112.5,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "HG",
+          "devoir": 17.5,
+          "composition": 14.5,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 16.0,
+            "points": 32.0,
+            "rang": 1,
+            "appreciation": "Très bon travail"
+          }
+        },
+        {
+          "matiere": "SP",
+          "devoir": 19.5,
+          "composition": 18.5,
+          "coef": 6,
+          "attendu": {
+            "moyenne": 19.0,
+            "points": 114.0,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "EPS",
+          "devoir": null,
+          "composition": null,
+          "coef": 2,
+          "attendu": {
+            "nonEvalue": true
+          }
+        },
+        {
+          "matiere": "Philo",
+          "devoir": 15,
+          "composition": 12,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 13.5,
+            "points": 27.0,
+            "rang": 1,
+            "appreciation": "Assez bien"
+          }
+        }
+      ],
+      "vieScolaire": {
+        "absences": 0,
+        "retards": 0
+      },
+      "attendu": {
+        "totalCoef": 26,
+        "totalPoints": 454.0,
+        "moyenneGenerale": 17.46,
+        "rang": 1,
+        "bilanAnnuel": {
+          "moyenneS1": 18.27,
+          "moyenneS2": 17.46,
+          "moyenneAnnuelle": 17.87,
+          "rangAnnuel": 1
+        }
+      }
+    },
+    {
+      "id": "college-4C-semestre1",
+      "cycle": "SECONDAIRE",
+      "niveau": "4e",
+      "serie": null,
+      "periode": "SEMESTRE_1",
+      "effectif": 50,
+      "eleve": {
+        "prenom": "Eleve",
+        "nom": "B",
+        "redoublant": false
+      },
+      "ponderation": {
+        "devoir": 1,
+        "composition": 1
+      },
+      "disciplines": [
+        {
+          "matiere": "Dissertation",
+          "groupe": "Français",
+          "devoir": 17.5,
+          "composition": 19,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 18.25,
+            "points": 36.5,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "Orth-Gram",
+          "groupe": "Français",
+          "devoir": 17.25,
+          "composition": 17.5,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 17.38,
+            "points": 34.75,
+            "rang": 1,
+            "appreciation": "Très bon travail"
+          }
+        },
+        {
+          "matiere": "Anglais",
+          "devoir": 17.5,
+          "composition": 18,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 17.75,
+            "points": 35.5,
+            "rang": 2,
+            "appreciation": "Très bon travail"
+          }
+        },
+        {
+          "matiere": "HG",
+          "devoir": 18.5,
+          "composition": 19,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 18.75,
+            "points": 37.5,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "EC",
+          "devoir": 18,
+          "composition": 19,
+          "coef": 1,
+          "attendu": {
+            "moyenne": 18.5,
+            "points": 18.5,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "Math",
+          "devoir": 19,
+          "composition": 19,
+          "coef": 3,
+          "attendu": {
+            "moyenne": 19.0,
+            "points": 57.0,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "SP",
+          "devoir": 19.25,
+          "composition": 20,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 19.63,
+            "points": 39.25,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "SVT",
+          "devoir": 19.5,
+          "composition": 19.5,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 19.5,
+            "points": 39.0,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "Arabe",
+          "option": "LV2",
+          "devoir": 19,
+          "composition": 20,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 19.5,
+            "points": 39.0,
+            "rang": 1,
+            "appreciation": "Excellent travail"
+          }
+        },
+        {
+          "matiere": "Portugais",
+          "option": "LV2",
+          "devoir": null,
+          "composition": null,
+          "coef": 2,
+          "attendu": {
+            "nonEvalue": true
+          }
+        },
+        {
+          "matiere": "EPS",
+          "devoir": 12.5,
+          "composition": 10,
+          "coef": 2,
+          "attendu": {
+            "moyenne": 11.25,
+            "points": 22.5,
+            "rang": 40,
+            "appreciation": "Moyen"
+          }
+        }
+      ],
+      "vieScolaire": {
+        "absences": 0,
+        "retards": 0
+      },
+      "attendu": {
+        "totalCoef": 20,
+        "totalPoints": 359.5,
+        "moyenneGenerale": 17.98,
+        "rang": 1,
+        "appreciationGlobale": "Satisfaisant doit continuer"
+      }
+    }
+  ],
+  "modeles": [
+    {
+      "id": "primaire-CE1-trimestre",
+      "cycle": "PRIMAIRE",
+      "niveau": "CE1",
+      "periode": "TRIMESTRE_1",
+      "modeNotation": "BAREME",
+      "disciplines": [
+        {
+          "domaine": "Compétence",
+          "matiere": "Production d'écrits",
+          "bareme": 60
+        },
+        {
+          "domaine": "Compétence",
+          "matiere": "Mathématiques",
+          "bareme": 60
+        },
+        {
+          "domaine": "Compétence",
+          "matiere": "Découverte du monde",
+          "bareme": 16
+        },
+        {
+          "domaine": "Compétence",
+          "matiere": "Éducation au développement durable",
+          "bareme": 16
+        },
+        {
+          "domaine": "Ressources",
+          "matiere": "Exploitation de textes",
+          "bareme": 30
+        },
+        {
+          "domaine": "Ressources",
+          "matiere": "Mathématiques",
+          "bareme": 40
+        },
+        {
+          "domaine": "Ressources",
+          "matiere": "Découverte du monde",
+          "bareme": 24
+        },
+        {
+          "domaine": "Ressources",
+          "matiere": "Éducation au développement durable",
+          "bareme": 24
+        },
+        {
+          "domaine": null,
+          "matiere": "Arts plastiques",
+          "bareme": 10
+        }
+      ],
+      "attendu": {
+        "totalBaremes": 280,
+        "remarque": "Le gabarit papier affiche /260 : erreur du gabarit, le total doit être calculé."
+      }
+    }
+  ],
+  "classements": [
+    {
+      "id": "rang-competition-ex-aequo",
+      "regle": "Classement par compétition : même moyenne affichée = même rang, le suivant saute. Pas de départage par défaut.",
+      "eleves": [
+        {
+          "eleve": "E1",
+          "moyenne": 16.5,
+          "rangAttendu": 1,
+          "affichage": "1er"
+        },
+        {
+          "eleve": "E2",
+          "moyenne": 15.0,
+          "rangAttendu": 2,
+          "affichage": "2e ex"
+        },
+        {
+          "eleve": "E3",
+          "moyenne": 15.0,
+          "rangAttendu": 2,
+          "affichage": "2e ex"
+        },
+        {
+          "eleve": "E4",
+          "moyenne": 13.5,
+          "rangAttendu": 4,
+          "affichage": "4e"
+        },
+        {
+          "eleve": "E5",
+          "moyenne": 12.0,
+          "rangAttendu": 5,
+          "affichage": "5e"
+        }
+      ]
+    }
+  ],
+  "distinctions": {
+    "regle": "Seuils par défaut sur 20, paramétrables ; une seule distinction (la plus haute) ; proposée, le conseil décide.",
+    "seuils": [
+      {
+        "distinction": "FELICITATIONS",
+        "min": 16
+      },
+      {
+        "distinction": "ENCOURAGEMENTS",
+        "min": 14
+      },
+      {
+        "distinction": "TABLEAU_HONNEUR",
+        "min": 12
+      }
+    ],
+    "cas": [
+      {
+        "moyenne": 17.46,
+        "attendu": "FELICITATIONS"
+      },
+      {
+        "moyenne": 16.0,
+        "attendu": "FELICITATIONS"
+      },
+      {
+        "moyenne": 15.99,
+        "attendu": "ENCOURAGEMENTS"
+      },
+      {
+        "moyenne": 14.0,
+        "attendu": "ENCOURAGEMENTS"
+      },
+      {
+        "moyenne": 13.5,
+        "attendu": "TABLEAU_HONNEUR"
+      },
+      {
+        "moyenne": 11.99,
+        "attendu": null
+      },
+      {
+        "moyenne": 7.0,
+        "base": 10,
+        "equivalentSur20": 14.0,
+        "attendu": "ENCOURAGEMENTS"
+      }
+    ]
+  }
+}

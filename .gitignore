@@ -1,0 +1,28 @@
+# Secrets locaux
+.env
+.env.*
+!.env.example
+secrets/
+
+# Claude Code : réglages personnels
+.claude/settings.local.json
+
+# Java / Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+
+# Node / Angular / Nx
+node_modules/
+dist/
+.angular/
+.nx/
+coverage/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

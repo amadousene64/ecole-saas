@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "angular-cli": { 
+      "command": "cmd", 
+      "args": ["/c", "ng", "mcp"] 
+    },
+    "context7": { 
+      "command": "cmd", 
+      "args": ["/c", "context7-mcp"] 
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
