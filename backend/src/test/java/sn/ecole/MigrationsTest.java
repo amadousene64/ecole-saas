@@ -4,8 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import sn.ecole.shared.domain.RoleEcole;
 
 /**
  * Toutes les migrations passent sur PostgreSQL 17, et chaque table respecte les règles du projet.
@@ -188,5 +193,21 @@ class MigrationsTest extends TestIntegration {
             catalogue.queryForObject(
                 "SELECT pg_has_role('ecole_app', 'ecole_owner', 'MEMBER')", Boolean.class))
         .isFalse();
+  }
+
+  @Test
+  void laContrainteDesRolesCorrespondExactementALEnum() {
+    String definition =
+        catalogue.queryForObject(
+            "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'ck_appartenance_role'",
+            String.class);
+    Set<String> enBase =
+        Pattern.compile("'([A-Z_]+)'")
+            .matcher(definition)
+            .results()
+            .map(m -> m.group(1))
+            .collect(Collectors.toSet());
+    Set<String> enJava = Stream.of(RoleEcole.values()).map(Enum::name).collect(Collectors.toSet());
+    assertThat(enBase).isEqualTo(enJava).contains("CENSEUR", "ELEVE");
   }
 }

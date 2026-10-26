@@ -1,0 +1,90 @@
+{
+  "name": "vie-scolaire",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "ecole",
+  "sourceRoot": "apps/vie-scolaire/src",
+  "tags": ["type:app"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/vie-scolaire",
+        "browser": "apps/vie-scolaire/src/main.ts",
+        "tsConfig": "apps/vie-scolaire/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/vie-scolaire/public"
+          }
+        ],
+        "styles": ["apps/vie-scolaire/src/styles.scss"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "700kb",
+              "maximumError": "900kb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4202,
+        "proxyConfig": "apps/vie-scolaire/proxy.conf.json"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "vie-scolaire:build:production"
+        },
+        "development": {
+          "buildTarget": "vie-scolaire:build:development"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "dependsOn": ["build"],
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "vie-scolaire:build",
+        "port": 4202,
+        "staticFilePath": "dist/apps/vie-scolaire/browser",
+        "spa": true
+      }
+    }
+  }
+}

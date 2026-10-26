@@ -1,0 +1,59 @@
+<a class="saut" href="#contenu">{{ textes.allerAuContenu }}</a>
+<mat-toolbar>
+  @if (liens().length > 0) {
+  <button
+    matButton
+    class="bouton-menu"
+    type="button"
+    [attr.aria-expanded]="menuOuvert()"
+    (click)="basculerMenu()"
+  >
+    {{ textes.ouvrirMenu }}
+  </button>
+  }
+  <span class="titre">{{ titre() }}</span>
+  @if (ecole(); as nomEcole) {
+  <span class="ecole" title="École courante">{{ nomEcole }}</span>
+  }
+  <span class="espace"></span>
+  @if (utilisateur(); as nom) {
+  <button matButton type="button" [matMenuTriggerFor]="menu">{{ nom }}</button>
+  <mat-menu #menu="matMenu">
+    @if (plusieursEcoles()) {
+    <button mat-menu-item type="button" (click)="changerEcole.emit()">
+      {{ textes.changerEcole }}
+    </button>
+    }
+    <button mat-menu-item type="button" (click)="deconnexion.emit()">
+      {{ textes.deconnexion }}
+    </button>
+  </mat-menu>
+  }
+</mat-toolbar>
+
+<mat-sidenav-container class="conteneur">
+  <mat-sidenav
+    [mode]="tiroir() ? 'over' : 'side'"
+    [opened]="tiroir() ? menuOuvert() : liens().length > 0"
+    (closedStart)="menuOuvert.set(false)"
+  >
+    <nav [attr.aria-label]="textes.navigationPrincipale">
+      @for (lien of liens(); track lien.chemin) {
+      <a
+        matButton
+        class="lien"
+        [routerLink]="lien.chemin"
+        routerLinkActive="actif"
+        ariaCurrentWhenActive="page"
+        (click)="fermerSiTiroir()"
+        >{{ lien.libelle }}</a
+      >
+      }
+    </nav>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <main id="contenu" tabindex="-1">
+      <ng-content />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
