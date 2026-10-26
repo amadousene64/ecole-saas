@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import sn.ecole.Fixtures;
 import sn.ecole.TestIntegration;
+import sn.ecole.shared.domain.CacheRoles;
 import sn.ecole.shared.domain.RoleEcole;
 
 class AppartenanceServiceTest extends TestIntegration {
@@ -44,8 +45,16 @@ class AppartenanceServiceTest extends TestIntegration {
         .setAuthentication(new JwtAuthenticationToken(jwt, autorites, utilisateur.toString()));
   }
 
-  private static String cle(UUID ecole, UUID utilisateur) {
-    return "ecole:roles:" + ecole + ":" + utilisateur;
+  @Autowired CacheRoles cache;
+
+  /** Clé du cache pour la génération courante de l'utilisateur. */
+  private String cle(UUID ecole, UUID utilisateur) {
+    return "ecole:roles:"
+        + ecole
+        + ":"
+        + utilisateur
+        + ":"
+        + cache.generation(utilisateur).getAsLong();
   }
 
   @AfterEach
@@ -116,7 +125,9 @@ class AppartenanceServiceTest extends TestIntegration {
     connecte(DIRECTEUR_A, RoleEcole.DIRECTEUR);
     assertThat(service.rolesPour(ECOLE_A, nouveau)).isEmpty(); // mis en cache « aucun rôle »
 
+    String cleAvant = cle(ECOLE_A, nouveau);
     execution.executer(ECOLE_A, () -> service.attribuer(nouveau, RoleEcole.SECRETARIAT));
+    assertThat(cle(ECOLE_A, nouveau)).isNotEqualTo(cleAvant); // nouvelle génération
     assertThat(redis.hasKey(cle(ECOLE_A, nouveau))).isFalse();
     assertThat(service.rolesPour(ECOLE_A, nouveau)).containsExactly(RoleEcole.SECRETARIAT);
     assertThat(service.rolesPour(ECOLE_B, nouveau)).isEmpty();
@@ -125,6 +136,50 @@ class AppartenanceServiceTest extends TestIntegration {
         ECOLE_A, () -> service.attribuer(nouveau, RoleEcole.SECRETARIAT)); // idempotent
     execution.executer(ECOLE_A, () -> service.retirer(nouveau, RoleEcole.SECRETARIAT));
     assertThat(service.rolesPour(ECOLE_A, nouveau)).isEmpty();
+  }
+
+  @Test
+  void unRoleRevoqueCesseImmediatement() {
+    UUID revoque = UUID.randomUUID();
+    connecte(DIRECTEUR_A, RoleEcole.DIRECTEUR);
+    execution.executer(ECOLE_A, () -> service.attribuer(revoque, RoleEcole.COMPTABLE));
+    assertThat(service.rolesPour(ECOLE_A, revoque)).containsExactly(RoleEcole.COMPTABLE);
+    assertThat(redis.hasKey(cle(ECOLE_A, revoque))).isTrue(); // en cache
+
+    execution.executer(ECOLE_A, () -> service.retirer(revoque, RoleEcole.COMPTABLE));
+
+    assertThat(service.rolesPour(ECOLE_A, revoque)).isEmpty();
+  }
+
+  @Test
+  void uneLectureConcurrenteQuiEcritLAncienEtatApresLaRevocationEstIgnoree() {
+    UUID revoque = UUID.randomUUID();
+    connecte(DIRECTEUR_A, RoleEcole.DIRECTEUR);
+    execution.executer(ECOLE_A, () -> service.attribuer(revoque, RoleEcole.COMPTABLE));
+
+    // Une requête lente a lu la génération et l'ancien état AVANT la révocation…
+    long generationLue = cache.generation(revoque).getAsLong();
+    execution.executer(ECOLE_A, () -> service.retirer(revoque, RoleEcole.COMPTABLE));
+    // … et écrit son résultat périmé APRÈS la révocation.
+    cache.ecrire(ECOLE_A, revoque, generationLue, java.util.Set.of(RoleEcole.COMPTABLE));
+
+    assertThat(service.rolesPour(ECOLE_A, revoque)).isEmpty();
+  }
+
+  @Test
+  void siRedisEvinceLeCompteurUneAncienneEntreeNeRedevientPasLisible() {
+    UUID revoque = UUID.randomUUID();
+    connecte(DIRECTEUR_A, RoleEcole.DIRECTEUR);
+    execution.executer(ECOLE_A, () -> service.attribuer(revoque, RoleEcole.COMPTABLE));
+    long ancienne = cache.generation(revoque).getAsLong();
+    assertThat(ancienne).isPositive(); // jamais 0 implicite
+    // Entrée périmée encore vivante, puis éviction du compteur et retrait du rôle en base.
+    cache.ecrire(ECOLE_A, revoque, ancienne, java.util.Set.of(RoleEcole.COMPTABLE));
+    superUtilisateur().update("DELETE FROM appartenance WHERE utilisateur_id = ?", revoque);
+    redis.delete("ecole:droits-gen:" + revoque);
+
+    assertThat(cache.generation(revoque).getAsLong()).isGreaterThan(ancienne);
+    assertThat(service.rolesPour(ECOLE_A, revoque)).isEmpty();
   }
 
   @Test

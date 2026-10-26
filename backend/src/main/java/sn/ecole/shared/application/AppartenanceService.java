@@ -3,8 +3,11 @@ package sn.ecole.shared.application;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +21,11 @@ import sn.ecole.shared.domain.RoleEcole;
 import sn.ecole.shared.domain.Tenant;
 import sn.ecole.shared.domain.TenantRepository;
 
-/** Rôles d'un utilisateur dans une école : table {@code appartenance} + cache Redis. */
+/** Rôles d'un utilisateur dans une école : table {@code appartenance} + cache Redis versionné. */
 @Service
 public class AppartenanceService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AppartenanceService.class);
 
   private final AppartenanceRepository appartenances;
   private final TenantRepository tenants;
@@ -47,39 +52,43 @@ public class AppartenanceService {
   public Set<RoleEcole> rolesPour(UUID tenantId, UUID utilisateurId) {
     Objects.requireNonNull(tenantId);
     Objects.requireNonNull(utilisateurId);
-    return cache
-        .lire(tenantId, utilisateurId)
-        .orElseGet(
-            () ->
-                charger(tenantId, utilisateurId)
-                    .map(
-                        roles -> {
-                          cache.ecrire(tenantId, utilisateurId, roles);
-                          return roles;
-                        })
-                    // École inconnue ou inactive : rien en cache (sinon on peut remplir Redis
-                    // avec des UUID aléatoires).
-                    .orElseGet(() -> EnumSet.noneOf(RoleEcole.class)));
+    // La génération est lue AVANT la base : si les droits changent pendant la lecture, ce que
+    // l'on écrit porte une génération déjà périmée et ne sera jamais relu.
+    OptionalLong generation = cache.generation(utilisateurId);
+    if (generation.isPresent()) {
+      Optional<Set<RoleEcole>> enCache =
+          cache.lire(tenantId, utilisateurId, generation.getAsLong());
+      if (enCache.isPresent()) {
+        return enCache.get();
+      }
+    }
+    Optional<Set<RoleEcole>> charges = charger(tenantId, utilisateurId);
+    // École inconnue ou inactive : rien en cache (sinon on peut remplir Redis avec des UUID
+    // aléatoires).
+    if (charges.isPresent() && generation.isPresent()) {
+      cache.ecrire(tenantId, utilisateurId, generation.getAsLong(), charges.get());
+    }
+    return charges.orElseGet(() -> EnumSet.noneOf(RoleEcole.class));
   }
 
   /** Donne un rôle à un utilisateur dans l'école courante. */
   @PreAuthorize("hasRole('DIRECTEUR')")
   @Transactional
   public void attribuer(UUID utilisateurId, RoleEcole role) {
-    UUID tenantId = ContexteTenant.exiger();
+    ContexteTenant.exiger();
     if (appartenances.findByUtilisateurIdAndRole(utilisateurId, role).isEmpty()) {
       appartenances.save(Appartenance.attribuer(utilisateurId, role));
     }
-    invaliderApresValidation(tenantId, utilisateurId);
+    changerGenerationAuCommit(utilisateurId);
   }
 
   /** Retire un rôle à un utilisateur dans l'école courante. */
   @PreAuthorize("hasRole('DIRECTEUR')")
   @Transactional
   public void retirer(UUID utilisateurId, RoleEcole role) {
-    UUID tenantId = ContexteTenant.exiger();
+    ContexteTenant.exiger();
     appartenances.findByUtilisateurIdAndRole(utilisateurId, role).ifPresent(appartenances::delete);
-    invaliderApresValidation(tenantId, utilisateurId);
+    changerGenerationAuCommit(utilisateurId);
   }
 
   /** Vide si l'école est inconnue ou inactive. */
@@ -96,12 +105,29 @@ public class AppartenanceService {
         });
   }
 
-  private void invaliderApresValidation(UUID tenantId, UUID utilisateurId) {
+  /**
+   * Nouvelle génération des droits juste avant le commit (si Redis est injoignable, l'exception
+   * annule la transaction : pas de changement de droits sans invalidation) puis juste après (une
+   * lecture concurrente qui aurait mis en cache l'état d'avant le commit devient périmée).
+   */
+  private void changerGenerationAuCommit(UUID utilisateurId) {
     TransactionSynchronizationManager.registerSynchronization(
         new TransactionSynchronization() {
           @Override
+          public void beforeCommit(boolean lectureSeule) {
+            cache.nouvelleGeneration(utilisateurId);
+          }
+
+          @Override
           public void afterCommit() {
-            cache.invalider(tenantId, utilisateurId);
+            try {
+              cache.nouvelleGeneration(utilisateurId);
+            } catch (RuntimeException e) {
+              LOG.error(
+                  "Seconde invalidation des droits impossible : une lecture concurrente au commit"
+                      + " peut rester en cache jusqu'à expiration",
+                  e);
+            }
           }
         });
   }
