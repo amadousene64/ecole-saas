@@ -4,15 +4,15 @@ Nx 24 + Angular 22 (composants autonomes, zoneless, Signals), Angular Material, 
 Compatible Windows (Git Bash et PowerShell) : toutes les commandes passent par `npm`/`npx nx`, les
 scripts d'outillage sont en Node (`tools/`).
 
-| Projet                | Rôle                                                            | Port | Client Keycloak |
-| --------------------- | --------------------------------------------------------------- | ---- | --------------- |
-| `apps/backoffice`     | direction, secrétariat, enseignants, comptabilité               | 4200 | `backoffice`    |
-| `apps/parent`         | espace parent, PWA, **budget 500 Ko** au premier chargement     | 4201 | `parent`        |
-| `apps/vie-scolaire`   | vie scolaire (surveillants, enseignants, direction)             | 4202 | `vie-scolaire`  |
-| `libs/auth`           | OIDC (code + PKCE), session, intercepteur, gardes de route      |      |                 |
-| `libs/api-client`     | client d'API généré depuis `docs/api/openapi.json`              |      |                 |
-| `libs/ui`             | thème, coquilles, sélecteur d'école, pages d'état (en français) |      |                 |
-| `apps/backoffice-e2e` | tests Playwright (Keycloak et API réels)                        |      |                 |
+| Projet              | Rôle                                                             | Port | Client Keycloak |
+| ------------------- | ---------------------------------------------------------------- | ---- | --------------- |
+| `apps/backoffice`   | direction, censeur, secrétariat, enseignants, comptabilité       | 4200 | `backoffice`    |
+| `apps/parent`       | espace parent et élève, PWA, **budget 500 Ko** au 1er chargement | 4201 | `parent`        |
+| `apps/vie-scolaire` | vie scolaire (direction, censeur, enseignants, surveillants)     | 4202 | `vie-scolaire`  |
+| `libs/auth`         | OIDC (code + PKCE), session, intercepteur, gardes de route       |      |                 |
+| `libs/api-client`   | client d'API généré depuis `docs/api/openapi.json`               |      |                 |
+| `libs/ui`           | thème, coquilles, sélecteur d'école, pages d'état (en français)  |      |                 |
+| `apps/e2e`          | tests Playwright des trois apps (Keycloak et API réels)          |      |                 |
 
 Règles de dépendances (vérifiées par ESLint, `@nx/enforce-module-boundaries`) : les apps utilisent
 `auth`, `api-client` et `ui` ; `auth` utilise `api-client` et `ui` ; `ui` et `api-client` ne
@@ -25,7 +25,7 @@ npm install
 npx nx serve backoffice            # idem parent, vie-scolaire ; /api est relayé vers localhost:8080
 npx nx run-many -t test lint build # tout vérifier
 npx nx test auth                   # un projet
-npx nx e2e backoffice-e2e          # Playwright (Chromium)
+npx nx e2e e2e                    # Playwright (Chromium), les trois apps
 npm run api:generate               # régénère le client depuis le contrat OpenAPI versionné
 npm run api:update                 # relance aussi le backend pour régénérer le contrat (Docker requis)
 ```
@@ -46,6 +46,22 @@ vient de `E2E_MOT_DE_PASSE` (par défaut, celui du realm de dev).
   origine. En production, l'API est servie sous le même domaine (Nginx) : pas de CORS ; en dev,
   `proxy.conf.json` relaie `/api`.
 - L'école choisie est gardée dans `sessionStorage` (jamais le jeton).
+
+## Rôles autorisés par application
+
+| Application  | Rôles (dans l'école choisie)                           |
+| ------------ | ------------------------------------------------------ |
+| backoffice   | DIRECTEUR, CENSEUR, SECRETARIAT, ENSEIGNANT, COMPTABLE |
+| vie-scolaire | DIRECTEUR, CENSEUR, ENSEIGNANT, SURVEILLANT            |
+| parent       | PARENT, ELEVE                                          |
+
+Le super-administrateur de la plateforme n'appartient à aucune de ces applications.
+
+## Formats
+
+`FcfaPipe` (`| fcfa`, libs/ui) affiche les montants en FCFA sans décimale ; les dates et nombres
+utilisent la locale `fr` (`registerLocaleData` dans `app.config.ts`). Le build de production a été
+vérifié dans un navigateur pour les trois apps (« lundi 26 octobre 2026 », « 1 500 000 FCFA »).
 
 ## Budget de l'espace parent
 

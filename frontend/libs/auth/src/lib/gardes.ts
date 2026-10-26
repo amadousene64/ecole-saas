@@ -7,6 +7,7 @@ import { Session } from './session';
 /** Rôles du backend (enum RoleEcole). */
 export type RoleEcole =
   | 'DIRECTEUR'
+  | 'CENSEUR'
   | 'SECRETARIAT'
   | 'SURVEILLANT'
   | 'ENSEIGNANT'

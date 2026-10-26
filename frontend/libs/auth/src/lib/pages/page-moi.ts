@@ -3,6 +3,7 @@ import { Session } from '../session';
 
 const LIBELLES_ROLES: Record<string, string> = {
   DIRECTEUR: 'Directeur',
+  CENSEUR: 'Censeur',
   SECRETARIAT: 'Secrétariat',
   SURVEILLANT: 'Surveillant',
   ENSEIGNANT: 'Enseignant',

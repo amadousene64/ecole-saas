@@ -1,49 +1,32 @@
 import { defineConfig, devices } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
-import { getReadyUrl, workspaceRoot } from '@nx/devkit';
+import { workspaceRoot } from '@nx/devkit';
 
 const isCI = !!process.env['CI'];
-// For CI, you may want to set BASE_URL to the deployed application.
-// getReadyUrl moves the address to the port the dev server task reported.
-const baseURL = process.env['BASE_URL'] || getReadyUrl('http://localhost:4200');
+
+/** Les trois applications, chacune sur son port (celui déclaré dans son client Keycloak). */
+const applications = [
+  { nom: 'backoffice', port: 4200 },
+  { nom: 'parent', port: 4201 },
+  { nom: 'vie-scolaire', port: 4202 },
+] as const;
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import 'dotenv/config';
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- *
- * Generated as a .mts file so Node forces ESM regardless of workspace
- * `type`. Playwright routes `.mts` through its ESM loader (dynamic import,
- * bypassing the pirates CJS-compile path), and Nx's native TS strip loads
- * `.mts` directly. Playwright's configLoader auto-discovers
- * `playwright.config.mts` via its extension list
- * (.ts/.js/.mts/.mjs/.cts/.cjs).
+ * Parcours réels contre Keycloak et l'API (voir support.ts pour les prérequis). Un projet
+ * Playwright par application : même Chromium, une `baseURL` et un fichier de tests chacun.
  */
 export default defineConfig({
   ...nxE2EPreset(import.meta.dirname, { testDir: './src' }),
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    baseURL,
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-  },
-  webServer: {
-    command: isCI
-      ? 'npx nx run backoffice:serve-static'
-      : 'npx nx run backoffice:serve',
-    url: getReadyUrl('http://localhost:4200'),
+  use: { trace: 'on-first-retry' },
+  webServer: applications.map(({ nom, port }) => ({
+    command: `npx nx run ${nom}:${isCI ? 'serve-static' : 'serve'}`,
+    url: `http://localhost:${port}`,
     reuseExistingServer: true,
     cwd: workspaceRoot,
-  },
-  projects: [
-    // Chromium seul : les autres navigateurs sont à ajouter ici si le besoin s'en fait sentir.
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
+  })),
+  projects: applications.map(({ nom, port }) => ({
+    name: nom,
+    testMatch: `${nom}.spec.ts`,
+    use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${port}` },
+  })),
 });

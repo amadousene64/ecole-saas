@@ -7,7 +7,13 @@ export const appRoutes: Route[] = [
     path: '',
     pathMatch: 'full',
     canActivate: [
-      gardeRoles('DIRECTEUR', 'SECRETARIAT', 'ENSEIGNANT', 'COMPTABLE'),
+      gardeRoles(
+        'DIRECTEUR',
+        'CENSEUR',
+        'SECRETARIAT',
+        'ENSEIGNANT',
+        'COMPTABLE',
+      ),
     ],
     component: PageMoi,
   },

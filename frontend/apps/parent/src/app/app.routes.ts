@@ -6,7 +6,7 @@ export const appRoutes: Route[] = [
   {
     path: '',
     pathMatch: 'full',
-    canActivate: [gardeRoles('PARENT')],
+    canActivate: [gardeRoles('PARENT', 'ELEVE')],
     component: PageMoi,
   },
   { path: '**', redirectTo: '' },

@@ -7,6 +7,18 @@ export default [
   {
     files: ['**/*.ts', '**/*.js'],
     // Override or add rules here
-    rules: {},
+    rules: {
+      // Les vérifications sont regroupées dans des fonctions d'aide (support.ts).
+      'playwright/expect-expect': [
+        'warn',
+        {
+          assertFunctionNames: [
+            'expect',
+            'verifierProfil',
+            'verifierAccesRefuse',
+          ],
+        },
+      ],
+    },
   },
 ];

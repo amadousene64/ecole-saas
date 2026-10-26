@@ -5,3 +5,4 @@ export * from './lib/modeles';
 export * from './lib/selecteur-ecole/selecteur-ecole';
 export * from './lib/textes';
 export * from './lib/coquille/coquille-legere';
+export * from './lib/formats/fcfa';
