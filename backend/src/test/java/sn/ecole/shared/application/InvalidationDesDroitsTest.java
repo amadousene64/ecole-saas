@@ -30,7 +30,11 @@ class InvalidationDesDroitsTest {
   private final CacheRoles cache = mock(CacheRoles.class);
   private final AppartenanceService service =
       new AppartenanceService(
-          appartenances, mock(TenantRepository.class), cache, mock(ExecutionPourTenant.class));
+          appartenances,
+          mock(TenantRepository.class),
+          cache,
+          mock(ExecutionPourTenant.class),
+          mock(JournalAudit.class));
   private final UUID utilisateur = UUID.randomUUID();
 
   @BeforeEach

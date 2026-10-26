@@ -1,6 +1,8 @@
 package sn.ecole.shared.application;
 
+import java.time.Instant;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -27,20 +29,27 @@ public class AppartenanceService {
 
   private static final Logger LOG = LoggerFactory.getLogger(AppartenanceService.class);
 
+  public static final String ROLE_ATTRIBUE = "ROLE_ATTRIBUE";
+  public static final String ROLE_RETIRE = "ROLE_RETIRE";
+  public static final String CIBLE_UTILISATEUR = "Utilisateur";
+
   private final AppartenanceRepository appartenances;
   private final TenantRepository tenants;
   private final CacheRoles cache;
   private final ExecutionPourTenant execution;
+  private final JournalAudit journal;
 
   public AppartenanceService(
       AppartenanceRepository appartenances,
       TenantRepository tenants,
       CacheRoles cache,
-      ExecutionPourTenant execution) {
+      ExecutionPourTenant execution,
+      JournalAudit journal) {
     this.appartenances = appartenances;
     this.tenants = tenants;
     this.cache = cache;
     this.execution = execution;
+    this.journal = journal;
   }
 
   /**
@@ -71,23 +80,30 @@ public class AppartenanceService {
     return charges.orElseGet(() -> EnumSet.noneOf(RoleEcole.class));
   }
 
-  /** Donne un rôle à un utilisateur dans l'école courante. */
+  /** Donne un rôle à un utilisateur dans l'école courante (journalisé ; sans effet s'il l'a). */
   @PreAuthorize("hasRole('DIRECTEUR')")
   @Transactional
   public void attribuer(UUID utilisateurId, RoleEcole role) {
     ContexteTenant.exiger();
-    if (appartenances.findByUtilisateurIdAndRole(utilisateurId, role).isEmpty()) {
-      appartenances.save(Appartenance.attribuer(utilisateurId, role));
+    if (appartenances.findByUtilisateurIdAndRole(utilisateurId, role).isPresent()) {
+      return;
     }
+    appartenances.save(Appartenance.attribuer(utilisateurId, role));
+    journal.consigner(ROLE_ATTRIBUE, CIBLE_UTILISATEUR, utilisateurId, Map.of("role", role));
     changerGenerationAuCommit(utilisateurId);
   }
 
-  /** Retire un rôle à un utilisateur dans l'école courante. */
+  /** Retire un rôle (suppression logique, journalisée ; sans effet s'il ne l'a pas). */
   @PreAuthorize("hasRole('DIRECTEUR')")
   @Transactional
   public void retirer(UUID utilisateurId, RoleEcole role) {
     ContexteTenant.exiger();
-    appartenances.findByUtilisateurIdAndRole(utilisateurId, role).ifPresent(appartenances::delete);
+    Optional<Appartenance> active = appartenances.findByUtilisateurIdAndRole(utilisateurId, role);
+    if (active.isEmpty()) {
+      return;
+    }
+    active.get().revoquer(Instant.now());
+    journal.consigner(ROLE_RETIRE, CIBLE_UTILISATEUR, utilisateurId, Map.of("role", role));
     changerGenerationAuCommit(utilisateurId);
   }
 

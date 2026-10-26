@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Port des appartenances ; toujours limité à l'école courante (filtre Hibernate + RLS). */
+/**
+ * Port des appartenances ; toujours limité à l'école courante (filtre Hibernate + RLS). Pas de
+ * suppression physique : un retrait passe par {@link Appartenance#revoquer}.
+ */
 public interface AppartenanceRepository {
 
   List<Appartenance> findByUtilisateurId(UUID utilisateurId);
@@ -12,6 +15,4 @@ public interface AppartenanceRepository {
   Optional<Appartenance> findByUtilisateurIdAndRole(UUID utilisateurId, RoleEcole role);
 
   Appartenance save(Appartenance appartenance);
-
-  void delete(Appartenance appartenance);
 }

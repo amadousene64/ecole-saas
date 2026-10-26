@@ -49,7 +49,7 @@ public final class Fixtures {
         """
         INSERT INTO ecole.appartenance (id, tenant_id, utilisateur_id, role)
         VALUES (gen_random_uuid(), ?, ?, ?)
-        ON CONFLICT (tenant_id, utilisateur_id, role) DO NOTHING""",
+        ON CONFLICT (tenant_id, utilisateur_id, role) WHERE supprime_le IS NULL DO NOTHING""",
         ecole,
         utilisateur,
         role);

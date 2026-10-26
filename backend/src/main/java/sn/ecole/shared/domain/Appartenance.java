@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,6 +35,11 @@ public class Appartenance extends TenantAwareEntity {
   /** L'école est celle du contexte courant (renseignée par Hibernate à l'enregistrement). */
   public static Appartenance attribuer(UUID utilisateurId, RoleEcole role) {
     return new Appartenance(utilisateurId, role);
+  }
+
+  /** Retrait du rôle : suppression logique, la ligne reste pour l'historique des droits. */
+  public void revoquer(Instant quand) {
+    marquerSupprime(Objects.requireNonNull(quand));
   }
 
   public UUID getUtilisateurId() {
