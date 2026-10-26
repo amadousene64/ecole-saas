@@ -32,7 +32,8 @@ class OpenApiConfig {
       api.getPaths()
           .forEach(
               (chemin, operations) -> {
-                if (chemin.startsWith("/api/")) {
+                if (chemin.startsWith("/api/")
+                    && !chemin.equals(SecuriteConfig.CHEMIN_MES_ECOLES)) {
                   operations
                       .readOperations()
                       .forEach(

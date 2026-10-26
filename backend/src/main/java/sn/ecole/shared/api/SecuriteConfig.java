@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -19,6 +20,7 @@ import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import sn.ecole.shared.application.AppartenanceService;
 import sn.ecole.shared.domain.TenantRepository;
 
@@ -26,6 +28,23 @@ import sn.ecole.shared.domain.TenantRepository;
 @EnableMethodSecurity
 @EnableConfigurationProperties({TenantProperties.class, JetonProperties.class})
 class SecuriteConfig {
+
+  /** Seul appel de l'API sans école : liste des écoles de l'utilisateur, pour en choisir une. */
+  static final String CHEMIN_MES_ECOLES = "/api/v1/moi/ecoles";
+
+  /**
+   * Jeton obligatoire, mais PAS d'école : le sélecteur d'école doit pouvoir s'afficher avant d'en
+   * avoir choisi une. Chemin exact et méthode GET seulement ; tout autre appel (y compris une
+   * variante du chemin) retombe dans {@link #chaineApi} et exige une école dont l'utilisateur est
+   * membre. Le service ne lit que les écoles du {@code sub} du jeton.
+   */
+  @Bean
+  @Order(0)
+  SecurityFilterChain chaineMesEcoles(HttpSecurity http) throws Exception {
+    http.securityMatcher(
+        PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, CHEMIN_MES_ECOLES));
+    return configurerApi(http).build();
+  }
 
   /** API : jeton obligatoire, puis vérification de l'appartenance à l'école demandée. */
   @Bean
@@ -40,9 +59,13 @@ class SecuriteConfig {
     FiltreTenant filtreTenant =
         new FiltreTenant(new ResolveurTenantRequete(proprietes, tenants), appartenances, problemes);
     http.securityMatcher("/api/**")
-        .authorizeHttpRequests(r -> r.anyRequest().authenticated())
+        .addFilterAfter(filtreTenant, BearerTokenAuthenticationFilter.class);
+    return configurerApi(http).build();
+  }
+
+  private static HttpSecurity configurerApi(HttpSecurity http) throws Exception {
+    return http.authorizeHttpRequests(r -> r.anyRequest().authenticated())
         .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(sansRolesDuJeton())))
-        .addFilterAfter(filtreTenant, BearerTokenAuthenticationFilter.class)
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // API sans état authentifiée par jeton Bearer (pas de cookie) : pas de CSRF possible.
         .csrf(c -> c.disable())
@@ -50,7 +73,6 @@ class SecuriteConfig {
             h ->
                 h.contentSecurityPolicy(
                     c -> c.policyDirectives("default-src 'none'; frame-ancestors 'none'")));
-    return http.build();
   }
 
   /** Le reste : santé publique, documentation (activée seulement en dev), tout le reste refusé. */
