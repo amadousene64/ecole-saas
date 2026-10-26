@@ -12,6 +12,10 @@ spring:
 ecole:
   tenant:
     resolution: entete
+  securite:
+    jeton:
+      # La liste remplace celle par défaut : on y ajoute le client en ligne de commande.
+      clients-autorises: [backoffice, parent, vie-scolaire, dev-cli]
 
 springdoc:
   api-docs:

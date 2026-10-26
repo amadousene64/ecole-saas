@@ -1,6 +1,7 @@
 package sn.ecole.shared.api;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,9 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,7 +24,7 @@ import sn.ecole.shared.domain.TenantRepository;
 
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
-@EnableConfigurationProperties(TenantProperties.class)
+@EnableConfigurationProperties({TenantProperties.class, JetonProperties.class})
 class SecuriteConfig {
 
   /** API : jeton obligatoire, puis vérification de l'appartenance à l'école demandée. */
@@ -65,6 +69,24 @@ class SecuriteConfig {
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .csrf(c -> c.disable());
     return http.build();
+  }
+
+  /**
+   * Décodeur de jetons (Spring Boot s'efface devant ce bean). Créé à la première requête, pour ne
+   * pas exiger Keycloak au démarrage.
+   */
+  @Bean
+  JwtDecoder jwtDecoder(
+      @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String emetteur,
+      @Value("${spring.security.oauth2.resourceserver.jwt.audiences}") List<String> audiences,
+      JetonProperties jeton) {
+    var validateur = ValidateursJeton.pour(emetteur, audiences, jeton.ensemble());
+    return new SupplierJwtDecoder(
+        () -> {
+          NimbusJwtDecoder decodeur = NimbusJwtDecoder.withIssuerLocation(emetteur).build();
+          decodeur.setJwtValidator(validateur);
+          return decodeur;
+        });
   }
 
   /** Les rôles ne viennent jamais du jeton (ni scopes ni rôles de realm) : voir FiltreTenant. */

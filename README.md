@@ -61,7 +61,9 @@ Backend (production, sans profil) : `ECOLE_DB_URL`, `ECOLE_DB_APP_USER`, `ECOLE_
 
 ## Principes du socle multi-tenant
 
-- **Keycloak = authentification seulement.** Aucun rôle métier dans le realm.
+- **Keycloak = authentification seulement.** Aucun rôle métier dans le realm. Seuls les jetons
+  des clients listés dans `ecole.securite.jeton.clients-autorises` (revendication `azp`) sont
+  acceptés ; `dev-cli` ne l'est qu'en profil dev.
 - **Rôles par école** dans la table `appartenance` (source de vérité), mis en cache dans Redis (5 min).
   Pour chaque appel `/api/**`, `FiltreTenant` vérifie que l'utilisateur est membre de l'école
   demandée et ne charge que ses rôles dans CETTE école.

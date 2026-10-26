@@ -41,6 +41,9 @@ ecole:
     domaine-racine: ${ECOLE_DOMAINE_RACINE:monapp.sn}
   securite:
     cache-roles-ttl: 5m
+    jeton:
+      # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
+      clients-autorises: [backoffice, parent, vie-scolaire]
 
 springdoc:
   api-docs:
