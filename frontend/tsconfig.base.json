@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "importHelpers": true,
+    "isolatedModules": true,
+    "lib": [
+      "es2022",
+      "dom"
+    ],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "paths": {
+      "@ecole/auth": [
+        "./libs/auth/src/index.ts"
+      ],
+      "@ecole/api-client": [
+        "./libs/api-client/src/index.ts"
+      ],
+      "@ecole/ui": [
+        "./libs/ui/src/index.ts"
+      ]
+    }
+  }
+}
