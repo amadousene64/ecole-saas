@@ -141,6 +141,26 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000105",
+      "username": "censeur.a",
+      "email": "censeur.a@exemple.test",
+      "firstName": "Censeur",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000106",
+      "username": "eleve.b",
+      "email": "eleve.b@exemple.test",
+      "firstName": "Élève",
+      "lastName": "Fictif B",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
     }
   ]
 }

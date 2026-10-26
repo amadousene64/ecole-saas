@@ -6,6 +6,7 @@ package sn.ecole.shared.domain;
  */
 public enum RoleEcole {
   DIRECTEUR,
+  CENSEUR,
   SECRETARIAT,
   SURVEILLANT,
   ENSEIGNANT,
