@@ -1,0 +1,64 @@
+# Valeurs par défaut prudentes (production) ; le profil « dev » les assouplit pour le poste local.
+spring:
+  application:
+    name: ecole-backend
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    # L'application se connecte avec ecole_app : non propriétaire des tables => soumise à la RLS.
+    # logServerErrorDetail=false : pas de valeurs de lignes (téléphone…) dans les messages d'erreur.
+    url: ${ECOLE_DB_URL:jdbc:postgresql://localhost:55432/ecole?currentSchema=ecole&logServerErrorDetail=false}
+    username: ${ECOLE_DB_APP_USER:ecole_app}
+    password: ${ECOLE_DB_APP_PASSWORD:}
+  flyway:
+    # Les migrations, elles, tournent avec le propriétaire du schéma.
+    user: ${ECOLE_DB_OWNER_USER:ecole_owner}
+    password: ${ECOLE_DB_OWNER_PASSWORD:}
+    default-schema: ecole
+    locations: classpath:db/migration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ECOLE_OIDC_ISSUER:http://localhost:8180/realms/ecole}
+          audiences: ecole-api
+  data:
+    redis:
+      host: ${ECOLE_REDIS_HOST:localhost}
+      port: ${ECOLE_REDIS_PORT:56379}
+      password: ${ECOLE_REDIS_PASSWORD:}
+
+ecole:
+  tenant:
+    resolution: sous-domaine
+    domaine-racine: ${ECOLE_DOMAINE_RACINE:monapp.sn}
+  securite:
+    cache-roles-ttl: 5m
+    jeton:
+      # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
+      clients-autorises: [backoffice, parent, vie-scolaire]
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+  writer-with-order-by-keys: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never

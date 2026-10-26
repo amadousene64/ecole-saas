@@ -27,9 +27,19 @@ CREATE INDEX ix_<table>_tenant ON <table> (tenant_id /* , colonnes de recherche 
 ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;
 ALTER TABLE <table> FORCE ROW LEVEL SECURITY;
 CREATE POLICY isolement_ecole ON <table>
-  USING (tenant_id = current_setting('app.tenant_id')::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
+  USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid)
+  WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+GRANT SELECT, INSERT, UPDATE ON <table> TO ecole_app;  -- jamais DELETE sur les données scolaires
 ```
+
+   Pourquoi `NULLIF(current_setting('app.tenant_id', true), '')` : hors transaction (ou après
+   un `set_config(..., true)` terminé) la variable vaut `''` ou n'existe pas ; `''::uuid`
+   lèverait une erreur. Avec `NULLIF`, la comparaison vaut `NULL` : **aucune ligne visible,
+   aucune insertion possible**, sans erreur. Ne jamais écrire `current_setting('app.tenant_id')::uuid`.
+
+   Les migrations tournent avec le rôle propriétaire `ecole_owner` ; l'application se connecte
+   avec `ecole_app`, qui n'est pas propriétaire et reste donc soumis à la RLS. Toute nouvelle
+   table doit donner ses droits à `ecole_app` (le `GRANT` ci-dessus).
 
 3. Types : montants `BIGINT` (FCFA), notes `NUMERIC(5,2)` pour les valeurs figées et
    `NUMERIC(12,6)` pour les valeurs exactes, dates `DATE`, horodatages `TIMESTAMPTZ`,

@@ -1,0 +1,146 @@
+{
+  "realm": "ecole",
+  "displayName": "Gestion scolaire (dev)",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 5,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 0,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["fr"],
+  "defaultLocale": "fr",
+  "passwordPolicy": "length(10) and notUsername",
+  "clients": [
+    {
+      "clientId": "ecole-api",
+      "name": "API de la plateforme (ressource)",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "non-utilise-ressource-seulement"
+    },
+    {
+      "clientId": "backoffice",
+      "name": "Back-office (direction, secrétariat, enseignants, comptabilité)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:4200/*" },
+      "protocolMappers": [
+        {
+          "name": "audience-ecole-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "parent",
+      "name": "Espace parent (PWA)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:4201/*"],
+      "webOrigins": ["http://localhost:4201"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:4201/*" },
+      "protocolMappers": [
+        {
+          "name": "audience-ecole-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "vie-scolaire",
+      "name": "Poste vie scolaire (surveillants, billets)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:4202/*"],
+      "webOrigins": ["http://localhost:4202"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:4202/*" },
+      "protocolMappers": [
+        {
+          "name": "audience-ecole-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "dev-cli",
+      "name": "DEV UNIQUEMENT : jeton en ligne de commande pour les tests de bout en bout",
+      "description": "Mot de passe direct (password grant). Ne jamais créer ce client dans un realm de production.",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "audience-ecole-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "01930000-0000-7000-8000-000000000101",
+      "username": "directeur.a",
+      "email": "directeur.a@exemple.test",
+      "firstName": "Directeur",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000102",
+      "username": "enseignant.parent",
+      "email": "enseignant.parent@exemple.test",
+      "firstName": "Enseignant",
+      "lastName": "Parent Fictif",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000103",
+      "username": "surveillant.b",
+      "email": "surveillant.b@exemple.test",
+      "firstName": "Surveillant",
+      "lastName": "Fictif B",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Jamais contacté : les tests fournissent les jetons via spring-security-test.
+          issuer-uri: http://localhost:1/realms/test
+ecole:
+  tenant:
+    resolution: entete
+springdoc:
+  api-docs:
+    enabled: true
+logging:
+  level:
+    org.testcontainers: WARN

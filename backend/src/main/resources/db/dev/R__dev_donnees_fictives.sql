@@ -1,0 +1,25 @@
+-- DEV UNIQUEMENT (profil dev) : deux écoles et des appartenances fictives, alignées sur les
+-- utilisateurs de infra/keycloak/realm-ecole.json. Aucune donnée réelle.
+INSERT INTO tenant (id, code, nom, sous_domaine) VALUES
+  ('01930000-0000-7000-8000-0000000000a1', 'LYCEE-A', 'Lycée Exemple A', 'lycee-a'),
+  ('01930000-0000-7000-8000-0000000000b2', 'ECOLE-B', 'École Exemple B', 'ecole-b')
+ON CONFLICT (id) DO NOTHING;
+
+-- La RLS s'applique aussi au propriétaire (FORCE) : on se place dans chaque école.
+SELECT set_config('app.tenant_id', '01930000-0000-7000-8000-0000000000a1', true);
+INSERT INTO appartenance (id, tenant_id, utilisateur_id, role) VALUES
+  ('01930000-0000-7000-8000-00000000a001', '01930000-0000-7000-8000-0000000000a1',
+   '01930000-0000-7000-8000-000000000101', 'DIRECTEUR'),
+  ('01930000-0000-7000-8000-00000000a002', '01930000-0000-7000-8000-0000000000a1',
+   '01930000-0000-7000-8000-000000000102', 'ENSEIGNANT')
+ON CONFLICT (id) DO NOTHING;
+
+SELECT set_config('app.tenant_id', '01930000-0000-7000-8000-0000000000b2', true);
+INSERT INTO appartenance (id, tenant_id, utilisateur_id, role) VALUES
+  ('01930000-0000-7000-8000-00000000b001', '01930000-0000-7000-8000-0000000000b2',
+   '01930000-0000-7000-8000-000000000102', 'PARENT'),
+  ('01930000-0000-7000-8000-00000000b002', '01930000-0000-7000-8000-0000000000b2',
+   '01930000-0000-7000-8000-000000000103', 'SURVEILLANT')
+ON CONFLICT (id) DO NOTHING;
+
+SELECT set_config('app.tenant_id', '', true);

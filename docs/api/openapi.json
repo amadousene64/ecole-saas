@@ -1,0 +1,71 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "title" : "API Gestion scolaire",
+    "version" : "v1"
+  },
+  "security" : [ {
+    "jwt" : [ ]
+  } ],
+  "paths" : {
+    "/api/v1/moi" : {
+      "get" : {
+        "operationId" : "moi",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MoiDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Utilisateur connecté et ses rôles dans l'école demandée",
+        "tags" : [ "moi-controller" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "MoiDto" : {
+        "type" : "object",
+        "properties" : {
+          "ecoleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "utilisateurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "jwt" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  }
+}
