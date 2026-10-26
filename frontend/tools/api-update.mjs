@@ -8,7 +8,11 @@ const racine = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const windows = process.platform === 'win32';
 
 function lancer(commande, args, cwd) {
-  const r = spawnSync(commande, args, { cwd, stdio: 'inherit', shell: windows });
+  const r = spawnSync(commande, args, {
+    cwd,
+    stdio: 'inherit',
+    shell: windows,
+  });
   if (r.status !== 0) {
     process.exit(r.status ?? 1);
   }

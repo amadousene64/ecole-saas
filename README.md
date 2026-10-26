@@ -47,6 +47,19 @@ Utilisateurs fictifs du realm (mot de passe `Passer-2026-dev`) :
 ./mvnw test -Dtest=ContratOpenApiTest -Dopenapi.maj=true   # mettre à jour docs/api/openapi.json
 ```
 
+## Frontend
+
+Espace de travail Nx 24 / Angular 22 dans `frontend/` (détails : `frontend/README.md`). Prérequis :
+Node 24+, l'infra ci-dessus et le backend en profil dev.
+
+```bash
+cd frontend && npm install
+npx nx serve backoffice        # http://localhost:4200 (parent : 4201, vie-scolaire : 4202)
+npx nx run-many -t test lint build
+npx nx e2e backoffice-e2e      # connexion réelle via Keycloak (infra + backend démarrés)
+npm run api:generate           # régénère le client d'API depuis docs/api/openapi.json
+```
+
 ## Variables d'environnement
 
 Infra (`docker compose`, valeurs de dev par défaut) : `POSTGRES_PASSWORD`, `ECOLE_OWNER_PASSWORD`,

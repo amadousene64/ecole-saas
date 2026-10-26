@@ -2,14 +2,12 @@
 <header>
   <span class="titre">{{ titre() }}</span>
   @if (ecole(); as nomEcole) {
-  <span class="ecole" [attr.aria-label]="textes.ecoleCourante + ' ' + nomEcole"
-    >{{ nomEcole }}</span
-  >
+  <span class="ecole" title="École courante">{{ nomEcole }}</span>
   }
   <span class="espace"></span>
   @if (utilisateur(); as nom) {
   <details class="menu" #menu>
-    <summary [attr.aria-label]="textes.menuUtilisateur">{{ nom }}</summary>
+    <summary>{{ nom }}</summary>
     <div class="panneau">
       @if (plusieursEcoles()) {
       <button type="button" (click)="menu.open = false; changerEcole.emit()">

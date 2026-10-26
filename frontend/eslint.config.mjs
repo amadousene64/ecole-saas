@@ -27,7 +27,10 @@ export default [
               sourceTag: 'type:app',
               onlyDependOnLibsWithTags: ['type:auth', 'type:api', 'type:ui'],
             },
-            { sourceTag: 'type:auth', onlyDependOnLibsWithTags: ['type:api', 'type:ui'] },
+            {
+              sourceTag: 'type:auth',
+              onlyDependOnLibsWithTags: ['type:api', 'type:ui'],
+            },
             { sourceTag: 'type:api', onlyDependOnLibsWithTags: [] },
             { sourceTag: 'type:ui', onlyDependOnLibsWithTags: [] },
           ],

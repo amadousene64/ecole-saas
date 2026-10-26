@@ -41,6 +41,8 @@ export function provideEcoleAuth(config: ConfigAuth): EnvironmentProviders {
           useRefreshToken: true,
           ignoreNonceAfterRefresh: true,
           renewTimeBeforeTokenExpiresInSeconds: 30,
+          // Keycloak émet des jetons de rafraîchissement sans la portée offline_access.
+          disableRefreshTokenOfflineAccessScopeWarning: true,
           logLevel: LogLevel.Warn,
         },
       },
