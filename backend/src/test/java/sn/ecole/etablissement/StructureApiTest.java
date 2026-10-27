@@ -440,6 +440,36 @@ class StructureApiTest extends TestEtablissement {
     assertThat(r.code()).isEqualTo("SERIE_UTILISEE");
   }
 
+  @Test
+  void leSecretariatNeContournePasLaBaseDuDirecteurEnSupprimantLeNiveau() throws Exception {
+    JsonNode cp = niveauJson(DIRECTEUR_A, A, "CP");
+    String url = "/api/v1/niveaux/" + cp.path("id").asText();
+    put(
+        DIRECTEUR_A,
+        A,
+        url,
+        cp.path("version").asInt(),
+        corps("libelle", "CP", "ordre", 2, "baseMoyenne", 20, "actif", true));
+
+    assertThat(delete(SECRETARIAT_A, A, url).statut()).isEqualTo(403);
+    assertThat(get(DIRECTEUR_A, A, url).statut()).isEqualTo(200);
+    assertThat(delete(DIRECTEUR_A, A, url).statut()).isEqualTo(204);
+  }
+
+  @Test
+  void laListeDeSeriesEstBornee() throws Exception {
+    UUID cp = niveau(DIRECTEUR_A, A, "CP");
+    List<UUID> trop = new ArrayList<>();
+    for (int i = 0; i < 21; i++) {
+      trop.add(UUID.randomUUID());
+    }
+    Reponse r =
+        putSansVersion(
+            DIRECTEUR_A, A, "/api/v1/niveaux/" + cp + "/series", corps("serieIds", trop));
+    assertThat(r.statut()).isEqualTo(400);
+    assertThat(r.code()).isEqualTo("VALIDATION");
+  }
+
   // --- Isolement ---
 
   @Test

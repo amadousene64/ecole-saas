@@ -19,6 +19,10 @@ spring:
     url: ${ECOLE_DB_URL:jdbc:postgresql://localhost:55432/ecole?currentSchema=ecole&logServerErrorDetail=false}
     username: ${ECOLE_DB_APP_USER:ecole_app}
     password: ${ECOLE_DB_APP_PASSWORD:}
+    hikari:
+      # Aussi forcé ici : une URL surchargée par l'environnement ne doit pas réactiver les détails.
+      data-source-properties:
+        logServerErrorDetail: false
   flyway:
     # Les migrations, elles, tournent avec le propriétaire du schéma.
     user: ${ECOLE_DB_OWNER_USER:ecole_owner}

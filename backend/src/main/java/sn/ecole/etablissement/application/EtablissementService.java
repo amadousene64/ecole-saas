@@ -72,6 +72,8 @@ public class EtablissementService {
   public VueEtablissement modifier(int version, Modification m) {
     Etablissement e = charger();
     Erreurs.verifierVersion(version, e);
+    Map<String, Object> avant =
+        Map.of("nom", e.getNom(), "code", e.getCode(), "statut", e.getStatut().name());
     e.modifier(
         m.nom(),
         m.code(),
@@ -84,7 +86,15 @@ public class EtablissementService {
         m.fuseau(),
         m.devise());
     etablissements.save(e);
-    journal.consigner("ETABLISSEMENT_MODIFIE", "Etablissement", e.getId(), Map.of());
+    journal.consigner(
+        "ETABLISSEMENT_MODIFIE",
+        "Etablissement",
+        e.getId(),
+        Map.of(
+            "avant",
+            avant,
+            "apres",
+            Map.of("nom", e.getNom(), "code", e.getCode(), "statut", e.getStatut().name())));
     return vue(e);
   }
 

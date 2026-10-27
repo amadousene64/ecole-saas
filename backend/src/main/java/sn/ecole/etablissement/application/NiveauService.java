@@ -121,6 +121,11 @@ public class NiveauService {
   @PreAuthorize(Droits.ECRITURE)
   public void supprimer(UUID id) {
     Niveau niveau = charger(id);
+    if (niveau.getBaseMoyenne() != null) {
+      // Sinon : supprimer puis recréer sans base contournerait la règle « base = directeur seul ».
+      Erreurs.exigerDirecteur();
+      verifierBaseModifiable();
+    }
     if (classes.existsByNiveauId(id)) {
       throw Erreurs.conflit("NIVEAU_UTILISE", "Des classes utilisent ce niveau.");
     }

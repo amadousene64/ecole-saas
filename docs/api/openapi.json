@@ -1878,6 +1878,8 @@
               "type" : "string",
               "format" : "uuid"
             },
+            "maxItems" : 20,
+            "minItems" : 0,
             "uniqueItems" : true
           }
         },
