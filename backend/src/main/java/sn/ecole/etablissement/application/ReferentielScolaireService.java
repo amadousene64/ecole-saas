@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.ecole.etablissement.ReferentielScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaireRepository;
+import sn.ecole.etablissement.domain.ClasseRepository;
 import sn.ecole.etablissement.domain.Cycle;
 import sn.ecole.etablissement.domain.CycleRepository;
 import sn.ecole.etablissement.domain.Niveau;
@@ -33,6 +34,7 @@ public class ReferentielScolaireService implements ReferentielScolaire {
   private final PeriodeRepository periodes;
   private final CycleRepository cycles;
   private final NiveauRepository niveaux;
+  private final ClasseRepository classes;
   private final ParametresCycleAnneeRepository parametresCycles;
   private final ParametresNiveauAnneeRepository parametresNiveaux;
 
@@ -41,12 +43,14 @@ public class ReferentielScolaireService implements ReferentielScolaire {
       PeriodeRepository periodes,
       CycleRepository cycles,
       NiveauRepository niveaux,
+      ClasseRepository classes,
       ParametresCycleAnneeRepository parametresCycles,
       ParametresNiveauAnneeRepository parametresNiveaux) {
     this.annees = annees;
     this.periodes = periodes;
     this.cycles = cycles;
     this.niveaux = niveaux;
+    this.classes = classes;
     this.parametresCycles = parametresCycles;
     this.parametresNiveaux = parametresNiveaux;
   }
@@ -74,6 +78,28 @@ public class ReferentielScolaireService implements ReferentielScolaire {
                     p.getDateDebut(),
                     p.getDateFin()))
         .toList();
+  }
+
+  /** Réservé au personnel : une classe ne concerne ni les parents ni les élèves. */
+  @Override
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  public ClasseScolaire classe(UUID classeId) {
+    var classe =
+        classes
+            .findById(classeId)
+            .orElseThrow(() -> Erreurs.introuvable("CLASSE_INTROUVABLE", "Classe introuvable."));
+    UUID cycleId =
+        niveaux
+            .findById(classe.getNiveauId())
+            .orElseThrow(() -> Erreurs.introuvable("NIVEAU_INTROUVABLE", "Niveau introuvable."))
+            .getCycleId();
+    return new ClasseScolaire(
+        classe.getId(),
+        classe.getAnneeId(),
+        classe.getNiveauId(),
+        classe.getSerieId(),
+        cycleId,
+        classe.getNom());
   }
 
   @Override

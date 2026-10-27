@@ -197,7 +197,7 @@ class ClassesEtSallesApiTest extends TestEtablissement {
     Reponse c = creerClasse("TLE", "S2", "TS2B");
     String url = CLASSES + "/" + c.id();
     Object nouveau =
-        classe(niveau(DIRECTEUR_A, A, "TLE"), serie(DIRECTEUR_A, A, "S1"), "TS1A", 38, null);
+        classe(niveau(DIRECTEUR_A, A, "TLE"), serie(DIRECTEUR_A, A, "S2"), "TS1A", 38, null);
 
     Reponse r = put(SECRETARIAT_A, A, url, c.version(), nouveau);
     assertThat(r.statut()).isEqualTo(200);
@@ -217,7 +217,7 @@ class ClassesEtSallesApiTest extends TestEtablissement {
             A,
             url,
             get(DIRECTEUR_A, A, url).version(),
-            classe(niveau(DIRECTEUR_A, A, "TLE"), serie(DIRECTEUR_A, A, "S1"), "TS2B", 38, null));
+            classe(niveau(DIRECTEUR_A, A, "TLE"), serie(DIRECTEUR_A, A, "S2"), "TS2B", 38, null));
     assertThat(prise.statut()).isEqualTo(409);
     assertThat(prise.code()).isEqualTo("CLASSE_EXISTANTE");
 
@@ -231,7 +231,16 @@ class ClassesEtSallesApiTest extends TestEtablissement {
             classe(niveau(DIRECTEUR_A, A, "CP"), null, "TS1A", 38, null));
     assertThat(figee.statut()).isEqualTo(409);
     assertThat(figee.code()).isEqualTo("NIVEAU_CLASSE_FIGE");
-    // La série, dans le même niveau, reste modifiable (voir ci-dessus : S2 vers S1).
+    // La série est figée comme le niveau.
+    Reponse serieFigee =
+        put(
+            SECRETARIAT_A,
+            A,
+            url,
+            get(DIRECTEUR_A, A, url).version(),
+            classe(niveau(DIRECTEUR_A, A, "TLE"), serie(DIRECTEUR_A, A, "S1"), "TS1A", 38, null));
+    assertThat(serieFigee.statut()).isEqualTo(409);
+    assertThat(serieFigee.code()).isEqualTo("SERIE_CLASSE_FIGEE");
   }
 
   @Test
@@ -287,6 +296,52 @@ class ClassesEtSallesApiTest extends TestEtablissement {
             corps("niveauId", niveau(DIRECTEUR_A, A, "CP"), "nom", "CPA", "capacite", 40));
     assertThat(ok.statut()).isEqualTo(200);
     assertThat(ok.corps().path("serieId").isNull()).isTrue();
+  }
+
+  @Test
+  void laSerieDUneClasseChangeTantQueLAnneeEstEnPreparation() throws Exception {
+    Reponse suivante =
+        post(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/annees-scolaires",
+            corps("libelle", "2027-2028", "dateDebut", "2027-10-04", "dateFin", "2028-07-07"));
+    UUID tle = niveau(DIRECTEUR_A, A, "TLE");
+    Reponse c =
+        post(
+            SECRETARIAT_A,
+            A,
+            CLASSES,
+            corps(
+                "anneeId",
+                suivante.id(),
+                "niveauId",
+                tle,
+                "serieId",
+                serie(DIRECTEUR_A, A, "S2"),
+                "nom",
+                "TS2B",
+                "capacite",
+                40));
+
+    Reponse ok =
+        put(
+            SECRETARIAT_A,
+            A,
+            CLASSES + "/" + c.id(),
+            c.version(),
+            corps(
+                "niveauId",
+                tle,
+                "serieId",
+                serie(DIRECTEUR_A, A, "S1"),
+                "nom",
+                "TS1A",
+                "capacite",
+                40));
+    assertThat(ok.statut()).isEqualTo(200);
+    assertThat(ok.corps().path("serieId").asText())
+        .isEqualTo(serie(DIRECTEUR_A, A, "S1").toString());
   }
 
   // --- Lecture ---

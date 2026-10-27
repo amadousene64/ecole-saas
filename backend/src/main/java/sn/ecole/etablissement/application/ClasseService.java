@@ -2,6 +2,7 @@ package sn.ecole.etablissement.application;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -104,6 +105,13 @@ public class ClasseService {
       // d'année.
       throw Erreurs.conflit(
           "NIVEAU_CLASSE_FIGE", "Le niveau d'une classe ne change plus une fois l'année en cours.");
+    }
+    if (annee.getStatut() == StatutAnnee.EN_COURS
+        && !Objects.equals(saisie.serieId(), classe.getSerieId())) {
+      // La série fixe les coefficients : changer en cours d'année mélangerait deux barèmes dans les
+      // moyennes et le bilan annuel.
+      throw Erreurs.conflit(
+          "SERIE_CLASSE_FIGEE", "La série d'une classe ne change plus une fois l'année en cours.");
     }
     valider(saisie);
     // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.

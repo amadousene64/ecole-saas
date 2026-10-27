@@ -282,6 +282,88 @@ class ParametresAnneeTest extends TestEtablissement {
         .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
   }
 
+  // --- Lecture d'une classe (inscription, bulletin) ---
+
+  @Test
+  void leReferentielDonneAnneeNiveauSerieEtCycleDUneClasse() throws Exception {
+    UUID annee = creerEtOuvrirAnnee(DIRECTEUR_A, A);
+    UUID tle = niveau(DIRECTEUR_A, A, "TLE");
+    UUID s2 = serie(DIRECTEUR_A, A, "S2");
+    UUID cp = niveau(DIRECTEUR_A, A, "CP");
+    UUID tleClasse =
+        post(
+                DIRECTEUR_A,
+                A,
+                "/api/v1/classes",
+                corps(
+                    "anneeId",
+                    annee,
+                    "niveauId",
+                    tle,
+                    "serieId",
+                    s2,
+                    "nom",
+                    "TS2B",
+                    "capacite",
+                    45))
+            .id();
+    UUID cpClasse =
+        post(
+                DIRECTEUR_A,
+                A,
+                "/api/v1/classes",
+                corps("anneeId", annee, "niveauId", cp, "nom", "CPA", "capacite", 40))
+            .id();
+
+    var ts2b = lireCommeDirecteur(A, "ROLE_ENSEIGNANT", () -> referentiel.classe(tleClasse));
+    assertThat(ts2b.id()).isEqualTo(tleClasse);
+    assertThat(ts2b.anneeId()).isEqualTo(annee);
+    assertThat(ts2b.niveauId()).isEqualTo(tle);
+    assertThat(ts2b.serieId()).isEqualTo(s2);
+    assertThat(ts2b.cycleId()).isEqualTo(cycle(DIRECTEUR_A, A, "SECONDAIRE"));
+    assertThat(ts2b.nom()).isEqualTo("TS2B");
+
+    var cpa = lireCommeDirecteur(A, "ROLE_DIRECTEUR", () -> referentiel.classe(cpClasse));
+    assertThat(cpa.serieId()).isNull();
+    assertThat(cpa.cycleId()).isEqualTo(cycle(DIRECTEUR_A, A, "ELEMENTAIRE"));
+  }
+
+  @Test
+  void uneClasseInconnueOuDUneAutreEcoleEstIntrouvable() throws Exception {
+    UUID anneeB = creerEtOuvrirAnnee(DIRECTEUR_B, B);
+    UUID classeB =
+        post(
+                DIRECTEUR_B,
+                B,
+                "/api/v1/classes",
+                corps(
+                    "anneeId",
+                    anneeB,
+                    "niveauId",
+                    niveau(DIRECTEUR_B, B, "CP"),
+                    "nom",
+                    "CPA",
+                    "capacite",
+                    30))
+            .id();
+
+    for (UUID id : new UUID[] {UUID.randomUUID(), classeB}) {
+      assertThatThrownBy(
+              () -> lireCommeDirecteur(A, "ROLE_DIRECTEUR", () -> referentiel.classe(id)))
+          .isInstanceOfSatisfying(
+              ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("CLASSE_INTROUVABLE"));
+    }
+  }
+
+  @Test
+  void lesParentsEtLesElevesNeLisentPasLesClasses() {
+    for (String role : new String[] {"ROLE_PARENT", "ROLE_ELEVE", "ROLE_AUTRE"}) {
+      assertThatThrownBy(
+              () -> lireCommeDirecteur(A, role, () -> referentiel.classe(UUID.randomUUID())))
+          .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+  }
+
   // --- La base garantit l'immuabilité et la cohérence ---
 
   @Test

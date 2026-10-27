@@ -27,6 +27,19 @@ public interface ReferentielScolaire {
    */
   ParametresNotation parametresNotation(UUID anneeId);
 
+  /**
+   * Une classe : son année, son niveau, sa série éventuelle et le cycle du niveau. Pour les autres
+   * modules (inscription, bulletin) ; le niveau et la série sont figés dès que l'année est en
+   * cours.
+   *
+   * @throws sn.ecole.shared.domain.ErreurMetier CLASSE_INTROUVABLE si elle n'existe pas (ou est
+   *     d'une autre école)
+   */
+  ClasseScolaire classe(UUID classeId);
+
+  record ClasseScolaire(
+      UUID id, UUID anneeId, UUID niveauId, UUID serieId, UUID cycleId, String nom) {}
+
   record AnneeEnCours(UUID id, String libelle, LocalDate dateDebut, LocalDate dateFin) {}
 
   record PeriodeScolaire(
