@@ -45,8 +45,9 @@ public class SalleService {
   public Salle modifier(UUID id, int version, String nom, int capacite, boolean actif) {
     Salle salle = charger(id);
     Erreurs.verifierVersion(version, salle);
+    // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
+    verifierNomLibre(nom == null ? "" : nom.strip(), id);
     salle.modifier(nom, capacite, actif);
-    verifierNomLibre(salle.getNom(), id);
     return salles.save(salle);
   }
 

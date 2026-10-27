@@ -105,8 +105,9 @@ public class AnneeScolaireService {
       UUID id, int version, String libelle, LocalDate dateDebut, LocalDate dateFin) {
     AnneeScolaire annee = charger(id);
     Erreurs.verifierVersion(version, annee);
+    // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
+    verifierLibelleLibre(libelle == null ? "" : libelle.strip(), id);
     annee.modifier(libelle, dateDebut, dateFin);
-    verifierLibelleLibre(annee.getLibelle(), id);
     for (Cycle cycle : cycles.findAll()) {
       ReglesPeriodes.verifier(
           annee,
@@ -127,11 +128,11 @@ public class AnneeScolaireService {
   @PreAuthorize(Droits.ECRITURE)
   public void supprimer(UUID id) {
     AnneeScolaire annee = charger(id);
+    Instant maintenant = Instant.now();
+    annee.supprimer(maintenant); // refuse d'abord une année déjà ouverte ou clôturée
     if (!classes.findByAnneeIdOrderByNom(id).isEmpty()) {
       throw Erreurs.conflit("ANNEE_NON_VIDE", "Des classes sont rattachées à cette année.");
     }
-    Instant maintenant = Instant.now();
-    annee.supprimer(maintenant);
     for (Periode periode : periodes.findByAnneeId(id)) {
       periode.supprimer(maintenant);
       periodes.save(periode);

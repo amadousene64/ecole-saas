@@ -98,9 +98,10 @@ public class ClasseService {
     chargerAnnee(classe.getAnneeId()).verifierModifiable();
     Erreurs.verifierVersion(version, classe);
     valider(saisie);
+    // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
+    verifierNomLibre(classe.getAnneeId(), saisie.nom(), id);
     classe.modifier(
         saisie.niveauId(), saisie.serieId(), saisie.nom(), saisie.capacite(), saisie.salleId());
-    verifierNomLibre(classe.getAnneeId(), classe.getNom(), id);
     return classes.save(classe);
   }
 
@@ -135,7 +136,7 @@ public class ClasseService {
 
   private void verifierNomLibre(UUID anneeId, String nom, UUID sauf) {
     classes
-        .findByAnneeIdAndNomIgnoreCase(anneeId, nom.strip())
+        .findByAnneeIdAndNomIgnoreCase(anneeId, nom == null ? "" : nom.strip())
         .filter(autre -> !autre.getId().equals(sauf))
         .ifPresent(
             autre -> {

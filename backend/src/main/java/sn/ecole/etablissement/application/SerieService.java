@@ -2,6 +2,7 @@ package sn.ecole.etablissement.application;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -50,8 +51,9 @@ public class SerieService {
   public Serie modifier(UUID id, int version, String code, String libelle, boolean actif) {
     Serie serie = charger(id);
     Erreurs.verifierVersion(version, serie);
+    // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
+    verifierCodeLibre(code == null ? "" : code.strip().toUpperCase(Locale.ROOT), id);
     serie.modifier(code, libelle, actif);
-    verifierCodeLibre(serie.getCode(), id);
     return series.save(serie);
   }
 
