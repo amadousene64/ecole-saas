@@ -47,7 +47,17 @@ class GestionnaireErreurs extends ResponseEntityExceptionHandler {
   /** Contrainte de la base (unicité, clé étrangère) franchie malgré les contrôles applicatifs. */
   @ExceptionHandler(DataIntegrityViolationException.class)
   ResponseEntity<ProblemDetail> conflitDonnees(DataIntegrityViolationException e) {
-    LOG.warn("Contrainte de base violée : {}", e.getMostSpecificCause().getMessage());
+    // Jamais le message du pilote : il peut citer les valeurs de la ligne (données d'élèves).
+    String contrainte = "inconnue";
+    String etat = "?";
+    for (Throwable t = e.getCause(); t != null; t = t.getCause()) {
+      if (t instanceof org.hibernate.exception.ConstraintViolationException c) {
+        contrainte = String.valueOf(c.getConstraintName());
+        etat = String.valueOf(c.getSQLState());
+        break;
+      }
+    }
+    LOG.warn("Contrainte de base violée : {} (SQLState {})", contrainte, etat);
     return reponse(
         HttpStatus.CONFLICT,
         "CONFLIT_DONNEES",
