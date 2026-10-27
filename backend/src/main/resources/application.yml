@@ -5,6 +5,11 @@ server:
 spring:
   application:
     name: ecole-backend
+  servlet:
+    multipart:
+      # Images officielles : 1 Mo au plus (voir TypeImage). Au-delà, refus avant tout traitement.
+      max-file-size: 1MB
+      max-request-size: 1MB
   threads:
     virtual:
       enabled: true
@@ -49,6 +54,16 @@ ecole:
     jeton:
       # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
       clients-autorises: [backoffice, parent, vie-scolaire]
+
+  stockage:
+    # MinIO (API S3). Les clés d'accès viennent de l'environnement ; bucket privé.
+    endpoint: ${ECOLE_STOCKAGE_ENDPOINT:http://localhost:9000}
+    # Adresse vue par le navigateur pour les URL signées, si elle diffère de l'endpoint.
+    endpoint-public: ${ECOLE_STOCKAGE_ENDPOINT_PUBLIC:}
+    bucket: ${ECOLE_STOCKAGE_BUCKET:ecole-fichiers}
+    access-key: ${ECOLE_STOCKAGE_ACCESS_KEY:}
+    secret-key: ${ECOLE_STOCKAGE_SECRET_KEY:}
+    creer-bucket: false
 
 springdoc:
   api-docs:
