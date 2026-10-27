@@ -10,7 +10,7 @@
   "paths" : {
     "/api/v1/annees-scolaires" : {
       "get" : {
-        "operationId" : "lister_4",
+        "operationId" : "anneeScolaire_lister",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -40,7 +40,7 @@
         "tags" : [ "annee-scolaire-controller" ]
       },
       "post" : {
-        "operationId" : "creer_4",
+        "operationId" : "anneeScolaire_creer",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -79,7 +79,7 @@
     },
     "/api/v1/annees-scolaires/en-cours" : {
       "get" : {
-        "operationId" : "enCours",
+        "operationId" : "anneeScolaire_enCours",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -108,7 +108,7 @@
     },
     "/api/v1/annees-scolaires/{anneeId}/calendrier" : {
       "get" : {
-        "operationId" : "lister_5",
+        "operationId" : "calendrier_lister",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -146,7 +146,7 @@
         "tags" : [ "calendrier-controller" ]
       },
       "post" : {
-        "operationId" : "ajouter",
+        "operationId" : "calendrier_ajouter",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -193,7 +193,7 @@
     },
     "/api/v1/annees-scolaires/{anneeId}/calendrier/{evenementId}" : {
       "delete" : {
-        "operationId" : "supprimer_5",
+        "operationId" : "calendrier_supprimer",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -229,7 +229,7 @@
         "tags" : [ "calendrier-controller" ]
       },
       "put" : {
-        "operationId" : "modifier_8",
+        "operationId" : "calendrier_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -291,7 +291,7 @@
     },
     "/api/v1/annees-scolaires/{anneeId}/periodes" : {
       "get" : {
-        "operationId" : "lister_7",
+        "operationId" : "periode_lister",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -331,7 +331,7 @@
     },
     "/api/v1/annees-scolaires/{anneeId}/periodes/generation" : {
       "post" : {
-        "operationId" : "generer",
+        "operationId" : "periode_generer",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -371,7 +371,7 @@
     },
     "/api/v1/annees-scolaires/{anneeId}/periodes/{periodeId}" : {
       "put" : {
-        "operationId" : "modifier_7",
+        "operationId" : "periode_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "anneeId",
@@ -433,7 +433,7 @@
     },
     "/api/v1/annees-scolaires/{id}" : {
       "delete" : {
-        "operationId" : "supprimer_4",
+        "operationId" : "anneeScolaire_supprimer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -461,7 +461,7 @@
         "tags" : [ "annee-scolaire-controller" ]
       },
       "get" : {
-        "operationId" : "lire_4",
+        "operationId" : "anneeScolaire_lire",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -496,7 +496,7 @@
         "tags" : [ "annee-scolaire-controller" ]
       },
       "put" : {
-        "operationId" : "modifier_6",
+        "operationId" : "anneeScolaire_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -550,7 +550,7 @@
     },
     "/api/v1/annees-scolaires/{id}/cloture" : {
       "post" : {
-        "operationId" : "cloturer",
+        "operationId" : "anneeScolaire_cloturer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -587,7 +587,7 @@
     },
     "/api/v1/annees-scolaires/{id}/ouverture" : {
       "post" : {
-        "operationId" : "ouvrir",
+        "operationId" : "anneeScolaire_ouvrir",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -624,7 +624,7 @@
     },
     "/api/v1/classes" : {
       "get" : {
-        "operationId" : "lister_3",
+        "operationId" : "classe_lister",
         "parameters" : [ {
           "in" : "query",
           "name" : "annee",
@@ -670,7 +670,7 @@
         "tags" : [ "classe-controller" ]
       },
       "post" : {
-        "operationId" : "creer_3",
+        "operationId" : "classe_creer",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -709,7 +709,7 @@
     },
     "/api/v1/classes/{id}" : {
       "delete" : {
-        "operationId" : "supprimer_3",
+        "operationId" : "classe_supprimer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -737,7 +737,7 @@
         "tags" : [ "classe-controller" ]
       },
       "get" : {
-        "operationId" : "lire_3",
+        "operationId" : "classe_lire",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -772,7 +772,7 @@
         "tags" : [ "classe-controller" ]
       },
       "put" : {
-        "operationId" : "modifier_5",
+        "operationId" : "classe_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -826,7 +826,7 @@
     },
     "/api/v1/cycles" : {
       "get" : {
-        "operationId" : "lister_6",
+        "operationId" : "cycle_lister",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -858,7 +858,7 @@
     },
     "/api/v1/cycles/{id}" : {
       "put" : {
-        "operationId" : "modifier_4",
+        "operationId" : "cycle_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -912,7 +912,7 @@
     },
     "/api/v1/etablissement" : {
       "get" : {
-        "operationId" : "lire_2",
+        "operationId" : "etablissement_lire",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -939,7 +939,7 @@
         "tags" : [ "etablissement-controller" ]
       },
       "put" : {
-        "operationId" : "modifier_3",
+        "operationId" : "etablissement_modifier",
         "parameters" : [ {
           "in" : "header",
           "name" : "If-Match",
@@ -985,7 +985,7 @@
     },
     "/api/v1/etablissement/images/{type}" : {
       "delete" : {
-        "operationId" : "supprimerImage",
+        "operationId" : "etablissement_supprimerImage",
         "parameters" : [ {
           "in" : "path",
           "name" : "type",
@@ -1020,7 +1020,7 @@
         "tags" : [ "etablissement-controller" ]
       },
       "put" : {
-        "operationId" : "deposerImage",
+        "operationId" : "etablissement_deposerImage",
         "parameters" : [ {
           "in" : "path",
           "name" : "type",
@@ -1124,7 +1124,7 @@
     },
     "/api/v1/niveaux" : {
       "get" : {
-        "operationId" : "lister_2",
+        "operationId" : "niveau_lister",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -1154,7 +1154,7 @@
         "tags" : [ "niveau-controller" ]
       },
       "post" : {
-        "operationId" : "creer_2",
+        "operationId" : "niveau_creer",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -1193,7 +1193,7 @@
     },
     "/api/v1/niveaux/{id}" : {
       "delete" : {
-        "operationId" : "supprimer_2",
+        "operationId" : "niveau_supprimer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1221,7 +1221,7 @@
         "tags" : [ "niveau-controller" ]
       },
       "get" : {
-        "operationId" : "lire_1",
+        "operationId" : "niveau_lire",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1256,7 +1256,7 @@
         "tags" : [ "niveau-controller" ]
       },
       "put" : {
-        "operationId" : "modifier_2",
+        "operationId" : "niveau_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1310,7 +1310,7 @@
     },
     "/api/v1/niveaux/{id}/series" : {
       "put" : {
-        "operationId" : "definirSeries",
+        "operationId" : "niveau_definirSeries",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1357,7 +1357,7 @@
     },
     "/api/v1/salles" : {
       "get" : {
-        "operationId" : "lister_1",
+        "operationId" : "salle_lister",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -1387,7 +1387,7 @@
         "tags" : [ "salle-controller" ]
       },
       "post" : {
-        "operationId" : "creer_1",
+        "operationId" : "salle_creer",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -1426,7 +1426,7 @@
     },
     "/api/v1/salles/{id}" : {
       "delete" : {
-        "operationId" : "supprimer_1",
+        "operationId" : "salle_supprimer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1454,7 +1454,7 @@
         "tags" : [ "salle-controller" ]
       },
       "get" : {
-        "operationId" : "lire",
+        "operationId" : "salle_lire",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1489,7 +1489,7 @@
         "tags" : [ "salle-controller" ]
       },
       "put" : {
-        "operationId" : "modifier_1",
+        "operationId" : "salle_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1543,7 +1543,7 @@
     },
     "/api/v1/series" : {
       "get" : {
-        "operationId" : "lister",
+        "operationId" : "serie_lister",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -1573,7 +1573,7 @@
         "tags" : [ "serie-controller" ]
       },
       "post" : {
-        "operationId" : "creer",
+        "operationId" : "serie_creer",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -1612,7 +1612,7 @@
     },
     "/api/v1/series/{id}" : {
       "delete" : {
-        "operationId" : "supprimer",
+        "operationId" : "serie_supprimer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -1640,7 +1640,7 @@
         "tags" : [ "serie-controller" ]
       },
       "put" : {
-        "operationId" : "modifier",
+        "operationId" : "serie_modifier",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
