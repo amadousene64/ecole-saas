@@ -23,7 +23,11 @@ class LimiteurDebitRedisTest extends TestIntegration {
     Long ttl = redis.getExpire("limite:essai:ip");
     assertThat(ttl).isNotNull().isNotEqualTo(-1L); // jamais de compteur sans expiration
 
-    Thread.sleep(1200);
+    // L'expiration suit l'horloge de Redis (conteneur) : on attend qu'elle ait effacé la clé.
+    long limite = System.nanoTime() + Duration.ofSeconds(15).toNanos();
+    while (Boolean.TRUE.equals(redis.hasKey("limite:essai:ip")) && System.nanoTime() < limite) {
+      Thread.sleep(100);
+    }
     assertThat(limiteur.autoriser("essai:ip", 3, Duration.ofMillis(800))).isTrue();
   }
 }
