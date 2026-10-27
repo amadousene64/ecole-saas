@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import sn.ecole.etablissement.TypePeriode;
 
 /** Règles d'un jeu de périodes d'un même cycle, et leur génération par défaut. */
 public final class ReglesPeriodes {

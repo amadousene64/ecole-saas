@@ -1,9 +1,9 @@
 package sn.ecole.etablissement.api;
 
 import java.util.UUID;
-import sn.ecole.etablissement.domain.CodeCycle;
-import sn.ecole.etablissement.domain.ModeNotation;
-import sn.ecole.etablissement.domain.TypePeriode;
+import sn.ecole.etablissement.CodeCycle;
+import sn.ecole.etablissement.ModeNotation;
+import sn.ecole.etablissement.TypePeriode;
 
 public record CycleDto(
     UUID id,

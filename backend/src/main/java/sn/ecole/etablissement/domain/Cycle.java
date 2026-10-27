@@ -6,6 +6,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.util.Objects;
+import sn.ecole.etablissement.CodeCycle;
+import sn.ecole.etablissement.ModeNotation;
+import sn.ecole.etablissement.TypePeriode;
 import sn.ecole.shared.domain.TenantAwareEntity;
 
 /**
@@ -47,6 +50,7 @@ public class Cycle extends TenantAwareEntity {
     this.typePeriode = Objects.requireNonNull(typePeriode, "typePeriode");
     this.modeNotation = Objects.requireNonNull(modeNotation, "modeNotation");
     this.baseMoyenne = base(baseMoyenne);
+    ReglesNotation.verifier(modeNotation, this.baseMoyenne);
   }
 
   public static Cycle creer(
@@ -66,6 +70,7 @@ public class Cycle extends TenantAwareEntity {
     this.typePeriode = Objects.requireNonNull(typePeriode, "typePeriode");
     this.modeNotation = Objects.requireNonNull(modeNotation, "modeNotation");
     this.baseMoyenne = base(baseMoyenne);
+    ReglesNotation.verifier(modeNotation, this.baseMoyenne);
   }
 
   /** Vrai si les paramètres de notation et de découpage demandés sont ceux déjà en place. */

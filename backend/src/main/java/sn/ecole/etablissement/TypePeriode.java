@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.domain;
+package sn.ecole.etablissement;
 
 /** Découpage de l'année d'un cycle. */
 public enum TypePeriode {

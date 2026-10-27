@@ -95,8 +95,16 @@ public class ClasseService {
   @PreAuthorize(Droits.ECRITURE)
   public Classe modifier(UUID id, int version, Saisie saisie) {
     Classe classe = charger(id);
-    chargerAnnee(classe.getAnneeId()).verifierModifiable();
+    AnneeScolaire annee = chargerAnnee(classe.getAnneeId());
+    annee.verifierModifiable();
     Erreurs.verifierVersion(version, classe);
+    if (annee.getStatut() == StatutAnnee.EN_COURS
+        && !saisie.niveauId().equals(classe.getNiveauId())) {
+      // Le niveau fixe la base de la moyenne et les coefficients : il ne change plus en cours
+      // d'année.
+      throw Erreurs.conflit(
+          "NIVEAU_CLASSE_FIGE", "Le niveau d'une classe ne change plus une fois l'année en cours.");
+    }
     valider(saisie);
     // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
     verifierNomLibre(classe.getAnneeId(), saisie.nom(), id);

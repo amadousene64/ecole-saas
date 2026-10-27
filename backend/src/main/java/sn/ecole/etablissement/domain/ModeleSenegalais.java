@@ -2,6 +2,9 @@ package sn.ecole.etablissement.domain;
 
 import java.util.List;
 import java.util.Map;
+import sn.ecole.etablissement.CodeCycle;
+import sn.ecole.etablissement.ModeNotation;
+import sn.ecole.etablissement.TypePeriode;
 
 /**
  * Référentiel « modèle sénégalais » : cycles, niveaux (CI à Terminale) et séries du lycée. Copié

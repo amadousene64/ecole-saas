@@ -79,7 +79,7 @@ public abstract class TestEtablissement extends TestIntegration {
     superUtilisateur()
         .execute(
             """
-            TRUNCATE ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
+            TRUNCATE ecole.parametres_niveau_annee, ecole.parametres_cycle_annee, ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
               ecole.annee_scolaire, ecole.niveau_serie, ecole.niveau, ecole.serie, ecole.cycle,
               ecole.etablissement_image, ecole.etablissement""");
     stockage.vider();

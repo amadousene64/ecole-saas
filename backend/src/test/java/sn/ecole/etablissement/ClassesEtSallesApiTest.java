@@ -221,15 +221,72 @@ class ClassesEtSallesApiTest extends TestEtablissement {
     assertThat(prise.statut()).isEqualTo(409);
     assertThat(prise.code()).isEqualTo("CLASSE_EXISTANTE");
 
-    // Changer de niveau impose la série correspondante.
-    Reponse incoherente =
+    // Année en cours : le niveau est figé (il fixe la base et les coefficients).
+    Reponse figee =
         put(
             SECRETARIAT_A,
             A,
             url,
             get(DIRECTEUR_A, A, url).version(),
-            classe(niveau(DIRECTEUR_A, A, "CP"), serie(DIRECTEUR_A, A, "S1"), "TS1A", 38, null));
+            classe(niveau(DIRECTEUR_A, A, "CP"), null, "TS1A", 38, null));
+    assertThat(figee.statut()).isEqualTo(409);
+    assertThat(figee.code()).isEqualTo("NIVEAU_CLASSE_FIGE");
+    // La série, dans le même niveau, reste modifiable (voir ci-dessus : S2 vers S1).
+  }
+
+  @Test
+  void leNiveauDUneClasseChangeTantQueLAnneeEstEnPreparation() throws Exception {
+    Reponse suivante =
+        post(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/annees-scolaires",
+            corps("libelle", "2027-2028", "dateDebut", "2027-10-04", "dateFin", "2028-07-07"));
+    Reponse c =
+        post(
+            SECRETARIAT_A,
+            A,
+            CLASSES,
+            corps(
+                "anneeId",
+                suivante.id(),
+                "niveauId",
+                niveau(DIRECTEUR_A, A, "TLE"),
+                "serieId",
+                serie(DIRECTEUR_A, A, "S2"),
+                "nom",
+                "TS2B",
+                "capacite",
+                40));
+    String url = CLASSES + "/" + c.id();
+
+    // La série doit toujours correspondre au niveau.
+    Reponse incoherente =
+        put(
+            SECRETARIAT_A,
+            A,
+            url,
+            c.version(),
+            corps(
+                "niveauId",
+                niveau(DIRECTEUR_A, A, "CP"),
+                "serieId",
+                serie(DIRECTEUR_A, A, "S1"),
+                "nom",
+                "TS2B",
+                "capacite",
+                40));
     assertThat(incoherente.code()).isEqualTo("SERIE_INTERDITE");
+
+    Reponse ok =
+        put(
+            SECRETARIAT_A,
+            A,
+            url,
+            c.version(),
+            corps("niveauId", niveau(DIRECTEUR_A, A, "CP"), "nom", "CPA", "capacite", 40));
+    assertThat(ok.statut()).isEqualTo(200);
+    assertThat(ok.corps().path("serieId").isNull()).isTrue();
   }
 
   // --- Lecture ---

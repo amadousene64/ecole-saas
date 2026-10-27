@@ -33,7 +33,9 @@ class IsolementBaseTest extends TestEtablissement {
           "periode",
           "evenement_calendrier",
           "salle",
-          "classe");
+          "classe",
+          "parametres_cycle_annee",
+          "parametres_niveau_annee");
 
   private UUID anneeA;
   private UUID anneeB;

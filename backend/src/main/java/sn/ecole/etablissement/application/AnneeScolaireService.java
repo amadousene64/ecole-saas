@@ -21,6 +21,11 @@ import sn.ecole.etablissement.domain.CycleRepository;
 import sn.ecole.etablissement.domain.EvenementCalendrier;
 import sn.ecole.etablissement.domain.EvenementCalendrierRepository;
 import sn.ecole.etablissement.domain.JoursFeries;
+import sn.ecole.etablissement.domain.NiveauRepository;
+import sn.ecole.etablissement.domain.ParametresCycleAnnee;
+import sn.ecole.etablissement.domain.ParametresCycleAnneeRepository;
+import sn.ecole.etablissement.domain.ParametresNiveauAnnee;
+import sn.ecole.etablissement.domain.ParametresNiveauAnneeRepository;
 import sn.ecole.etablissement.domain.Periode;
 import sn.ecole.etablissement.domain.PeriodeRepository;
 import sn.ecole.etablissement.domain.ReglesPeriodes;
@@ -45,6 +50,9 @@ public class AnneeScolaireService {
   private final FabriquePeriodes fabrique;
   private final JournalAudit journal;
   private final ApplicationEventPublisher evenements;
+  private final ParametresCycleAnneeRepository parametresCycles;
+  private final ParametresNiveauAnneeRepository parametresNiveaux;
+  private final NiveauRepository niveaux;
 
   public AnneeScolaireService(
       AnneeScolaireRepository annees,
@@ -54,7 +62,10 @@ public class AnneeScolaireService {
       ClasseRepository classes,
       FabriquePeriodes fabrique,
       JournalAudit journal,
-      ApplicationEventPublisher evenements) {
+      ApplicationEventPublisher evenements,
+      ParametresCycleAnneeRepository parametresCycles,
+      ParametresNiveauAnneeRepository parametresNiveaux,
+      NiveauRepository niveaux) {
     this.annees = annees;
     this.cycles = cycles;
     this.periodes = periodes;
@@ -63,6 +74,9 @@ public class AnneeScolaireService {
     this.fabrique = fabrique;
     this.journal = journal;
     this.evenements = evenements;
+    this.parametresCycles = parametresCycles;
+    this.parametresNiveaux = parametresNiveaux;
+    this.niveaux = niveaux;
   }
 
   @PreAuthorize(Droits.LECTURE_TOUS)
@@ -160,6 +174,7 @@ public class AnneeScolaireService {
       verifierPeriodesCompletes(id);
     }
     annee.ouvrir();
+    figerLesParametres(annee);
     try {
       annees.saveAndFlush(annee);
     } catch (DataIntegrityViolationException e) {
@@ -195,6 +210,26 @@ public class AnneeScolaireService {
             annee.getDateDebut(),
             annee.getDateFin()));
     return annee;
+  }
+
+  /**
+   * Copie les paramètres de chaque cycle et de chaque niveau pour cette année : ils ne bougeront
+   * plus, même si le directeur modifie ensuite le modèle (les bulletins d'une année se calculent
+   * avec les paramètres qu'elle avait).
+   */
+  private void figerLesParametres(AnneeScolaire annee) {
+    Map<UUID, Cycle> parId = new java.util.HashMap<>();
+    for (Cycle cycle : cycles.findAll()) {
+      parId.put(cycle.getId(), cycle);
+      parametresCycles.save(ParametresCycleAnnee.figer(annee.getId(), cycle));
+    }
+    niveaux
+        .findAllByOrderByOrdre()
+        .forEach(
+            niveau ->
+                parametresNiveaux.save(
+                    ParametresNiveauAnnee.figer(
+                        annee.getId(), niveau, parId.get(niveau.getCycleId()))));
   }
 
   private void verifierPeriodesCompletes(UUID anneeId) {

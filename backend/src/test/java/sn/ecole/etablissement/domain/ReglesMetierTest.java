@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import sn.ecole.etablissement.CodeCycle;
+import sn.ecole.etablissement.ModeNotation;
 import sn.ecole.etablissement.StatutEtablissement;
+import sn.ecole.etablissement.TypePeriode;
 import sn.ecole.shared.domain.ErreurMetier;
 import sn.ecole.shared.domain.TypeErreur;
 
@@ -278,6 +281,30 @@ class ReglesMetierTest {
     assertCode(() -> Niveau.creer(UUID.randomUUID(), "X", "X", 1, 12), "BASE_MOYENNE_INVALIDE");
     assertCode(() -> Niveau.creer(UUID.randomUUID(), "X Y", "X", 1, null), "CHAMP_INVALIDE");
     assertCode(() -> Niveau.creer(UUID.randomUUID(), "X", "X", 0, null), "CHAMP_INVALIDE");
+  }
+
+  // --- Base 10 : barèmes seulement ---
+
+  @Test
+  void laBaseDixEstRefuseeAvecDesCoefficients() {
+    assertCode(() -> ReglesNotation.verifier(ModeNotation.COEFFICIENT, 10), "BASE_INCOMPATIBLE");
+    assertThatCode(() -> ReglesNotation.verifier(ModeNotation.COEFFICIENT, 20))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> ReglesNotation.verifier(ModeNotation.BAREME, 10))
+        .doesNotThrowAnyException();
+    assertThatCode(() -> ReglesNotation.verifier(ModeNotation.BAREME, 20))
+        .doesNotThrowAnyException();
+
+    Cycle cycle =
+        Cycle.creer(CodeCycle.MOYEN, "Moyen", TypePeriode.SEMESTRE, ModeNotation.COEFFICIENT, 20);
+    assertCode(
+        () -> cycle.parametrer(TypePeriode.SEMESTRE, ModeNotation.COEFFICIENT, 10),
+        "BASE_INCOMPATIBLE");
+    assertCode(
+        () ->
+            Cycle.creer(
+                CodeCycle.MOYEN, "Moyen", TypePeriode.SEMESTRE, ModeNotation.COEFFICIENT, 10),
+        "BASE_INCOMPATIBLE");
   }
 
   // --- Modèle sénégalais ---

@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sn.ecole.etablissement.domain.AnneeScolaireRepository;
 import sn.ecole.etablissement.domain.ClasseRepository;
 import sn.ecole.etablissement.domain.Cycle;
 import sn.ecole.etablissement.domain.CycleRepository;
@@ -19,8 +18,8 @@ import sn.ecole.etablissement.domain.Niveau;
 import sn.ecole.etablissement.domain.NiveauRepository;
 import sn.ecole.etablissement.domain.NiveauSerie;
 import sn.ecole.etablissement.domain.NiveauSerieRepository;
+import sn.ecole.etablissement.domain.ReglesNotation;
 import sn.ecole.etablissement.domain.SerieRepository;
-import sn.ecole.etablissement.domain.StatutAnnee;
 import sn.ecole.shared.application.JournalAudit;
 
 /** Niveaux d'études, leur base de moyenne éventuelle et les séries qu'ils proposent. */
@@ -36,7 +35,6 @@ public class NiveauService {
   private final SerieRepository series;
   private final NiveauSerieRepository liens;
   private final ClasseRepository classes;
-  private final AnneeScolaireRepository annees;
   private final JournalAudit journal;
 
   public NiveauService(
@@ -45,14 +43,12 @@ public class NiveauService {
       SerieRepository series,
       NiveauSerieRepository liens,
       ClasseRepository classes,
-      AnneeScolaireRepository annees,
       JournalAudit journal) {
     this.niveaux = niveaux;
     this.cycles = cycles;
     this.series = series;
     this.liens = liens;
     this.classes = classes;
-    this.annees = annees;
     this.journal = journal;
   }
 
@@ -86,14 +82,15 @@ public class NiveauService {
   /** Une base de moyenne propre au niveau est un paramètre de notation : directeur seulement. */
   @PreAuthorize(Droits.ECRITURE)
   public VueNiveau creer(UUID cycleId, String code, String libelle, int ordre, Integer base) {
-    cycles
-        .findById(cycleId)
-        .orElseThrow(() -> Erreurs.introuvable("CYCLE_INTROUVABLE", "Cycle introuvable."));
+    Cycle cycle =
+        cycles
+            .findById(cycleId)
+            .orElseThrow(() -> Erreurs.introuvable("CYCLE_INTROUVABLE", "Cycle introuvable."));
     if (base != null) {
       Erreurs.exigerDirecteur();
-      verifierBaseModifiable();
     }
     Niveau niveau = Niveau.creer(cycleId, code, libelle, ordre, base);
+    ReglesNotation.verifier(cycle.getModeNotation(), niveau.baseMoyenneEffective(cycle));
     verifierCodeLibre(niveau.getCode(), null);
     niveaux.save(niveau);
     return vue(niveau);
@@ -106,7 +103,6 @@ public class NiveauService {
     Erreurs.verifierVersion(version, niveau);
     if (!niveau.aLaBase(base)) {
       Erreurs.exigerDirecteur();
-      verifierBaseModifiable();
       journal.consigner(
           "NIVEAU_BASE_MODIFIEE",
           "Niveau",
@@ -114,6 +110,11 @@ public class NiveauService {
           Map.of("avant", String.valueOf(niveau.getBaseMoyenne()), "apres", String.valueOf(base)));
     }
     niveau.modifier(libelle, ordre, base, actif);
+    Cycle cycle =
+        cycles
+            .findById(niveau.getCycleId())
+            .orElseThrow(() -> Erreurs.introuvable("CYCLE_INTROUVABLE", "Cycle introuvable."));
+    ReglesNotation.verifier(cycle.getModeNotation(), niveau.baseMoyenneEffective(cycle));
     niveaux.save(niveau);
     return vue(niveau);
   }
@@ -124,7 +125,6 @@ public class NiveauService {
     if (niveau.getBaseMoyenne() != null) {
       // Sinon : supprimer puis recréer sans base contournerait la règle « base = directeur seul ».
       Erreurs.exigerDirecteur();
-      verifierBaseModifiable();
     }
     if (classes.existsByNiveauId(id)) {
       throw Erreurs.conflit("NIVEAU_UTILISE", "Des classes utilisent ce niveau.");
@@ -171,13 +171,6 @@ public class NiveauService {
       }
     }
     return vue(niveau);
-  }
-
-  private void verifierBaseModifiable() {
-    if (annees.existsByStatutIn(List.of(StatutAnnee.EN_COURS, StatutAnnee.CLOTUREE))) {
-      throw Erreurs.conflit(
-          "CYCLE_VERROUILLE", "La base de la moyenne ne change plus une fois une année ouverte.");
-    }
   }
 
   private Niveau charger(UUID id) {

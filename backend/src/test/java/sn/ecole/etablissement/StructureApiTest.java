@@ -132,26 +132,79 @@ class StructureApiTest extends TestEtablissement {
   }
 
   @Test
-  void lesParametresDUnCycleSontVerrouillesUneFoisUneAnneeOuverte() throws Exception {
+  void leModeleDUnCycleResteModifiableUneFoisUneAnneeOuverte() throws Exception {
     JsonNode cycle = get(DIRECTEUR_A, A, "/api/v1/cycles").corps().get(2);
     String url = "/api/v1/cycles/" + cycle.path("id").asText();
     creerEtOuvrirAnnee(DIRECTEUR_A, A);
     int version = get(DIRECTEUR_A, A, "/api/v1/cycles").corps().get(2).path("version").asInt();
 
+    // Plus de verrou permanent : le modèle change, seules les années à venir en tiendront compte.
     Reponse change =
         put(DIRECTEUR_A, A, url, version, corpsCycle("Secondaire", "TRIMESTRE", "COEFFICIENT", 20));
-    assertThat(change.statut()).isEqualTo(409);
-    assertThat(change.code()).isEqualTo("CYCLE_VERROUILLE");
+    assertThat(change.statut()).isEqualTo(200);
+    assertThat(change.corps().path("typePeriode").asText()).isEqualTo("TRIMESTRE");
+  }
 
-    // Renommer, sans toucher aux paramètres, reste possible.
-    Reponse libelle =
+  @Test
+  void laBaseDixEstRefuseeEnNotationParCoefficients() throws Exception {
+    JsonNode moyen = get(DIRECTEUR_A, A, "/api/v1/cycles").corps().get(1);
+    Reponse r =
         put(
             DIRECTEUR_A,
             A,
-            url,
-            version,
-            corpsCycle("Second cycle", "SEMESTRE", "COEFFICIENT", 20));
-    assertThat(libelle.statut()).isEqualTo(200);
+            "/api/v1/cycles/" + moyen.path("id").asText(),
+            moyen.path("version").asInt(),
+            corpsCycle("Moyen", "SEMESTRE", "COEFFICIENT", 10));
+    assertThat(r.statut()).isEqualTo(422);
+    assertThat(r.code()).isEqualTo("BASE_INCOMPATIBLE");
+
+    // Passer le primaire (base 10, barème) en coefficients exige donc la base 20.
+    JsonNode elem = get(DIRECTEUR_A, A, "/api/v1/cycles").corps().get(0);
+    assertThat(
+            put(
+                    DIRECTEUR_A,
+                    A,
+                    "/api/v1/cycles/" + elem.path("id").asText(),
+                    elem.path("version").asInt(),
+                    corpsCycle("Élémentaire", "TRIMESTRE", "COEFFICIENT", 10))
+                .code())
+        .isEqualTo("BASE_INCOMPATIBLE");
+  }
+
+  @Test
+  void unCycleNePasseEnCoefficientsSiUnDeSesNiveauxSurchargeLaBaseA10() throws Exception {
+    JsonNode elem = get(DIRECTEUR_A, A, "/api/v1/cycles").corps().get(0);
+    JsonNode cp = niveauJson(DIRECTEUR_A, A, "CP");
+    put(
+        DIRECTEUR_A,
+        A,
+        "/api/v1/niveaux/" + cp.path("id").asText(),
+        cp.path("version").asInt(),
+        corps("libelle", "CP", "ordre", 2, "baseMoyenne", 10, "actif", true));
+
+    Reponse r =
+        put(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/cycles/" + elem.path("id").asText(),
+            elem.path("version").asInt(),
+            corpsCycle("Élémentaire", "TRIMESTRE", "COEFFICIENT", 20));
+    assertThat(r.statut()).isEqualTo(422);
+    assertThat(r.code()).isEqualTo("BASE_INCOMPATIBLE");
+  }
+
+  @Test
+  void uneSurchargeDeBaseDixEstRefuseeDansUnCycleParCoefficients() throws Exception {
+    JsonNode sixieme = niveauJson(DIRECTEUR_A, A, "6E");
+    Reponse r =
+        put(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/niveaux/" + sixieme.path("id").asText(),
+            sixieme.path("version").asInt(),
+            corps("libelle", "6e", "ordre", 7, "baseMoyenne", 10, "actif", true));
+    assertThat(r.statut()).isEqualTo(422);
+    assertThat(r.code()).isEqualTo("BASE_INCOMPATIBLE");
   }
 
   @Test
@@ -215,8 +268,28 @@ class StructureApiTest extends TestEtablissement {
                 15,
                 "baseMoyenne",
                 10));
-    assertThat(directeur.statut()).isEqualTo(201);
-    assertThat(directeur.corps().path("baseMoyenneEffective").asInt()).isEqualTo(10);
+    // Base 10 : réservée aux cycles par barème. Le secondaire est par coefficients.
+    assertThat(directeur.statut()).isEqualTo(422);
+    assertThat(directeur.code()).isEqualTo("BASE_INCOMPATIBLE");
+
+    Reponse elementaire =
+        post(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/niveaux",
+            corps(
+                "cycleId",
+                cycle(DIRECTEUR_A, A, "ELEMENTAIRE"),
+                "code",
+                "PS",
+                "libelle",
+                "Petite section",
+                "ordre",
+                16,
+                "baseMoyenne",
+                20));
+    assertThat(elementaire.statut()).isEqualTo(201);
+    assertThat(elementaire.corps().path("baseMoyenneEffective").asInt()).isEqualTo(20);
   }
 
   @Test
@@ -244,21 +317,6 @@ class StructureApiTest extends TestEtablissement {
             corps("libelle", "Cours préparatoire", "ordre", 2, "actif", true));
     assertThat(renomme.statut()).isEqualTo(200);
     assertThat(renomme.corps().path("libelle").asText()).isEqualTo("Cours préparatoire");
-  }
-
-  @Test
-  void laBaseDUnNiveauEstVerrouilleeUneFoisUneAnneeOuverte() throws Exception {
-    creerEtOuvrirAnnee(DIRECTEUR_A, A);
-    JsonNode cp = niveauJson(DIRECTEUR_A, A, "CP");
-    Reponse r =
-        put(
-            DIRECTEUR_A,
-            A,
-            "/api/v1/niveaux/" + cp.path("id").asText(),
-            cp.path("version").asInt(),
-            corps("libelle", "CP", "ordre", 2, "baseMoyenne", 20, "actif", true));
-    assertThat(r.statut()).isEqualTo(409);
-    assertThat(r.code()).isEqualTo("CYCLE_VERROUILLE");
   }
 
   @Test
