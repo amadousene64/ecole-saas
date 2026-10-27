@@ -1,0 +1,48 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule: { interval: weekly, day: monday, timezone: Africa/Dakar }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(deps)" }
+    groups:
+      spring:
+        patterns: ["org.springframework*"]
+      testcontainers:
+        patterns: ["org.testcontainers*"]
+    ignore:
+      # Montées majeures de Spring Boot : décision manuelle.
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly, day: monday, timezone: Africa/Dakar }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(deps)" }
+    groups:
+      angular:
+        patterns: ["@angular/*", "@angular-devkit/*", "angular-eslint", "@angular-eslint/*"]
+      nx:
+        patterns: ["nx", "@nx/*"]
+      playwright:
+        patterns: ["@playwright/*", "playwright*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday, timezone: Africa/Dakar }
+    commit-message: { prefix: "chore(ci)" }
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Pas de Dockerfile : seules les images de infra/docker-compose.yml sont suivies. Si un
+  # Dockerfile apparaît, ajouter aussi l'écosystème « docker ».
+  - package-ecosystem: docker-compose
+    directory: /infra
+    schedule: { interval: weekly, day: monday, timezone: Africa/Dakar }
+    commit-message: { prefix: "chore(deps)" }
+    ignore:
+      # Le projet est calé sur PostgreSQL 17 (CLAUDE.md).
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
