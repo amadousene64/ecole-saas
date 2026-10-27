@@ -39,7 +39,7 @@
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-playwright": "^1.6.2",
-    "jsdom": "^27.1.0",
+    "jsdom": "^30.1.3",
     "ng-openapi-gen": "^1.1.0",
     "nx": "24.0.1",
     "prettier": "^3.8.1",
