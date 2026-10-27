@@ -49,7 +49,15 @@ docker compose -f infra/docker-compose.yml up -d   # postgres, keycloak, rabbitm
    jamais `double`. Voir `docs/bulletins/regles-bulletins.md`.
 7. **Événements fiables** : effet externe (SMS, paiement, PDF) = événement écrit dans l'outbox
    dans la même transaction, traité par un worker. Endpoints de création sensibles idempotents
-   (`Idempotency-Key`).
+   (`Idempotency-Key`). Deux exceptions actées :
+   - **Stockage d'objets (MinIO)** : non transactionnel, il est écrit pendant la transaction avec
+     compensation (`ApresTransaction` : fichier retiré si la base est annulée, ancien fichier
+     supprimé seulement après validation). Au pire un objet orphelin, à balayer par un job de purge.
+   - **Créations non sensibles** (années, classes, salles, niveaux…) : pas d'`Idempotency-Key` ; le
+     verrou optimiste `If-Match` / `ETag` protège les modifications. Paiements, billets et appels
+     hors-ligne restent soumis à la règle.
+   Les événements de domaine en process (`ApplicationEventPublisher`) ne sont pas des effets
+   externes ; un consommateur qui en déclenche un passe par l'outbox.
 8. **Migrations Flyway** : une migration appliquée n'est jamais modifiée ; on en crée une nouvelle.
    Nommage `V<AAAAMMJJHHMM>__<module>_<description>.sql`.
 9. **Erreurs** : RFC 9457 `ProblemDetail` avec un code métier (`BILLET_EXPIRE`).
