@@ -50,6 +50,16 @@ spring:
       timeout: 1s
 
 ecole:
+  cles:
+    # Base64 de 32 octets chacune, DISTINCTES, fournies par l'environnement (jamais dans le dépôt).
+    # Générer : openssl rand -base64 32. Absentes : l'application refuse de démarrer.
+    chiffrement: ${ECOLE_CLE_CHIFFREMENT:}
+    id-chiffrement: ${ECOLE_CLE_CHIFFREMENT_ID:k1}
+    hmac-codes: ${ECOLE_CLE_HMAC_CODES:}
+  outbox:
+    relais:
+      actif: true
+      delai: 5s
   tenant:
     resolution: sous-domaine
     domaine-racine: ${ECOLE_DOMAINE_RACINE:monapp.sn}

@@ -1,9 +1,9 @@
-package sn.ecole.etablissement.infrastructure;
+package sn.ecole.shared.infrastructure;
 
 import java.net.URI;
 import java.time.Duration;
 import org.springframework.stereotype.Component;
-import sn.ecole.etablissement.domain.StockageFichiers;
+import sn.ecole.shared.domain.StockageFichiers;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -55,9 +56,37 @@ class StockageS3 implements StockageFichiers {
   }
 
   @Override
+  public byte[] lire(String cle) {
+    try {
+      return client()
+          .getObjectAsBytes(GetObjectRequest.builder().bucket(proprietes.bucket()).key(cle).build())
+          .asByteArray();
+    } catch (NoSuchKeyException e) {
+      throw new IllegalStateException("Objet absent du stockage.", e);
+    }
+  }
+
+  @Override
   public URI urlSignee(String cle, Duration validite) {
-    GetObjectRequest objet =
-        GetObjectRequest.builder().bucket(proprietes.bucket()).key(cle).build();
+    return signer(
+        GetObjectRequest.builder().bucket(proprietes.bucket()).key(cle).build(), validite);
+  }
+
+  @Override
+  public URI urlTelechargement(
+      String cle, Duration validite, String contentType, String nomFichier) {
+    String nom = nomFichier.replaceAll("[^A-Za-z0-9._-]", "_");
+    return signer(
+        GetObjectRequest.builder()
+            .bucket(proprietes.bucket())
+            .key(cle)
+            .responseContentType(contentType)
+            .responseContentDisposition("attachment; filename=\"" + nom + "\"")
+            .build(),
+        validite);
+  }
+
+  private URI signer(GetObjectRequest objet, Duration validite) {
     return URI.create(
         presigner()
             .presignGetObject(

@@ -1,10 +1,10 @@
-package sn.ecole.etablissement;
+package sn.ecole.shared;
 
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import sn.ecole.etablissement.domain.StockageFichiers;
+import sn.ecole.shared.domain.StockageFichiers;
 
 /** Stockage en mémoire pour les tests d'API : le vrai MinIO est couvert par StockageS3Test. */
 public class StockageMemoire implements StockageFichiers {
@@ -24,8 +24,28 @@ public class StockageMemoire implements StockageFichiers {
   }
 
   @Override
+  public byte[] lire(String cle) {
+    Objet objet = objets.get(cle);
+    if (objet == null) {
+      throw new IllegalStateException("Objet absent du stockage.");
+    }
+    return objet.contenu();
+  }
+
+  @Override
   public URI urlSignee(String cle, Duration validite) {
     return URI.create("https://stockage.test/" + cle + "?expire=" + validite.toSeconds());
+  }
+
+  @Override
+  public URI urlTelechargement(
+      String cle, Duration validite, String contentType, String nomFichier) {
+    return URI.create(
+        "https://stockage.test/"
+            + cle
+            + "?expire="
+            + validite.toSeconds()
+            + "&disposition=attachment");
   }
 
   public Map<String, Objet> objets() {

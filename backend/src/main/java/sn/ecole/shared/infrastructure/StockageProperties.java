@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.infrastructure;
+package sn.ecole.shared.infrastructure;
 
 import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;

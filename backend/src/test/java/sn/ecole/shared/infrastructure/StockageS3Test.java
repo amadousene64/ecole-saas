@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.infrastructure;
+package sn.ecole.shared.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,6 +45,53 @@ class StockageS3Test {
         new StockageS3(
             new StockageProperties(
                 endpoint, null, "us-east-1", "test-fichiers", CLE_ACCES, CLE_SECRETE, true));
+    attendreApiS3();
+  }
+
+  /**
+   * L'image Bitnami démarre un MinIO provisoire pour se configurer, puis le relance : le contrôle
+   * de santé peut répondre avant que l'API S3 définitive soit prête. On attend un vrai dépôt.
+   */
+  private static void attendreApiS3() {
+    long limite = System.nanoTime() + Duration.ofSeconds(90).toNanos();
+    while (true) {
+      try {
+        stockage.deposer("sonde/pret.txt", new byte[] {1}, "text/plain");
+        stockage.supprimer("sonde/pret.txt");
+        return;
+      } catch (RuntimeException e) {
+        if (System.nanoTime() > limite) {
+          throw e;
+        }
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException interrompu) {
+          Thread.currentThread().interrupt();
+          throw e;
+        }
+      }
+    }
+  }
+
+  @Test
+  void leContenuSeRelitEtLeTelechargementEstForce() throws Exception {
+    stockage.deposer(
+        "ecole-a/eleves/piece.pdf", new byte[] {'%', 'P', 'D', 'F'}, "application/pdf");
+    assertThat(stockage.lire("ecole-a/eleves/piece.pdf")).containsExactly('%', 'P', 'D', 'F');
+    assertThatThrownBy(() -> stockage.lire("ecole-a/absent.pdf"))
+        .isInstanceOf(IllegalStateException.class);
+
+    HttpResponse<byte[]> reponse =
+        lire(
+            stockage.urlTelechargement(
+                "ecole-a/eleves/piece.pdf",
+                Duration.ofMinutes(5),
+                "application/pdf",
+                "acte de naissance\".pdf"));
+    assertThat(reponse.statusCode()).isEqualTo(200);
+    assertThat(reponse.headers().firstValue("Content-Disposition"))
+        .hasValue("attachment; filename=\"acte_de_naissance_.pdf\"");
+    assertThat(reponse.headers().firstValue("Content-Type")).hasValue("application/pdf");
   }
 
   @AfterAll

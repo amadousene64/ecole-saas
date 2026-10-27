@@ -35,6 +35,8 @@ services:
     ports: ["127.0.0.1:8180:8180"]
     volumes:
       - ./keycloak/realm-ecole.json:/opt/keycloak/data/import/realm-ecole.json:ro
+      # Thème de connexion du personnel (sans lien « S'inscrire »), voir realm-ecole.json.
+      - ./keycloak/themes/ecole-personnel:/opt/keycloak/themes/ecole-personnel:ro
     depends_on:
       postgres: { condition: service_healthy }
     healthcheck:

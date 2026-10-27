@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.application;
+package sn.ecole.shared.application;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +10,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * transactionnel, on ne supprime l'ancien fichier qu'une fois la base validée, et on retire le
  * nouveau si la base est annulée.
  */
-final class ApresTransaction {
+public final class ApresTransaction {
 
   private static final Logger LOG = LoggerFactory.getLogger(ApresTransaction.class);
 
   private ApresTransaction() {}
 
-  static void siValidee(Runnable action) {
+  public static void siValidee(Runnable action) {
     enregistrer(
         new TransactionSynchronization() {
           @Override
@@ -26,7 +26,7 @@ final class ApresTransaction {
         });
   }
 
-  static void siAnnulee(Runnable action) {
+  public static void siAnnulee(Runnable action) {
     enregistrer(
         new TransactionSynchronization() {
           @Override

@@ -22,6 +22,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import sn.ecole.Fixtures;
 import sn.ecole.TestIntegration;
+import sn.ecole.shared.StockageMemoire;
+import sn.ecole.shared.StockageMemoireConfig;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -79,9 +81,9 @@ public abstract class TestEtablissement extends TestIntegration {
     superUtilisateur()
         .execute(
             """
-            TRUNCATE ecole.parametres_niveau_annee, ecole.parametres_cycle_annee, ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
+            TRUNCATE ecole.classe_option, ecole.option_enseignement, ecole.parametres_niveau_annee, ecole.parametres_cycle_annee, ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
               ecole.annee_scolaire, ecole.niveau_serie, ecole.niveau, ecole.serie, ecole.cycle,
-              ecole.etablissement_image, ecole.etablissement""");
+              ecole.etablissement_image, ecole.etablissement CASCADE""");
     stockage.vider();
     initialisation.initialiser(A, "Lycée Exemple A", "LYC-A", StatutEtablissement.PUBLIC);
     initialisation.initialiser(B, "École Exemple B", "ECO-B", StatutEtablissement.PRIVE_LAIQUE);

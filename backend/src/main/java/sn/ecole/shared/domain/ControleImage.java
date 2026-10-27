@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.domain;
+package sn.ecole.shared.domain;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -11,10 +11,11 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 /**
- * Contrôle d'une image téléversée (logo, cachet, signature). Le type vient du contenu, jamais de
- * l'en-tête HTTP ni du nom du fichier ; les dimensions sont lues dans l'en-tête et refusées AVANT
- * tout décodage (bombe de décompression) ; l'image est ensuite décodée puis ré-encodée, ce qui
- * supprime les métadonnées (EXIF, GPS) et tout contenu ajouté après les données d'image.
+ * Contrôle d'une image téléversée (logo, cachet, signature, photo). Le type vient du contenu,
+ * jamais de l'en-tête HTTP ni du nom du fichier ; les dimensions sont lues dans l'en-tête et
+ * refusées AVANT tout décodage (bombe de décompression) ; l'image est ensuite décodée puis
+ * ré-encodée, ce qui supprime les métadonnées (EXIF, GPS) et tout contenu ajouté après les données
+ * d'image.
  */
 public final class ControleImage {
 
@@ -33,14 +34,17 @@ public final class ControleImage {
 
   private ControleImage() {}
 
-  public static ImageValidee controler(byte[] brut, TypeImage type) {
+  /**
+   * @param tailleMax taille maximale du fichier, en octets
+   */
+  public static ImageValidee controler(byte[] brut, int tailleMax) {
     if (brut == null || brut.length == 0) {
       throw refus("FICHIER_INVALIDE", "Le fichier est vide.");
     }
-    if (brut.length > type.tailleMax()) {
+    if (brut.length > tailleMax) {
       throw refus(
           "FICHIER_TROP_VOLUMINEUX",
-          "Fichier trop volumineux (" + type.tailleMax() / 1000 + " Ko au plus).");
+          "Fichier trop volumineux (" + tailleMax / 1000 + " Ko au plus).");
     }
     boolean png = commencePar(brut, SIGNATURE_PNG);
     boolean jpeg =
@@ -79,7 +83,7 @@ public final class ControleImage {
         lecteur.dispose();
       }
     } catch (IOException | RuntimeException e) {
-      if (e instanceof sn.ecole.shared.domain.ErreurMetier erreur) {
+      if (e instanceof ErreurMetier erreur) {
         throw erreur;
       }
       throw refus("FICHIER_INVALIDE", "Image illisible ou corrompue.");
@@ -117,7 +121,7 @@ public final class ControleImage {
     return true;
   }
 
-  private static sn.ecole.shared.domain.ErreurMetier refus(String code, String message) {
-    return Verif.invalide(code, message);
+  private static ErreurMetier refus(String code, String message) {
+    return new ErreurMetier(code, TypeErreur.INVALIDE, message);
   }
 }

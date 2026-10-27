@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import sn.ecole.shared.application.AppartenanceService;
+import sn.ecole.shared.domain.Tenant;
 import sn.ecole.shared.domain.TenantRepository;
 
 @Configuration(proxyBeanMethods = false)
@@ -43,6 +44,29 @@ class SecuriteConfig {
   SecurityFilterChain chaineMesEcoles(HttpSecurity http) throws Exception {
     http.securityMatcher(
         PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, CHEMIN_MES_ECOLES));
+    return configurerApi(http).build();
+  }
+
+  /**
+   * Activation d'un compte (parent, élève) par le code remis par l'école : l'utilisateur n'est pas
+   * encore membre de l'école, il n'y a donc aucun rôle. Jeton obligatoire, école désignée et
+   * active, chemin exact et POST seulement ; le service vérifie le code et limite le débit.
+   */
+  public static final String CHEMIN_ACTIVATION = "/api/v1/activations";
+
+  @Bean
+  @Order(0)
+  SecurityFilterChain chaineActivation(
+      HttpSecurity http, TenantProperties proprietes, TenantRepository tenants, Problemes problemes)
+      throws Exception {
+    FiltreTenant filtre =
+        FiltreTenant.sansAppartenance(
+            new ResolveurTenantRequete(proprietes, tenants),
+            problemes,
+            ecole -> tenants.findById(ecole).map(Tenant::isActif).orElse(false));
+    http.securityMatcher(
+            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, CHEMIN_ACTIVATION))
+        .addFilterAfter(filtre, BearerTokenAuthenticationFilter.class);
     return configurerApi(http).build();
   }
 

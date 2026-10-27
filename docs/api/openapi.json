@@ -824,6 +824,94 @@
         "tags" : [ "classe-controller" ]
       }
     },
+    "/api/v1/classes/{id}/options" : {
+      "get" : {
+        "operationId" : "classe_options",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OptionEnseignementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Options d'enseignement proposées par la classe",
+        "tags" : [ "classe-controller" ]
+      },
+      "put" : {
+        "operationId" : "classe_definirOptions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ClasseOptionsRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OptionEnseignementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Remplace les options proposées par la classe",
+        "tags" : [ "classe-controller" ]
+      }
+    },
     "/api/v1/cycles" : {
       "get" : {
         "operationId" : "cycle_lister",
@@ -1355,6 +1443,157 @@
         "tags" : [ "niveau-controller" ]
       }
     },
+    "/api/v1/options-enseignement" : {
+      "get" : {
+        "operationId" : "optionEnseignement_lister",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OptionEnseignementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Catalogue des options d'enseignement (LV2, arts…)",
+        "tags" : [ "option-enseignement-controller" ]
+      },
+      "post" : {
+        "operationId" : "optionEnseignement_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OptionEnseignementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OptionEnseignementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ajoute une option au catalogue",
+        "tags" : [ "option-enseignement-controller" ]
+      }
+    },
+    "/api/v1/options-enseignement/{id}" : {
+      "delete" : {
+        "operationId" : "optionEnseignement_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une option proposée par aucune classe",
+        "tags" : [ "option-enseignement-controller" ]
+      },
+      "put" : {
+        "operationId" : "optionEnseignement_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OptionEnseignementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OptionEnseignementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie une option (If-Match : version lue)",
+        "tags" : [ "option-enseignement-controller" ]
+      }
+    },
     "/api/v1/salles" : {
       "get" : {
         "operationId" : "salle_lister",
@@ -1778,6 +2017,22 @@
           }
         }
       },
+      "ClasseOptionsRequete" : {
+        "type" : "object",
+        "properties" : {
+          "optionIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 30,
+            "minItems" : 0,
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "optionIds" ]
+      },
       "ClasseRequete" : {
         "type" : "object",
         "properties" : {
@@ -2190,6 +2445,55 @@
             "format" : "int32"
           }
         }
+      },
+      "OptionEnseignementDto" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "groupe" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "OptionEnseignementRequete" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "groupe" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code", "groupe", "libelle" ]
       },
       "PeriodeDto" : {
         "type" : "object",

@@ -14,6 +14,7 @@ import sn.ecole.etablissement.ModeNotation;
 import sn.ecole.etablissement.StatutEtablissement;
 import sn.ecole.etablissement.TypePeriode;
 import sn.ecole.shared.domain.ErreurMetier;
+import sn.ecole.shared.domain.Telephone;
 import sn.ecole.shared.domain.TypeErreur;
 
 /** Série/niveau, calendrier, téléphone, profil et paramètres de notation. */

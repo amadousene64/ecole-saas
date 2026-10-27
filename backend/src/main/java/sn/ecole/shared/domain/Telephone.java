@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.domain;
+package sn.ecole.shared.domain;
 
 import java.util.regex.Pattern;
 
@@ -24,8 +24,10 @@ public final class Telephone {
       numero = "+221" + numero;
     }
     if (!E164.matcher(numero).matches()) {
-      throw Verif.invalide(
-          "TELEPHONE_INVALIDE", "Numéro de téléphone invalide (format international attendu).");
+      throw new ErreurMetier(
+          "TELEPHONE_INVALIDE",
+          TypeErreur.INVALIDE,
+          "Numéro de téléphone invalide (format international attendu).");
     }
     return numero;
   }
