@@ -16,7 +16,10 @@
     "paths": {
       "@ecole/auth": ["./libs/auth/src/index.ts"],
       "@ecole/api-client": ["./libs/api-client/src/index.ts"],
-      "@ecole/ui": ["./libs/ui/src/index.ts"]
+      "@ecole/ui": ["./libs/ui/src/index.ts"],
+      "@ecole/feature-etablissement": [
+        "./libs/feature-etablissement/src/index.ts"
+      ]
     }
   }
 }
