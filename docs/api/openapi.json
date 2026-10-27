@@ -8,6 +8,1069 @@
     "jwt" : [ ]
   } ],
   "paths" : {
+    "/api/v1/annees-scolaires" : {
+      "get" : {
+        "operationId" : "lister_4",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AnneeScolaireDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Années scolaires, la plus récente d'abord",
+        "tags" : [ "annee-scolaire-controller" ]
+      },
+      "post" : {
+        "operationId" : "creer_4",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnneeScolaireRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnneeScolaireDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée une année en préparation, avec ses périodes par cycle et ses jours fériés",
+        "tags" : [ "annee-scolaire-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/en-cours" : {
+      "get" : {
+        "operationId" : "enCours",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnneeScolaireDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Année scolaire en cours (404 s'il n'y en a pas)",
+        "tags" : [ "annee-scolaire-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{anneeId}/calendrier" : {
+      "get" : {
+        "operationId" : "lister_5",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EvenementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Jours fériés et vacances de l'année",
+        "tags" : [ "calendrier-controller" ]
+      },
+      "post" : {
+        "operationId" : "ajouter",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EvenementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EvenementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ajoute un jour férié ou des vacances",
+        "tags" : [ "calendrier-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{anneeId}/calendrier/{evenementId}" : {
+      "delete" : {
+        "operationId" : "supprimer_5",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "evenementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) un événement du calendrier",
+        "tags" : [ "calendrier-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier_8",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "evenementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EvenementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EvenementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie un événement du calendrier (If-Match : version lue)",
+        "tags" : [ "calendrier-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{anneeId}/periodes" : {
+      "get" : {
+        "operationId" : "lister_7",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PeriodeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Périodes de l'année, par cycle puis par numéro",
+        "tags" : [ "periode-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{anneeId}/periodes/generation" : {
+      "post" : {
+        "operationId" : "generer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PeriodeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Régénère les périodes selon le type de période de chaque cycle (préparation)",
+        "tags" : [ "periode-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{anneeId}/periodes/{periodeId}" : {
+      "put" : {
+        "operationId" : "modifier_7",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "periodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModifierPeriodeRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PeriodeDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ajuste une période : dans l'année, sans chevauchement (If-Match)",
+        "tags" : [ "periode-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{id}" : {
+      "delete" : {
+        "operationId" : "supprimer_4",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une année en préparation et sans classe",
+        "tags" : [ "annee-scolaire-controller" ]
+      },
+      "get" : {
+        "operationId" : "lire_4",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnneeScolaireDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Une année scolaire",
+        "tags" : [ "annee-scolaire-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier_6",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnneeScolaireRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnneeScolaireDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie le libellé et les dates (If-Match : version lue)",
+        "tags" : [ "annee-scolaire-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{id}/cloture" : {
+      "post" : {
+        "operationId" : "cloturer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnneeScolaireDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Clôture l'année (directeur) : définitif, lecture seule ensuite",
+        "tags" : [ "annee-scolaire-controller" ]
+      }
+    },
+    "/api/v1/annees-scolaires/{id}/ouverture" : {
+      "post" : {
+        "operationId" : "ouvrir",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnneeScolaireDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ouvre l'année (directeur) : périodes complètes, aucune autre année en cours",
+        "tags" : [ "annee-scolaire-controller" ]
+      }
+    },
+    "/api/v1/classes" : {
+      "get" : {
+        "operationId" : "lister_3",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "annee",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "niveau",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Classes d'une année (par défaut l'année en cours), filtrables par niveau",
+        "tags" : [ "classe-controller" ]
+      },
+      "post" : {
+        "operationId" : "creer_3",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ClasseRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée une classe dans une année non clôturée",
+        "tags" : [ "classe-controller" ]
+      }
+    },
+    "/api/v1/classes/{id}" : {
+      "delete" : {
+        "operationId" : "supprimer_3",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une classe",
+        "tags" : [ "classe-controller" ]
+      },
+      "get" : {
+        "operationId" : "lire_3",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Une classe",
+        "tags" : [ "classe-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier_5",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ClasseRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie une classe (If-Match : version lue)",
+        "tags" : [ "classe-controller" ]
+      }
+    },
+    "/api/v1/cycles" : {
+      "get" : {
+        "operationId" : "lister_6",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CycleDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Cycles et leurs paramètres de notation",
+        "tags" : [ "cycle-controller" ]
+      }
+    },
+    "/api/v1/cycles/{id}" : {
+      "put" : {
+        "operationId" : "modifier_4",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModifierCycleRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CycleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie les paramètres d'un cycle (directeur ; If-Match : version lue)",
+        "tags" : [ "cycle-controller" ]
+      }
+    },
+    "/api/v1/etablissement" : {
+      "get" : {
+        "operationId" : "lire_2",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Profil de l'école courante, avec les URL signées de ses images",
+        "tags" : [ "etablissement-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier_3",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModifierEtablissementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie le profil (If-Match : version lue)",
+        "tags" : [ "etablissement-controller" ]
+      }
+    },
+    "/api/v1/etablissement/images/{type}" : {
+      "delete" : {
+        "operationId" : "supprimerImage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "type",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "LOGO", "CACHET", "SIGNATURE" ]
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Supprime le logo, le cachet ou la signature",
+        "tags" : [ "etablissement-controller" ]
+      },
+      "put" : {
+        "operationId" : "deposerImage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "type",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "LOGO", "CACHET", "SIGNATURE" ]
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Téléverse le logo, le cachet ou la signature (PNG ou JPEG, 2000 px au plus)",
+        "tags" : [ "etablissement-controller" ]
+      }
+    },
     "/api/v1/moi" : {
       "get" : {
         "operationId" : "moi",
@@ -58,10 +1121,768 @@
         "summary" : "Écoles dans lesquelles l'utilisateur connecté a un rôle",
         "tags" : [ "moi-controller" ]
       }
+    },
+    "/api/v1/niveaux" : {
+      "get" : {
+        "operationId" : "lister_2",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/NiveauDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Niveaux d'études, de CI à la Terminale, avec leurs séries",
+        "tags" : [ "niveau-controller" ]
+      },
+      "post" : {
+        "operationId" : "creer_2",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreerNiveauRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NiveauDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée un niveau",
+        "tags" : [ "niveau-controller" ]
+      }
+    },
+    "/api/v1/niveaux/{id}" : {
+      "delete" : {
+        "operationId" : "supprimer_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) un niveau sans classe",
+        "tags" : [ "niveau-controller" ]
+      },
+      "get" : {
+        "operationId" : "lire_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NiveauDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Un niveau",
+        "tags" : [ "niveau-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModifierNiveauRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NiveauDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie un niveau (If-Match : version lue)",
+        "tags" : [ "niveau-controller" ]
+      }
+    },
+    "/api/v1/niveaux/{id}/series" : {
+      "put" : {
+        "operationId" : "definirSeries",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DefinirSeriesRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NiveauDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Définit les séries proposées par un niveau",
+        "tags" : [ "niveau-controller" ]
+      }
+    },
+    "/api/v1/salles" : {
+      "get" : {
+        "operationId" : "lister_1",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SalleDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Salles de l'école",
+        "tags" : [ "salle-controller" ]
+      },
+      "post" : {
+        "operationId" : "creer_1",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SalleRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée une salle",
+        "tags" : [ "salle-controller" ]
+      }
+    },
+    "/api/v1/salles/{id}" : {
+      "delete" : {
+        "operationId" : "supprimer_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une salle non utilisée",
+        "tags" : [ "salle-controller" ]
+      },
+      "get" : {
+        "operationId" : "lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Une salle",
+        "tags" : [ "salle-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SalleRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SalleDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie une salle (If-Match : version lue)",
+        "tags" : [ "salle-controller" ]
+      }
+    },
+    "/api/v1/series" : {
+      "get" : {
+        "operationId" : "lister",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SerieDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Séries du lycée",
+        "tags" : [ "serie-controller" ]
+      },
+      "post" : {
+        "operationId" : "creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SerieRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SerieDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée une série",
+        "tags" : [ "serie-controller" ]
+      }
+    },
+    "/api/v1/series/{id}" : {
+      "delete" : {
+        "operationId" : "supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une série non utilisée",
+        "tags" : [ "serie-controller" ]
+      },
+      "put" : {
+        "operationId" : "modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SerieRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SerieDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie une série (If-Match : version lue)",
+        "tags" : [ "serie-controller" ]
+      }
     }
   },
   "components" : {
     "schemas" : {
+      "AnneeScolaireDto" : {
+        "type" : "object",
+        "properties" : {
+          "dateDebut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateFin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PREPARATION", "EN_COURS", "CLOTUREE" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "AnneeScolaireRequete" : {
+        "type" : "object",
+        "properties" : {
+          "dateDebut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateFin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 9,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "dateDebut", "dateFin", "libelle" ]
+      },
+      "ClasseDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "capacite" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "niveauId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "salleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "serieId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ClasseRequete" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "capacite" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "niveauId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          },
+          "salleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "serieId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "capacite", "niveauId", "nom" ]
+      },
+      "CreerNiveauRequete" : {
+        "type" : "object",
+        "properties" : {
+          "baseMoyenne" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "cycleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "code", "cycleId", "libelle", "ordre" ]
+      },
+      "CycleDto" : {
+        "type" : "object",
+        "properties" : {
+          "baseMoyenne" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "code" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "modeNotation" : {
+            "type" : "string",
+            "enum" : [ "BAREME", "COEFFICIENT" ]
+          },
+          "typePeriode" : {
+            "type" : "string",
+            "enum" : [ "TRIMESTRE", "SEMESTRE" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "DefinirSeriesRequete" : {
+        "type" : "object",
+        "properties" : {
+          "serieIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "serieIds" ]
+      },
       "EcoleDto" : {
         "type" : "object",
         "properties" : {
@@ -76,6 +1897,233 @@
             "type" : "string"
           }
         }
+      },
+      "EtablissementDto" : {
+        "type" : "object",
+        "properties" : {
+          "adresse" : {
+            "type" : "string"
+          },
+          "cachetUrl" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "devise" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "fuseau" : {
+            "type" : "string"
+          },
+          "ia" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "ief" : {
+            "type" : "string"
+          },
+          "logoUrl" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "signatureUrl" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PUBLIC", "PRIVE_LAIQUE", "PRIVE_CONFESSIONNEL" ]
+          },
+          "telephone" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "EvenementDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "dateDebut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateFin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "FERIE", "VACANCES" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "EvenementRequete" : {
+        "type" : "object",
+        "properties" : {
+          "dateDebut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateFin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "FERIE", "VACANCES" ]
+          }
+        },
+        "required" : [ "dateDebut", "dateFin", "libelle", "type" ]
+      },
+      "ModifierCycleRequete" : {
+        "type" : "object",
+        "properties" : {
+          "baseMoyenne" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "modeNotation" : {
+            "type" : "string",
+            "enum" : [ "BAREME", "COEFFICIENT" ]
+          },
+          "typePeriode" : {
+            "type" : "string",
+            "enum" : [ "TRIMESTRE", "SEMESTRE" ]
+          }
+        },
+        "required" : [ "baseMoyenne", "libelle", "modeNotation", "typePeriode" ]
+      },
+      "ModifierEtablissementRequete" : {
+        "type" : "object",
+        "properties" : {
+          "adresse" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          },
+          "devise" : {
+            "type" : "string",
+            "maxLength" : 3,
+            "minLength" : 0
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "fuseau" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          },
+          "ia" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "ief" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PUBLIC", "PRIVE_LAIQUE", "PRIVE_CONFESSIONNEL" ]
+          },
+          "telephone" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code", "nom", "statut" ]
+      },
+      "ModifierNiveauRequete" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "baseMoyenne" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "actif", "libelle", "ordre" ]
+      },
+      "ModifierPeriodeRequete" : {
+        "type" : "object",
+        "properties" : {
+          "dateDebut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateFin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "dateDebut", "dateFin", "libelle" ]
       },
       "MoiDto" : {
         "type" : "object",
@@ -95,6 +2143,169 @@
             "format" : "uuid"
           }
         }
+      },
+      "NiveauDto" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "baseMoyenne" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "baseMoyenneEffective" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "cycleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "serieIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "PeriodeDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "cycleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "dateDebut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateFin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "numero" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "SalleDto" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "capacite" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "SalleRequete" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "capacite" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "capacite", "nom" ]
+      },
+      "SerieDto" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "SerieRequete" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code", "libelle" ]
       }
     },
     "securitySchemes" : {
