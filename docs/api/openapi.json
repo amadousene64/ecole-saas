@@ -8,6 +8,45 @@
     "jwt" : [ ]
   } ],
   "paths" : {
+    "/api/v1/activations" : {
+      "post" : {
+        "operationId" : "activation_activer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ActivationRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ActivationDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Relie le compte connecté au responsable (ou à l'élève) désigné par le code remis par l'école ; essais limités",
+        "tags" : [ "activation-controller" ]
+      }
+    },
     "/api/v1/annees-scolaires" : {
       "get" : {
         "operationId" : "anneeScolaire_lister",
@@ -1329,6 +1368,46 @@
         "tags" : [ "donnees-sensibles-controller" ]
       }
     },
+    "/api/v1/eleves/{eleveId}/fratrie" : {
+      "get" : {
+        "operationId" : "lienParental_fratrie",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EleveResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Frères et sœurs : élèves ayant un responsable en commun",
+        "tags" : [ "lien-parental-controller" ]
+      }
+    },
     "/api/v1/eleves/{eleveId}/photo" : {
       "delete" : {
         "operationId" : "eleve_supprimerPhoto",
@@ -1415,6 +1494,251 @@
         },
         "summary" : "Dépose la photo (PNG ou JPEG, 1 Mo et 2000 px au plus)",
         "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/responsables" : {
+      "get" : {
+        "operationId" : "lienParental_lister",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/LienParentalDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Responsables de l'élève (comptable : payeurs seulement ; parent : son propre lien)",
+        "tags" : [ "lien-parental-controller" ]
+      },
+      "post" : {
+        "operationId" : "lienParental_ajouter",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LienParentalRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LienParentalDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Lie un responsable à l'élève, avec ses droits",
+        "tags" : [ "lien-parental-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/responsables/{lienId}" : {
+      "delete" : {
+        "operationId" : "lienParental_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "lienId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Retire le lien (pas le dernier responsable légal)",
+        "tags" : [ "lien-parental-controller" ]
+      },
+      "put" : {
+        "operationId" : "lienParental_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "lienId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LienParentalRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LienParentalDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie le type et les droits du lien (If-Match : version lue)",
+        "tags" : [ "lien-parental-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/responsables/{lienId}/acces-espace-parent" : {
+      "put" : {
+        "operationId" : "lienParental_definirAcces",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "lienId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AccesEspaceParentRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LienParentalDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Accorde ou retire l'accès à l'espace parent (directeur ; sans accès, ni consultation ni notification)",
+        "tags" : [ "lien-parental-controller" ]
       }
     },
     "/api/v1/etablissement" : {
@@ -1627,6 +1951,38 @@
         },
         "summary" : "Écoles dans lesquelles l'utilisateur connecté a un rôle",
         "tags" : [ "moi-controller" ]
+      }
+    },
+    "/api/v1/moi/enfants" : {
+      "get" : {
+        "operationId" : "activation_mesEnfants",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EleveResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Enfants du parent connecté dans l'école courante",
+        "tags" : [ "activation-controller" ]
       }
     },
     "/api/v1/niveaux" : {
@@ -2086,6 +2442,252 @@
         "tags" : [ "parametres-inscription-controller" ]
       }
     },
+    "/api/v1/responsables" : {
+      "get" : {
+        "operationId" : "responsable_rechercher",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "telephone",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "nom",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ResponsableDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recherche des responsables par téléphone (doublons) ou par nom (2 lettres au moins)",
+        "tags" : [ "responsable-controller" ]
+      },
+      "post" : {
+        "operationId" : "responsable_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResponsableRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée un responsable (propre à l'école)",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/{id}" : {
+      "get" : {
+        "operationId" : "responsable_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Un responsable",
+        "tags" : [ "responsable-controller" ]
+      },
+      "put" : {
+        "operationId" : "responsable_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResponsableRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie un responsable (If-Match : version lue)",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/{id}/codes-activation" : {
+      "post" : {
+        "operationId" : "responsable_emettreCode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeActivationDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Émet un code d'activation à usage unique (7 jours) ; affiché une seule fois, les codes précédents sont révoqués",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/{id}/compte" : {
+      "delete" : {
+        "operationId" : "responsable_delierCompte",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Détache le compte parent relié et lui retire le rôle PARENT (directeur ; perte d'accès)",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
     "/api/v1/salles" : {
       "get" : {
         "operationId" : "salle_lister",
@@ -2426,6 +3028,35 @@
   },
   "components" : {
     "schemas" : {
+      "AccesEspaceParentRequete" : {
+        "type" : "object",
+        "properties" : {
+          "acces" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "acces" ]
+      },
+      "ActivationDto" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string",
+            "enum" : [ "DIRECTEUR", "CENSEUR", "SECRETARIAT", "SURVEILLANT", "ENSEIGNANT", "COMPTABLE", "PARENT", "ELEVE" ]
+          }
+        }
+      },
+      "ActivationRequete" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code" ]
+      },
       "AnneeScolaireDto" : {
         "type" : "object",
         "properties" : {
@@ -2555,6 +3186,18 @@
           }
         },
         "required" : [ "capacite", "niveauId", "nom" ]
+      },
+      "CodeActivationDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
       },
       "CreerNiveauRequete" : {
         "type" : "object",
@@ -2913,6 +3556,73 @@
         },
         "required" : [ "dateDebut", "dateFin", "libelle", "type" ]
       },
+      "LienParentalDto" : {
+        "type" : "object",
+        "properties" : {
+          "accesEspaceParent" : {
+            "type" : "boolean"
+          },
+          "autoriseRecuperer" : {
+            "type" : "boolean"
+          },
+          "contactUrgence" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "payeur" : {
+            "type" : "boolean"
+          },
+          "recoitNotifications" : {
+            "type" : "boolean"
+          },
+          "responsable" : {
+            "$ref" : "#/components/schemas/ResponsableDto"
+          },
+          "responsableLegal" : {
+            "type" : "boolean"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PERE", "MERE", "TUTEUR", "AUTRE" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "LienParentalRequete" : {
+        "type" : "object",
+        "properties" : {
+          "autoriseRecuperer" : {
+            "type" : "boolean"
+          },
+          "contactUrgence" : {
+            "type" : "boolean"
+          },
+          "payeur" : {
+            "type" : "boolean"
+          },
+          "recoitNotifications" : {
+            "type" : "boolean"
+          },
+          "responsableId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "responsableLegal" : {
+            "type" : "boolean"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PERE", "MERE", "TUTEUR", "AUTRE" ]
+          }
+        },
+        "required" : [ "autoriseRecuperer", "contactUrgence", "payeur", "recoitNotifications", "responsableLegal", "type" ]
+      },
       "ModifierCycleRequete" : {
         "type" : "object",
         "properties" : {
@@ -3224,6 +3934,68 @@
             "format" : "int32"
           }
         }
+      },
+      "ResponsableDto" : {
+        "type" : "object",
+        "properties" : {
+          "compteActive" : {
+            "type" : "boolean"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "profession" : {
+            "type" : "string"
+          },
+          "telephone" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ResponsableRequete" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "prenoms" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "profession" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "telephone" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "nom", "prenoms", "telephone" ]
       },
       "SalleDto" : {
         "type" : "object",

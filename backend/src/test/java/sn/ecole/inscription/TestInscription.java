@@ -26,7 +26,8 @@ public abstract class TestInscription extends TestEtablissement {
     superUtilisateur()
         .execute(
             """
-            TRUNCATE ecole.eleve_dossier_sensible, ecole.eleve, ecole.sequence_matricule,
+            TRUNCATE ecole.code_activation, ecole.lien_parental, ecole.responsable,
+              ecole.eleve_dossier_sensible, ecole.eleve, ecole.sequence_matricule,
               ecole.parametres_inscription, ecole.journal_audit CASCADE""");
   }
 
@@ -75,6 +76,56 @@ public abstract class TestInscription extends TestEtablissement {
             "SELECT tenant_id, acteur_id, id_cible, details::text AS details FROM"
                 + " ecole.journal_audit WHERE action = ? ORDER BY cree_le",
             action);
+  }
+
+  protected UUID creerResponsable(UUID qui, UUID ecole, String prenoms, String telephone)
+      throws Exception {
+    Reponse r =
+        post(
+            qui,
+            ecole,
+            "/api/v1/responsables",
+            corps("prenoms", prenoms, "nom", "Parent-Fictif", "telephone", telephone));
+    assertThat(r.statut()).as(r.corps().toString()).isEqualTo(201);
+    return r.id();
+  }
+
+  /** Lien avec tous les droits ; renvoie l'id du lien. */
+  protected UUID lier(
+      UUID qui, UUID ecole, UUID eleve, UUID responsable, String type, boolean payeur)
+      throws Exception {
+    Reponse r =
+        post(
+            qui,
+            ecole,
+            ELEVES + "/" + eleve + "/responsables",
+            corps(
+                "responsableId",
+                responsable,
+                "type",
+                type,
+                "responsableLegal",
+                true,
+                "payeur",
+                payeur,
+                "contactUrgence",
+                true,
+                "autoriseRecuperer",
+                true,
+                "recoitNotifications",
+                true));
+    assertThat(r.statut()).as(r.corps().toString()).isEqualTo(201);
+    return r.id();
+  }
+
+  /** Relie un compte au responsable et lui donne le rôle PARENT, comme l'activation par code. */
+  protected void relierCompteParent(UUID ecole, UUID responsable, UUID utilisateur) {
+    superUtilisateur()
+        .update(
+            "UPDATE ecole.responsable SET utilisateur_id = ? WHERE id = ?",
+            utilisateur,
+            responsable);
+    sn.ecole.Fixtures.appartenance(superUtilisateur(), ecole, utilisateur, "PARENT");
   }
 
   /** Version portée par l'en-tête ETag (« "3" » donne 3). */

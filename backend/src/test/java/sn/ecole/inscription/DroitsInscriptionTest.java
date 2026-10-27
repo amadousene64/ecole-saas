@@ -80,6 +80,41 @@ class DroitsInscriptionTest extends TestInscription {
     cas.add(new Cas("PUT", ELEVES + "/" + X + "/donnees-sensibles", corps(), ECRITURE));
     cas.add(new Cas("GET", "/api/v1/parametres-inscription", null, ECRITURE));
     cas.add(new Cas("PUT", "/api/v1/parametres-inscription", parametres, DIRECTION));
+    Object responsable = corps("prenoms", "Mère", "nom", "Fictive", "telephone", "770000001");
+    Object lien =
+        corps(
+            "responsableId",
+            X,
+            "type",
+            "MERE",
+            "responsableLegal",
+            true,
+            "payeur",
+            true,
+            "contactUrgence",
+            true,
+            "autoriseRecuperer",
+            true,
+            "recoitNotifications",
+            true);
+    String r = "/api/v1/responsables";
+    cas.add(new Cas("GET", r + "?nom=fictive", null, ECRITURE));
+    cas.add(new Cas("POST", r, responsable, ECRITURE));
+    cas.add(new Cas("GET", r + "/" + X, null, ECRITURE));
+    cas.add(new Cas("PUT", r + "/" + X, responsable, ECRITURE));
+    cas.add(new Cas("DELETE", r + "/" + X + "/compte", null, DIRECTION));
+    cas.add(new Cas("POST", r + "/" + X + "/codes-activation", null, ECRITURE));
+    String liens = ELEVES + "/" + X + "/responsables";
+    cas.add(new Cas("GET", liens, null, Set.of(DIRECTEUR, SECRETARIAT, COMPTABLE)));
+    cas.add(new Cas("POST", liens, lien, ECRITURE));
+    cas.add(new Cas("PUT", liens + "/" + X, lien, ECRITURE));
+    cas.add(
+        new Cas("PUT", liens + "/" + X + "/acces-espace-parent", corps("acces", false), DIRECTION));
+    cas.add(new Cas("DELETE", liens + "/" + X, null, ECRITURE));
+    cas.add(
+        new Cas(
+            "GET", ELEVES + "/" + X + "/fratrie", null, Set.of(DIRECTEUR, SECRETARIAT, COMPTABLE)));
+    cas.add(new Cas("GET", "/api/v1/moi/enfants", null, Set.of(PARENT)));
     return cas;
   }
 
