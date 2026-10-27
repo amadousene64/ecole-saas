@@ -1,22 +1,31 @@
 package sn.ecole.inscription.application;
 
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
+import sn.ecole.etablissement.CodeCycle;
+import sn.ecole.etablissement.ReferentielScolaire;
 import sn.ecole.inscription.domain.Eleve;
 import sn.ecole.inscription.domain.EleveRepository;
 
 /**
  * Compte élève : réservé aux élèves du collège et du lycée (cycles MOYEN et SECONDAIRE), d'après
- * leur inscription active de l'année en cours. Appelé par {@link ActivationService}, qui contrôle
- * les droits.
+ * leurs inscriptions actives. Appelé par {@link ActivationService}, qui contrôle les droits.
  */
 @Component
 class ActivationEleve {
 
-  private final EleveRepository eleves;
+  static final Set<CodeCycle> CYCLES_AVEC_COMPTE = Set.of(CodeCycle.MOYEN, CodeCycle.SECONDAIRE);
 
-  ActivationEleve(EleveRepository eleves) {
+  private final EleveRepository eleves;
+  private final InscriptionService inscriptions;
+  private final ReferentielScolaire referentiel;
+
+  ActivationEleve(
+      EleveRepository eleves, InscriptionService inscriptions, ReferentielScolaire referentiel) {
     this.eleves = eleves;
+    this.inscriptions = inscriptions;
+    this.referentiel = referentiel;
   }
 
   /**
@@ -24,9 +33,15 @@ class ActivationEleve {
    *     au collège ou au lycée
    */
   void verifierEligible(UUID eleveId) {
-    throw Erreurs.regle(
-        "ACTIVATION_ELEVE_INTERDITE",
-        "Un compte élève n'est ouvert qu'aux élèves inscrits au collège ou au lycée.");
+    boolean eligible =
+        inscriptions.actives(eleveId).stream()
+            .anyMatch(
+                i -> CYCLES_AVEC_COMPTE.contains(referentiel.classe(i.getClasseId()).codeCycle()));
+    if (!eligible) {
+      throw Erreurs.regle(
+          "ACTIVATION_ELEVE_INTERDITE",
+          "Un compte élève n'est ouvert qu'aux élèves inscrits au collège ou au lycée.");
+    }
   }
 
   void relier(UUID eleveId, UUID utilisateur) {

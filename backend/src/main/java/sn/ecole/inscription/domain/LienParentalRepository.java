@@ -20,5 +20,11 @@ public interface LienParentalRepository {
 
   boolean existsByEleveId(UUID eleveId);
 
+  /**
+   * Vrai si un lien entre cet élève et ce responsable, même supprimé, a eu son accès à l'espace
+   * parent retiré : la restriction survit à la suppression du lien.
+   */
+  boolean accesDejaRetire(UUID eleveId, UUID responsableId);
+
   LienParental save(LienParental lien);
 }

@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import sn.ecole.inscription.application.EleveService;
 import sn.ecole.inscription.application.EleveService.Saisie;
 import sn.ecole.inscription.application.EleveService.VueEleve;
+import sn.ecole.inscription.application.ResumeEleve;
 import sn.ecole.inscription.domain.Eleve;
 import sn.ecole.shared.domain.PageCurseur;
 
@@ -39,12 +40,15 @@ class EleveController {
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Recherche des élèves (nom, prénoms ou matricule), paginée par curseur")
+  @Operation(
+      summary =
+          "Recherche des élèves (nom, prénoms ou matricule ; filtre par classe), paginée par curseur")
   ResponseEntity<PageDto<EleveResumeDto>> rechercher(
       @RequestParam(name = "recherche", required = false) String recherche,
+      @RequestParam(name = "classe", required = false) UUID classeId,
       @RequestParam(name = "curseur", required = false) String curseur,
       @RequestParam(name = "taille", required = false) Integer taille) {
-    PageCurseur<Eleve> page = service.rechercher(recherche, null, curseur, taille);
+    PageCurseur<ResumeEleve> page = service.rechercher(recherche, classeId, curseur, taille);
     return Reponses.ok(new PageDto<>(mapper.versResumes(page.elements()), page.curseurSuivant()));
   }
 

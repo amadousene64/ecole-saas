@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,13 +47,16 @@ public class LienParentalService implements UtilisationEleve {
   private final ResponsableRepository responsables;
   private final EleveRepository eleves;
   private final JournalAudit journal;
+  private final InscriptionService inscriptions;
 
   public LienParentalService(
       LienParentalRepository liens,
       ResponsableRepository responsables,
       EleveRepository eleves,
-      JournalAudit journal) {
+      JournalAudit journal,
+      InscriptionService inscriptions) {
     this.liens = liens;
+    this.inscriptions = inscriptions;
     this.responsables = responsables;
     this.eleves = eleves;
     this.journal = journal;
@@ -88,12 +92,27 @@ public class LienParentalService implements UtilisationEleve {
     if (liens.findByEleveIdAndResponsableId(eleveId, responsableId).isPresent()) {
       throw Erreurs.conflit("LIEN_EXISTANT", "Ce responsable est déjà lié à cet élève.");
     }
-    LienParental lien = liens.save(LienParental.creer(eleveId, responsableId, type, d));
+    LienParental nouveau = LienParental.creer(eleveId, responsableId, type, d);
+    boolean restreint = liens.accesDejaRetire(eleveId, responsableId);
+    if (restreint) {
+      // Supprimer puis recréer le lien ne lève pas une restriction du directeur : seul lui peut
+      // la lever, par l'action dédiée.
+      nouveau.definirAccesEspaceParent(false);
+    }
+    LienParental lien = liens.save(nouveau);
     journal.consigner(
         "LIEN_PARENTAL_CREE",
         "Eleve",
         eleveId,
-        Map.of("lien", lien.getId(), "responsable", responsableId, "type", type));
+        Map.of(
+            "lien",
+            lien.getId(),
+            "responsable",
+            responsableId,
+            "type",
+            type,
+            "accesEspaceParent",
+            !restreint));
     return new VueLien(lien, responsable);
   }
 
@@ -115,6 +134,10 @@ public class LienParentalService implements UtilisationEleve {
   @PreAuthorize(Droits.ECRITURE)
   public void supprimer(UUID eleveId, UUID lienId) {
     LienParental lien = chargerLien(eleveId, lienId);
+    if (!lien.isAccesEspaceParent() && !Erreurs.aLeRole(RoleEcole.DIRECTEUR)) {
+      // Un lien restreint par le directeur ne se manipule que par lui.
+      throw new AccessDeniedException("Lien restreint par le directeur.");
+    }
     if (lien.isResponsableLegal()) {
       verifierPasDernierResponsableLegal(lien);
     }
@@ -144,7 +167,7 @@ public class LienParentalService implements UtilisationEleve {
   /** Frères et sœurs : élèves ayant au moins un responsable en commun (sans table dédiée). */
   @PreAuthorize("hasAnyRole('DIRECTEUR','SECRETARIAT','COMPTABLE')")
   @Transactional(readOnly = true)
-  public List<Eleve> fratrie(UUID eleveId) {
+  public List<ResumeEleve> fratrie(UUID eleveId) {
     chargerEleve(eleveId);
     Set<UUID> responsablesDeLEleve =
         liens.findByEleveId(eleveId).stream()
@@ -158,29 +181,34 @@ public class LienParentalService implements UtilisationEleve {
         .map(LienParental::getEleveId)
         .filter(id -> !id.equals(eleveId))
         .forEach(freres::add);
-    return eleves.findByIdIn(freres).stream()
-        .sorted(Comparator.comparing(Eleve::getNomRecherche))
-        .toList();
+    return resumes(eleves.findByIdIn(freres));
   }
 
   /** Enfants du parent connecté, dans l'école courante, auxquels il a accès. */
   @PreAuthorize("hasRole('PARENT')")
   @Transactional(readOnly = true)
-  public List<Eleve> enfantsDuParentConnecte() {
-    return responsables
-        .findByUtilisateurId(Erreurs.utilisateurCourant())
-        .map(
-            r ->
-                eleves
-                    .findByIdIn(
+  public List<ResumeEleve> enfantsDuParentConnecte() {
+    List<Eleve> enfants =
+        responsables
+            .findByUtilisateurId(Erreurs.utilisateurCourant())
+            .map(
+                r ->
+                    eleves.findByIdIn(
                         liens.findByResponsableId(r.getId()).stream()
                             .filter(LienParental::isAccesEspaceParent)
                             .map(LienParental::getEleveId)
-                            .toList())
-                    .stream()
-                    .sorted(Comparator.comparing(Eleve::getNomRecherche))
-                    .toList())
-        .orElse(List.of());
+                            .toList()))
+            .orElse(List.of());
+    return resumes(enfants);
+  }
+
+  private List<ResumeEleve> resumes(List<Eleve> liste) {
+    Map<UUID, String> classes =
+        inscriptions.classesActuelles(liste.stream().map(Eleve::getId).toList());
+    return liste.stream()
+        .sorted(Comparator.comparing(Eleve::getNomRecherche))
+        .map(e -> new ResumeEleve(e, classes.get(e.getId())))
+        .toList();
   }
 
   @Override

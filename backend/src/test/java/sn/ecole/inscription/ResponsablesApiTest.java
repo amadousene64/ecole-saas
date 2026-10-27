@@ -205,6 +205,53 @@ class ResponsablesApiTest extends TestInscription {
   }
 
   @Test
+  void laRestrictionDuDirecteurNeSeContournePasEnSupprimantPuisRecreantLeLien() throws Exception {
+    String url = ELEVES + "/" + awa + "/responsables/" + lienPereAwa;
+    int version = 0;
+    for (JsonNode l : get(DIRECTEUR_A, A, ELEVES + "/" + awa + "/responsables").corps()) {
+      if (l.path("id").asText().equals(lienPereAwa.toString())) {
+        version = l.path("version").asInt();
+      }
+    }
+    assertThat(
+            put(DIRECTEUR_A, A, url + "/acces-espace-parent", version, corps("acces", false))
+                .statut())
+        .isEqualTo(200);
+
+    // Le secrétariat ne peut pas supprimer un lien restreint…
+    assertThat(delete(SECRETARIAT_A, A, url).statut()).isEqualTo(403);
+    // … et s'il est supprimé (par le directeur), le recréer ne rend pas l'accès.
+    assertThat(delete(DIRECTEUR_A, A, url).statut()).isEqualTo(204);
+    Reponse recree =
+        post(
+            SECRETARIAT_A,
+            A,
+            ELEVES + "/" + awa + "/responsables",
+            corps(
+                "responsableId",
+                pere,
+                "type",
+                "PERE",
+                "responsableLegal",
+                true,
+                "payeur",
+                true,
+                "contactUrgence",
+                true,
+                "autoriseRecuperer",
+                true,
+                "recoitNotifications",
+                true));
+    assertThat(recree.statut()).isEqualTo(201);
+    assertThat(recree.corps().path("accesEspaceParent").asBoolean()).isFalse();
+    assertThat(recree.corps().path("recoitNotifications").asBoolean()).isFalse();
+    assertThat(get(comptePere, A, ELEVES + "/" + awa).statut()).isEqualTo(403);
+    assertThat(execution.lire(A, () -> contacts.destinatairesNotifications(awa)))
+        .extracting(d -> d.responsableId())
+        .containsExactly(mere);
+  }
+
+  @Test
   void unLienEnDoubleEstRefuseEtLeDernierResponsableLegalReste() throws Exception {
     Object doublon =
         corps(

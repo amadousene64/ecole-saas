@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import sn.ecole.inscription.domain.Eleve;
 import sn.ecole.inscription.domain.RechercheEleves;
+import sn.ecole.inscription.domain.StatutInscription;
 
 /**
  * JPQL construit selon les critères présents, toujours paramétré. L'école courante est appliquée
@@ -35,7 +36,11 @@ class RechercheElevesJpa implements RechercheEleves {
       parametres.put("matricule", terme.strip().toUpperCase(Locale.ROOT));
     }
     if (classeId != null) {
-      throw new UnsupportedOperationException("Filtre par classe : avec les inscriptions.");
+      jpql.append(
+          " and exists (select 1 from Inscription i where i.eleveId = e.id"
+              + " and i.classeId = :classe and i.statut in :actifs)");
+      parametres.put("classe", classeId);
+      parametres.put("actifs", StatutInscription.ACTIFS);
     }
     if (apresNom != null && apresId != null) {
       jpql.append(

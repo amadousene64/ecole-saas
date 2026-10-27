@@ -115,6 +115,22 @@ class DroitsInscriptionTest extends TestInscription {
         new Cas(
             "GET", ELEVES + "/" + X + "/fratrie", null, Set.of(DIRECTEUR, SECRETARIAT, COMPTABLE)));
     cas.add(new Cas("GET", "/api/v1/moi/enfants", null, Set.of(PARENT)));
+    Set<String> scolarite = Set.of(DIRECTEUR, SECRETARIAT, CENSEUR, SURVEILLANT);
+    Object inscription =
+        corps("eleveId", X, "classeId", X, "statut", "INSCRIT", "redoublant", false);
+    Object sortie = corps("statut", "ABANDON", "date", "2026-11-02");
+    Object radiation = corps("statut", "RADIE", "date", "2026-11-02");
+    String i = "/api/v1/inscriptions";
+    cas.add(new Cas("POST", i, inscription, ECRITURE));
+    cas.add(new Cas("GET", i + "/" + X, null, scolarite));
+    cas.add(new Cas("PUT", i + "/" + X, corps("redoublant", false), ECRITURE));
+    cas.add(new Cas("POSTV", i + "/" + X + "/validation", null, ECRITURE));
+    cas.add(new Cas("POSTV", i + "/" + X + "/sortie", sortie, ECRITURE));
+    cas.add(new Cas("POSTV", i + "/" + X + "/sortie", radiation, DIRECTION));
+    cas.add(new Cas("GET", ELEVES + "/" + X + "/inscriptions", null, scolarite));
+    cas.add(new Cas("GET", "/api/v1/classes/" + X + "/eleves", null, scolarite));
+    cas.add(new Cas("POST", ELEVES + "/" + X + "/codes-activation", null, ECRITURE));
+    cas.add(new Cas("GET", "/api/v1/moi/eleve", null, Set.of(ELEVE)));
     return cas;
   }
 
@@ -124,6 +140,15 @@ class DroitsInscriptionTest extends TestInscription {
       case "POST" -> post(qui, A, c.url(), c.corps());
       case "PUT" -> put(qui, A, c.url(), 99, c.corps());
       case "DELETE" -> delete(qui, A, c.url());
+      case "POSTV" ->
+          executer(
+              org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(c.url())
+                  .header("If-Match", "\"99\"")
+                  .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                  .content(
+                      JSON.writeValueAsString(c.corps() == null ? java.util.Map.of() : c.corps())),
+              qui,
+              A);
       default -> throw new IllegalArgumentException(c.methode());
     };
   }

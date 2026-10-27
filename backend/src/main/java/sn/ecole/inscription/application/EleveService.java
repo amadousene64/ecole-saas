@@ -68,6 +68,7 @@ public class EleveService {
   private final StockageFichiers stockage;
   private final JournalAudit journal;
   private final List<UtilisationEleve> utilisations;
+  private final InscriptionService inscriptions;
 
   public EleveService(
       EleveRepository eleves,
@@ -76,7 +77,8 @@ public class EleveService {
       ParametresInscriptionService parametres,
       StockageFichiers stockage,
       JournalAudit journal,
-      List<UtilisationEleve> utilisations) {
+      List<UtilisationEleve> utilisations,
+      InscriptionService inscriptions) {
     this.eleves = eleves;
     this.recherche = recherche;
     this.compteur = compteur;
@@ -84,6 +86,7 @@ public class EleveService {
     this.stockage = stockage;
     this.journal = journal;
     this.utilisations = List.copyOf(utilisations);
+    this.inscriptions = inscriptions;
   }
 
   /**
@@ -92,7 +95,7 @@ public class EleveService {
    */
   @PreAuthorize(Droits.IDENTITE)
   @Transactional(readOnly = true)
-  public PageCurseur<Eleve> rechercher(
+  public PageCurseur<ResumeEleve> rechercher(
       String terme, UUID classeId, String curseur, Integer taille) {
     int n = PageCurseur.taille(taille);
     String apresNom = null;
@@ -111,8 +114,11 @@ public class EleveService {
       throw Erreurs.invalide("RECHERCHE_INVALIDE", "Recherche trop longue.");
     }
     List<Eleve> lus = recherche.rechercher(normalise, classeId, apresNom, apresId, n + 1);
-    return PageCurseur.depuis(
-        lus, n, e -> new String[] {e.getNomRecherche(), e.getId().toString()});
+    PageCurseur<Eleve> page =
+        PageCurseur.depuis(lus, n, e -> new String[] {e.getNomRecherche(), e.getId().toString()});
+    Map<UUID, String> classes =
+        inscriptions.classesActuelles(page.elements().stream().map(Eleve::getId).toList());
+    return page.map(e -> new ResumeEleve(e, classes.get(e.getId())));
   }
 
   @PreAuthorize(Droits.IDENTITE_ELEVE)
@@ -212,6 +218,16 @@ public class EleveService {
 
   Eleve charger(UUID eleveId) {
     return eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
+  }
+
+  /** L'élève connecté (compte relié par code d'activation). */
+  @PreAuthorize("hasRole('ELEVE')")
+  @Transactional(readOnly = true)
+  public VueEleve moi() {
+    return vue(
+        eleves
+            .findByUtilisateurId(Erreurs.utilisateurCourant())
+            .orElseThrow(Erreurs::eleveIntrouvable));
   }
 
   Optional<Eleve> parUtilisateur(UUID utilisateurId) {

@@ -4,9 +4,15 @@ import java.time.LocalDate;
 import java.util.UUID;
 import sn.ecole.inscription.domain.Sexe;
 
-/** Ligne de la liste des élèves. */
+/** Ligne d'une liste d'élèves ; {@code classe} : classe actuelle, absente si non inscrit. */
 public record EleveResumeDto(
-    UUID id, String matricule, String prenoms, String nom, Sexe sexe, LocalDate dateNaissance) {
+    UUID id,
+    String matricule,
+    String prenoms,
+    String nom,
+    Sexe sexe,
+    LocalDate dateNaissance,
+    String classe) {
 
   @Override
   public String toString() {

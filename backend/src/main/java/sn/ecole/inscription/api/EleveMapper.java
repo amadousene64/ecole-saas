@@ -4,7 +4,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import sn.ecole.inscription.application.EleveService.VueEleve;
-import sn.ecole.inscription.domain.Eleve;
+import sn.ecole.inscription.application.ResumeEleve;
 
 @Mapper
 interface EleveMapper {
@@ -14,7 +14,9 @@ interface EleveMapper {
   @Mapping(target = "compteActive", expression = "java(vue.eleve().getUtilisateurId() != null)")
   EleveDto versDto(VueEleve vue);
 
-  EleveResumeDto versResume(Eleve eleve);
+  @Mapping(target = ".", source = "eleve")
+  @Mapping(target = "classe", source = "classe")
+  EleveResumeDto versResume(ResumeEleve resume);
 
-  List<EleveResumeDto> versResumes(List<Eleve> eleves);
+  List<EleveResumeDto> versResumes(List<ResumeEleve> resumes);
 }
