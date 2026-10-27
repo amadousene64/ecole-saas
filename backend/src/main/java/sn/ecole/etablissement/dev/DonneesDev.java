@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.infrastructure;
+package sn.ecole.etablissement.dev;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,6 +29,9 @@ import sn.ecole.shared.domain.TenantRepository;
 /**
  * Profil dev uniquement : donne à chaque école fictive son profil, le modèle sénégalais, une année
  * 2026-2027 ouverte, trois salles et quelques classes. Idempotent ; jamais de données réelles.
+ *
+ * <p>Hors des couches api / application / domain / infrastructure : c'est un amorçage qui pilote
+ * les cas d'usage, comme le ferait un client de l'API.
  */
 @Component
 @Profile("dev")

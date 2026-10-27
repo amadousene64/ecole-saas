@@ -1,4 +1,4 @@
-package sn.ecole.etablissement.infrastructure;
+package sn.ecole.etablissement.dev;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static sn.ecole.Fixtures.DIRECTEUR_A;
