@@ -12,10 +12,12 @@ scripts d'outillage sont en Node (`tools/`).
 | `libs/auth`         | OIDC (code + PKCE), session, intercepteur, gardes de route       |      |                 |
 | `libs/api-client`   | client d'API généré depuis `docs/api/openapi.json`               |      |                 |
 | `libs/ui`           | thème, coquilles, sélecteur d'école, pages d'état (en français)  |      |                 |
-| `apps/e2e`          | 12 scénarios Playwright (Keycloak et API réels) : backoffice 5, parent 3, vie-scolaire 4 |      |                 |
+| `libs/feature-etablissement` | écrans du module établissement : profil et images, structure pédagogique, années et périodes, classes et salles |      |                 |
+| `apps/e2e`          | 17 scénarios Playwright (Keycloak et API réels) : backoffice 10, parent 3, vie-scolaire 4 |      |                 |
 
 Règles de dépendances (vérifiées par ESLint, `@nx/enforce-module-boundaries`) : les apps utilisent
-`auth`, `api-client` et `ui` ; `auth` utilise `api-client` et `ui` ; `ui` et `api-client` ne
+`auth`, `api-client`, `ui` et les libs `feature-*` ; une `feature-*` (écrans d'un module métier) utilise
+`auth`, `api-client` et `ui`, jamais une autre feature ; `auth` utilise `api-client` et `ui` ; `ui` et `api-client` ne
 dépendent de rien.
 
 ## Commandes
@@ -34,7 +36,8 @@ L'e2e suppose `docker compose -f infra/docker-compose.yml up -d` et le backend e
 (`./mvnw spring-boot:run` dans `backend/`) sur le port 8080. Le mot de passe des comptes fictifs
 vient de `E2E_MOT_DE_PASSE` (par défaut, celui du realm de dev).
 
-Un projet Playwright par app (`testMatch: <app>.spec.ts`) : 12 scénarios s'exécutent. `connexion.spec.ts`
+Un projet Playwright par app (`testMatch: <app>.spec.ts` et `<app>-<sujet>.spec.ts`) : 17 scénarios
+s'exécutent (backoffice 10 dont 5 du module établissement, parent 3, vie-scolaire 4). `connexion.spec.ts`
 (4 `test`) n'est rattaché à aucun projet et n'est donc jamais lancé : ses parcours sont repris par les
 specs des apps. En CI, l'e2e tourne chaque lundi et à la demande (`.github/workflows/e2e.yml`).
 
