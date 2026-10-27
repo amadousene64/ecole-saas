@@ -125,7 +125,7 @@ public abstract class TestEtablissement extends TestIntegration {
     return executer(requete, utilisateur, ecole);
   }
 
-  private Reponse executer(
+  protected Reponse executer(
       AbstractMockHttpServletRequestBuilder<?> requete, UUID utilisateur, UUID ecole)
       throws Exception {
     AbstractMockHttpServletRequestBuilder<?> complet =

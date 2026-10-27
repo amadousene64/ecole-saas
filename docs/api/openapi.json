@@ -998,6 +998,425 @@
         "tags" : [ "cycle-controller" ]
       }
     },
+    "/api/v1/eleves" : {
+      "get" : {
+        "operationId" : "eleve_rechercher",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "recherche",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "curseur",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "taille",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageDtoEleveResumeDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recherche des élèves (nom, prénoms ou matricule), paginée par curseur",
+        "tags" : [ "eleve-controller" ]
+      },
+      "post" : {
+        "operationId" : "eleve_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EleveRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée un élève ; le matricule est attribué selon le format de l'école",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}" : {
+      "delete" : {
+        "operationId" : "eleve_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) un élève créé par erreur, sans donnée rattachée",
+        "tags" : [ "eleve-controller" ]
+      },
+      "get" : {
+        "operationId" : "eleve_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Identité d'un élève, avec l'URL signée de sa photo",
+        "tags" : [ "eleve-controller" ]
+      },
+      "put" : {
+        "operationId" : "eleve_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EleveRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Corrige l'identité (If-Match : version lue) ; le matricule ne change pas",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/donnees-sensibles" : {
+      "get" : {
+        "operationId" : "donneesSensibles_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DonneesSensiblesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Lit les données sensibles (directeur, censeur) ; chaque lecture est journalisée",
+        "tags" : [ "donnees-sensibles-controller" ]
+      },
+      "put" : {
+        "operationId" : "donneesSensibles_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DonneesSensiblesRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtatDonneesSensiblesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Complète ou corrige les données sensibles (If-Match) : champ absent inchangé, vide effacé ; renvoie seulement l'état",
+        "tags" : [ "donnees-sensibles-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/donnees-sensibles/etat" : {
+      "get" : {
+        "operationId" : "donneesSensibles_etat",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtatDonneesSensiblesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Champs renseignés, sans leur contenu (pour le secrétariat)",
+        "tags" : [ "donnees-sensibles-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/photo" : {
+      "delete" : {
+        "operationId" : "eleve_supprimerPhoto",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Retire la photo",
+        "tags" : [ "eleve-controller" ]
+      },
+      "put" : {
+        "operationId" : "eleve_deposerPhoto",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Dépose la photo (PNG ou JPEG, 1 Mo et 2000 px au plus)",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
     "/api/v1/etablissement" : {
       "get" : {
         "operationId" : "etablissement_lire",
@@ -1594,6 +2013,79 @@
         "tags" : [ "option-enseignement-controller" ]
       }
     },
+    "/api/v1/parametres-inscription" : {
+      "get" : {
+        "operationId" : "parametresInscription_lire",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ParametresInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Format des matricules et politique de capacité des classes",
+        "tags" : [ "parametres-inscription-controller" ]
+      },
+      "put" : {
+        "operationId" : "parametresInscription_modifier",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ParametresInscriptionRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ParametresInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie les paramètres (directeur ; If-Match : version lue)",
+        "tags" : [ "parametres-inscription-controller" ]
+      }
+    },
     "/api/v1/salles" : {
       "get" : {
         "operationId" : "salle_lister",
@@ -2140,6 +2632,40 @@
         },
         "required" : [ "serieIds" ]
       },
+      "DonneesSensiblesDto" : {
+        "type" : "object",
+        "properties" : {
+          "allergies" : {
+            "type" : "string"
+          },
+          "sante" : {
+            "type" : "string"
+          },
+          "situationFamiliale" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DonneesSensiblesRequete" : {
+        "type" : "object",
+        "properties" : {
+          "allergies" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "sante" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "situationFamiliale" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        }
+      },
       "EcoleDto" : {
         "type" : "object",
         "properties" : {
@@ -2152,6 +2678,116 @@
           },
           "nom" : {
             "type" : "string"
+          }
+        }
+      },
+      "EleveDto" : {
+        "type" : "object",
+        "properties" : {
+          "compteActive" : {
+            "type" : "boolean"
+          },
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "identifiantNational" : {
+            "type" : "string"
+          },
+          "lieuNaissance" : {
+            "type" : "string"
+          },
+          "matricule" : {
+            "type" : "string"
+          },
+          "nationalite" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "photoUrl" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "EleveRequete" : {
+        "type" : "object",
+        "properties" : {
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "identifiantNational" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          },
+          "lieuNaissance" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "nationalite" : {
+            "type" : "string",
+            "maxLength" : 2,
+            "minLength" : 2
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "prenoms" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          }
+        },
+        "required" : [ "dateNaissance", "lieuNaissance", "nationalite", "nom", "prenoms", "sexe" ]
+      },
+      "EleveResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "matricule" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
           }
         }
       },
@@ -2205,6 +2841,20 @@
           "version" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "EtatDonneesSensiblesDto" : {
+        "type" : "object",
+        "properties" : {
+          "allergiesRenseignees" : {
+            "type" : "boolean"
+          },
+          "santeRenseignee" : {
+            "type" : "boolean"
+          },
+          "situationFamilialeRenseignee" : {
+            "type" : "boolean"
           }
         }
       },
@@ -2494,6 +3144,50 @@
           }
         },
         "required" : [ "code", "groupe", "libelle" ]
+      },
+      "PageDtoEleveResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "curseurSuivant" : {
+            "type" : "string"
+          },
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EleveResumeDto"
+            }
+          }
+        }
+      },
+      "ParametresInscriptionDto" : {
+        "type" : "object",
+        "properties" : {
+          "exempleMatricule" : {
+            "type" : "string"
+          },
+          "formatMatricule" : {
+            "type" : "string"
+          },
+          "politiqueCapacite" : {
+            "type" : "string",
+            "enum" : [ "AVERTIR", "BLOQUER" ]
+          }
+        }
+      },
+      "ParametresInscriptionRequete" : {
+        "type" : "object",
+        "properties" : {
+          "formatMatricule" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "politiqueCapacite" : {
+            "type" : "string",
+            "enum" : [ "AVERTIR", "BLOQUER" ]
+          }
+        },
+        "required" : [ "formatMatricule", "politiqueCapacite" ]
       },
       "PeriodeDto" : {
         "type" : "object",
