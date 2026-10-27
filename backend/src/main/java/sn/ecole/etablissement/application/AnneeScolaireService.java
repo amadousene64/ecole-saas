@@ -178,8 +178,14 @@ public class AnneeScolaireService {
     try {
       annees.saveAndFlush(annee);
     } catch (DataIntegrityViolationException e) {
-      // Deux ouvertures simultanées : l'index unique partiel départage.
-      throw Erreurs.conflit("ANNEE_DEJA_EN_COURS", "Une autre année est déjà en cours.");
+      // Deux ouvertures simultanées : l'index unique partiel départage. Toute autre contrainte
+      // (copie figée incohérente, par exemple) remonte telle quelle, sans fausse explication.
+      String contrainte = nomContrainte(e);
+      if (contrainte.contains("uq_annee_scolaire_en_cours")
+          || contrainte.contains("uq_parametres_")) {
+        throw Erreurs.conflit("ANNEE_DEJA_EN_COURS", "Une autre année est déjà en cours.");
+      }
+      throw e;
     }
     journal.consigner("ANNEE_OUVERTE", "AnneeScolaire", id, Map.of("libelle", annee.getLibelle()));
     evenements.publishEvent(
@@ -230,6 +236,16 @@ public class AnneeScolaireService {
                 parametresNiveaux.save(
                     ParametresNiveauAnnee.figer(
                         annee.getId(), niveau, parId.get(niveau.getCycleId()))));
+  }
+
+  private static String nomContrainte(Throwable erreur) {
+    for (Throwable t = erreur; t != null; t = t.getCause()) {
+      if (t instanceof org.hibernate.exception.ConstraintViolationException c
+          && c.getConstraintName() != null) {
+        return c.getConstraintName();
+      }
+    }
+    return "";
   }
 
   private void verifierPeriodesCompletes(UUID anneeId) {

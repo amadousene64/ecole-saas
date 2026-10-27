@@ -196,6 +196,67 @@ class ParametresAnneeTest extends TestEtablissement {
     assertThat(cycle(apres, CodeCycle.ELEMENTAIRE).baseMoyenne()).isEqualTo(10);
   }
 
+  @Test
+  void unNiveauCreeEnCoursDAnneeSeFigeToutDeSuiteAvecLesParametresFigesDuCycle() throws Exception {
+    UUID annee = creerEtOuvrirAnnee(DIRECTEUR_A, A);
+    // Le modèle du cycle change après l'ouverture : la copie figée de l'année, elle, ne bouge pas.
+    modifierCycle("ELEMENTAIRE", "TRIMESTRE", "BAREME", 20);
+
+    Reponse r =
+        post(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/niveaux",
+            corps(
+                "cycleId",
+                cycle(DIRECTEUR_A, A, "ELEMENTAIRE"),
+                "code",
+                "CM3",
+                "libelle",
+                "CM3",
+                "ordre",
+                20));
+    assertThat(r.statut()).isEqualTo(201);
+
+    ParametresNotation p = parametres(annee);
+    assertThat(p.niveaux()).hasSize(14);
+    assertThat(niveau(p, r.id()).baseMoyenne()).isEqualTo(10); // base figée du cycle, pas 20
+    assertThat(compter("parametres_niveau_annee", annee)).isEqualTo(14);
+
+    // Surcharge à la création : retenue, mais refusée si le cycle figé est par coefficients.
+    Reponse surcharge =
+        post(
+            DIRECTEUR_A,
+            A,
+            "/api/v1/niveaux",
+            corps(
+                "cycleId",
+                cycle(DIRECTEUR_A, A, "ELEMENTAIRE"),
+                "code",
+                "CM4",
+                "libelle",
+                "CM4",
+                "ordre",
+                21,
+                "baseMoyenne",
+                20));
+    assertThat(surcharge.statut()).isEqualTo(201);
+    assertThat(niveau(parametres(annee), surcharge.id()).baseMoyenne()).isEqualTo(20);
+  }
+
+  @Test
+  void unNiveauCreeEnPreparationNeCreeAucuneCopie() throws Exception {
+    UUID preparation = creerAnnee(DIRECTEUR_A, A);
+    post(
+        DIRECTEUR_A,
+        A,
+        "/api/v1/niveaux",
+        corps(
+            "cycleId", cycle(DIRECTEUR_A, A, "MOYEN"), "code", "XX", "libelle", "XX", "ordre", 30));
+    assertThat(compter("parametres_niveau_annee", preparation)).isZero();
+    assertThat(parametres(preparation).figes()).isFalse();
+  }
+
   // --- API publique ---
 
   @Test

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.ecole.etablissement.domain.AnneeScolaireRepository;
 import sn.ecole.etablissement.domain.ClasseRepository;
 import sn.ecole.etablissement.domain.Cycle;
 import sn.ecole.etablissement.domain.CycleRepository;
@@ -18,8 +19,13 @@ import sn.ecole.etablissement.domain.Niveau;
 import sn.ecole.etablissement.domain.NiveauRepository;
 import sn.ecole.etablissement.domain.NiveauSerie;
 import sn.ecole.etablissement.domain.NiveauSerieRepository;
+import sn.ecole.etablissement.domain.ParametresCycleAnnee;
+import sn.ecole.etablissement.domain.ParametresCycleAnneeRepository;
+import sn.ecole.etablissement.domain.ParametresNiveauAnnee;
+import sn.ecole.etablissement.domain.ParametresNiveauAnneeRepository;
 import sn.ecole.etablissement.domain.ReglesNotation;
 import sn.ecole.etablissement.domain.SerieRepository;
+import sn.ecole.etablissement.domain.StatutAnnee;
 import sn.ecole.shared.application.JournalAudit;
 
 /** Niveaux d'études, leur base de moyenne éventuelle et les séries qu'ils proposent. */
@@ -36,6 +42,9 @@ public class NiveauService {
   private final NiveauSerieRepository liens;
   private final ClasseRepository classes;
   private final JournalAudit journal;
+  private final AnneeScolaireRepository annees;
+  private final ParametresCycleAnneeRepository parametresCycles;
+  private final ParametresNiveauAnneeRepository parametresNiveaux;
 
   public NiveauService(
       NiveauRepository niveaux,
@@ -43,7 +52,13 @@ public class NiveauService {
       SerieRepository series,
       NiveauSerieRepository liens,
       ClasseRepository classes,
-      JournalAudit journal) {
+      JournalAudit journal,
+      AnneeScolaireRepository annees,
+      ParametresCycleAnneeRepository parametresCycles,
+      ParametresNiveauAnneeRepository parametresNiveaux) {
+    this.annees = annees;
+    this.parametresCycles = parametresCycles;
+    this.parametresNiveaux = parametresNiveaux;
     this.niveaux = niveaux;
     this.cycles = cycles;
     this.series = series;
@@ -93,6 +108,7 @@ public class NiveauService {
     ReglesNotation.verifier(cycle.getModeNotation(), niveau.baseMoyenneEffective(cycle));
     verifierCodeLibre(niveau.getCode(), null);
     niveaux.save(niveau);
+    figerSiAnneeEnCours(niveau);
     return vue(niveau);
   }
 
@@ -171,6 +187,32 @@ public class NiveauService {
       }
     }
     return vue(niveau);
+  }
+
+  /**
+   * Un niveau créé alors qu'une année est EN_COURS reçoit tout de suite ses paramètres figés pour
+   * cette année (ceux du cycle tels qu'ils ont été figés à l'ouverture) : sans cela, les classes de
+   * ce niveau n'auraient aucune base de moyenne fiable.
+   */
+  private void figerSiAnneeEnCours(Niveau niveau) {
+    annees
+        .findByStatut(StatutAnnee.EN_COURS)
+        .ifPresent(
+            annee -> {
+              ParametresCycleAnnee cycleFige =
+                  parametresCycles.findByAnneeId(annee.getId()).stream()
+                      .filter(p -> p.getCycleId().equals(niveau.getCycleId()))
+                      .findFirst()
+                      .orElseThrow(
+                          () ->
+                              Erreurs.conflit(
+                                  "PARAMETRES_CYCLE_ABSENTS",
+                                  "Les paramètres figés du cycle manquent pour l'année en cours."));
+              ParametresNiveauAnnee figee =
+                  ParametresNiveauAnnee.figer(annee.getId(), niveau, cycleFige);
+              ReglesNotation.verifier(figee.getModeNotation(), figee.getBaseMoyenne());
+              parametresNiveaux.save(figee);
+            });
   }
 
   private Niveau charger(UUID id) {

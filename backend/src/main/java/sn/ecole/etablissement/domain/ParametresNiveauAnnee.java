@@ -38,16 +38,35 @@ public class ParametresNiveauAnnee extends TenantAwareEntity {
 
   protected ParametresNiveauAnnee() {}
 
-  private ParametresNiveauAnnee(UUID anneeId, Niveau niveau, Cycle cycle) {
+  private ParametresNiveauAnnee(
+      UUID anneeId, UUID niveauId, UUID cycleId, ModeNotation mode, int baseMoyenne) {
     this.anneeId = Objects.requireNonNull(anneeId, "anneeId");
-    this.niveauId = niveau.getId();
-    this.cycleId = cycle.getId();
-    this.modeNotation = cycle.getModeNotation();
-    this.baseMoyenne = niveau.baseMoyenneEffective(cycle);
+    this.niveauId = niveauId;
+    this.cycleId = cycleId;
+    this.modeNotation = mode;
+    this.baseMoyenne = baseMoyenne;
   }
 
+  /** Copie à l'ouverture d'une année : à partir du modèle du cycle, tel qu'il est à cet instant. */
   public static ParametresNiveauAnnee figer(UUID anneeId, Niveau niveau, Cycle cycle) {
-    return new ParametresNiveauAnnee(anneeId, niveau, cycle);
+    return new ParametresNiveauAnnee(
+        anneeId,
+        niveau.getId(),
+        cycle.getId(),
+        cycle.getModeNotation(),
+        niveau.baseMoyenneEffective(cycle));
+  }
+
+  /**
+   * Niveau créé alors que l'année est déjà ouverte : il se fige avec les paramètres FIGÉS du cycle
+   * de cette année (pas avec le modèle, qui a pu changer depuis l'ouverture).
+   */
+  public static ParametresNiveauAnnee figer(
+      UUID anneeId, Niveau niveau, ParametresCycleAnnee cycleFige) {
+    int base =
+        niveau.getBaseMoyenne() != null ? niveau.getBaseMoyenne() : cycleFige.getBaseMoyenne();
+    return new ParametresNiveauAnnee(
+        anneeId, niveau.getId(), cycleFige.getCycleId(), cycleFige.getModeNotation(), base);
   }
 
   public UUID getAnneeId() {

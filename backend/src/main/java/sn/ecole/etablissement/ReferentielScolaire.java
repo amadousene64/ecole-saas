@@ -20,6 +20,9 @@ public interface ReferentielScolaire {
    * bulletins doivent lire. Pour une année en préparation, ce sont ceux du modèle à cet instant
    * ({@code figes} faux : ils peuvent encore changer).
    *
+   * <p>Un niveau absent de l'année figée est une anomalie, jamais une invitation à lire le modèle
+   * des cycles (modifiable) : le bulletin doit échouer.
+   *
    * @throws sn.ecole.shared.domain.ErreurMetier ANNEE_INTROUVABLE si l'année n'existe pas
    */
   ParametresNotation parametresNotation(UUID anneeId);
