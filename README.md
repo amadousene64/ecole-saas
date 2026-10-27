@@ -38,6 +38,7 @@ Utilisateurs fictifs du realm (mot de passe `Passer-2026-dev`) :
 | `enseignant.parent` | ENSEIGNANT | PARENT |
 | `surveillant.b` | — | SURVEILLANT |
 | `censeur.a` | CENSEUR | — |
+| `secretariat.a` | SECRETARIAT | — |
 | `eleve.b` | — | ELEVE |
 
 L'import du realm ne se rejoue pas sur un Keycloak existant : pour récupérer de nouveaux utilisateurs,
