@@ -135,7 +135,7 @@ import { ServiceStructure } from '../services/service-structure';
           </mat-select>
           @if (niveauFige()) {
             <mat-hint
-              >Le niveau ne change plus une fois l'année en cours.</mat-hint
+              >Le niveau et la série ne changent plus une fois l'année en cours.</mat-hint
             >
           }
         </mat-form-field>
@@ -238,7 +238,7 @@ export class SectionClasses {
     const niveau = this.niveaux().find((n) => n.id === this.niveauChoisi());
     return this.series().filter((s) => niveau?.serieIds?.includes(s.id ?? ''));
   });
-  /** Le niveau d'une classe existante ne change plus en année EN_COURS (règle du serveur). */
+  /** Niveau et série d'une classe existante ne changent plus en année EN_COURS (règle du serveur). */
   protected readonly niveauFige = computed(
     () => !!this.edition() && this.anneeCourante()?.statut === 'EN_COURS',
   );
@@ -259,8 +259,10 @@ export class SectionClasses {
     effect(() => {
       if (this.niveauFige()) {
         this.formulaire.controls.niveauId.disable({ emitEvent: false });
+        this.formulaire.controls.serieId.disable({ emitEvent: false });
       } else {
         this.formulaire.controls.niveauId.enable({ emitEvent: false });
+        this.formulaire.controls.serieId.enable({ emitEvent: false });
       }
     });
     void this.charger();

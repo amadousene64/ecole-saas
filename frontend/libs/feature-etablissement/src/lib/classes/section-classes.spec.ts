@@ -175,7 +175,7 @@ describe('SectionClasses', () => {
     ).toBeUndefined();
   });
 
-  it("fige le niveau d'une classe existante quand l'année est en cours", async () => {
+  it("fige le niveau et la série d'une classe existante quand l'année est en cours", async () => {
     const { fixture, racine } = await creer(['SECRETARIAT'], ANNEE_EN_COURS, [
       CLASSE_TS2B,
     ]);
@@ -183,12 +183,12 @@ describe('SectionClasses', () => {
       .querySelector<HTMLButtonElement>('[data-testid="classe-TS2B"] button')!
       .click();
     await stabiliser(fixture);
-
     expect(f(fixture).controls['niveauId'].disabled).toBe(true);
-    expect(racine.textContent).toContain('ne change plus une fois');
+    expect(f(fixture).controls['serieId'].disabled).toBe(true);
+    expect(racine.textContent).toContain('ne changent plus une fois');
   });
 
-  it("laisse changer le niveau d'une classe tant que l'année est en préparation", async () => {
+  it("laisse changer le niveau et la série d'une classe tant que l'année est en préparation", async () => {
     const { fixture, racine } = await creer(
       ['SECRETARIAT'],
       ANNEE_PREPARATION,
@@ -200,6 +200,7 @@ describe('SectionClasses', () => {
     await stabiliser(fixture);
 
     expect(f(fixture).controls['niveauId'].disabled).toBe(false);
+    expect(f(fixture).controls['serieId'].disabled).toBe(false);
   });
 
   it('une année clôturée est en lecture seule', async () => {
