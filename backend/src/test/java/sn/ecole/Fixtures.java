@@ -18,6 +18,16 @@ public final class Fixtures {
 
   public static final UUID SURVEILLANT_B = UUID.fromString("01930000-0000-7000-8000-000000000103");
 
+  public static final UUID CENSEUR_A = UUID.fromString("01930000-0000-7000-8000-000000000105");
+  public static final UUID SECRETARIAT_A = UUID.fromString("01930000-0000-7000-8000-000000000107");
+  public static final UUID SURVEILLANT_A = UUID.fromString("01930000-0000-7000-8000-000000000108");
+  public static final UUID COMPTABLE_A = UUID.fromString("01930000-0000-7000-8000-000000000109");
+  public static final UUID PARENT_A = UUID.fromString("01930000-0000-7000-8000-00000000010a");
+  public static final UUID ELEVE_A = UUID.fromString("01930000-0000-7000-8000-00000000010b");
+
+  /** Directeur de l'école B seulement : sert aux tests d'isolement. */
+  public static final UUID DIRECTEUR_B = UUID.fromString("01930000-0000-7000-8000-000000000201");
+
   /** Membre seulement de l'école inactive. */
   public static final UUID MEMBRE_INACTIVE =
       UUID.fromString("01930000-0000-7000-8000-000000000104");
@@ -38,6 +48,13 @@ public final class Fixtures {
         ECOLE_INACTIVE);
     appartenance(superUtilisateur, ECOLE_A, DIRECTEUR_A, "DIRECTEUR");
     appartenance(superUtilisateur, ECOLE_A, ENSEIGNANT_A_PARENT_B, "ENSEIGNANT");
+    appartenance(superUtilisateur, ECOLE_A, CENSEUR_A, "CENSEUR");
+    appartenance(superUtilisateur, ECOLE_A, SECRETARIAT_A, "SECRETARIAT");
+    appartenance(superUtilisateur, ECOLE_A, SURVEILLANT_A, "SURVEILLANT");
+    appartenance(superUtilisateur, ECOLE_A, COMPTABLE_A, "COMPTABLE");
+    appartenance(superUtilisateur, ECOLE_A, PARENT_A, "PARENT");
+    appartenance(superUtilisateur, ECOLE_A, ELEVE_A, "ELEVE");
+    appartenance(superUtilisateur, ECOLE_B, DIRECTEUR_B, "DIRECTEUR");
     appartenance(superUtilisateur, ECOLE_B, ENSEIGNANT_A_PARENT_B, "PARENT");
     appartenance(superUtilisateur, ECOLE_B, SURVEILLANT_B, "SURVEILLANT");
     appartenance(superUtilisateur, ECOLE_INACTIVE, MEMBRE_INACTIVE, "DIRECTEUR");

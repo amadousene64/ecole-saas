@@ -1,0 +1,72 @@
+name: E2E
+
+# Parcours Playwright contre Keycloak et l'API réels. Hebdomadaire (lundi 02:00 UTC) et manuel,
+# pour économiser les minutes d'Actions.
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Infra (postgres, keycloak, rabbitmq, redis, minio)
+        run: |
+          cp infra/env.example infra/.env
+          docker compose -f infra/docker-compose.yml up -d --wait --wait-timeout 300
+      - name: Backend (profil dev)
+        working-directory: backend
+        run: |
+          nohup ./mvnw -B spring-boot:run -Dspring-boot.run.profiles=dev > "$RUNNER_TEMP/backend.log" 2>&1 &
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:8080/actuator/health > /dev/null && exit 0
+            sleep 4
+          done
+          echo "Backend non démarré" >&2
+          tail -n 80 "$RUNNER_TEMP/backend.log"
+          exit 1
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Scénarios Playwright
+        working-directory: frontend
+        env:
+          CI: 'true'
+          E2E_MOT_DE_PASSE: ${{ secrets.E2E_MOT_DE_PASSE }}
+        run: npx nx e2e e2e
+      - name: Diagnostics
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml logs --no-color > "$RUNNER_TEMP/compose.log" 2>&1 || true
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-diagnostics
+          path: |
+            frontend/dist/.playwright
+            ${{ runner.temp }}/backend.log
+            ${{ runner.temp }}/compose.log
+          if-no-files-found: ignore
+          retention-days: 7

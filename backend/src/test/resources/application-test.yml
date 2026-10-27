@@ -1,4 +1,8 @@
 spring:
+  data:
+    redis:
+      # Tests : machine chargée par Testcontainers, 1 s est trop court pour un flushAll.
+      timeout: 5s
   security:
     oauth2:
       resourceserver:

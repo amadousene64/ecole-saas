@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CoquilleApplication } from '@ecole/auth';
+import { LIENS_ETABLISSEMENT } from '@ecole/feature-etablissement';
 import { LienNavigation } from '@ecole/ui';
 
 @Component({
@@ -11,5 +12,6 @@ import { LienNavigation } from '@ecole/ui';
 export class App {
   protected readonly liens: LienNavigation[] = [
     { chemin: '/', libelle: 'Accueil' },
+    ...LIENS_ETABLISSEMENT,
   ];
 }

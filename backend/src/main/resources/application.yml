@@ -5,6 +5,11 @@ server:
 spring:
   application:
     name: ecole-backend
+  servlet:
+    multipart:
+      # Images officielles : 1 Mo au plus (voir TypeImage). Au-delà, refus avant tout traitement.
+      max-file-size: 1MB
+      max-request-size: 1MB
   threads:
     virtual:
       enabled: true
@@ -14,6 +19,10 @@ spring:
     url: ${ECOLE_DB_URL:jdbc:postgresql://localhost:55432/ecole?currentSchema=ecole&logServerErrorDetail=false}
     username: ${ECOLE_DB_APP_USER:ecole_app}
     password: ${ECOLE_DB_APP_PASSWORD:}
+    hikari:
+      # Aussi forcé ici : une URL surchargée par l'environnement ne doit pas réactiver les détails.
+      data-source-properties:
+        logServerErrorDetail: false
   flyway:
     # Les migrations, elles, tournent avec le propriétaire du schéma.
     user: ${ECOLE_DB_OWNER_USER:ecole_owner}
@@ -49,6 +58,16 @@ ecole:
     jeton:
       # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
       clients-autorises: [backoffice, parent, vie-scolaire]
+
+  stockage:
+    # MinIO (API S3). Les clés d'accès viennent de l'environnement ; bucket privé.
+    endpoint: ${ECOLE_STOCKAGE_ENDPOINT:http://localhost:9000}
+    # Adresse vue par le navigateur pour les URL signées, si elle diffère de l'endpoint.
+    endpoint-public: ${ECOLE_STOCKAGE_ENDPOINT_PUBLIC:}
+    bucket: ${ECOLE_STOCKAGE_BUCKET:ecole-fichiers}
+    access-key: ${ECOLE_STOCKAGE_ACCESS_KEY:}
+    secret-key: ${ECOLE_STOCKAGE_SECRET_KEY:}
+    creer-bucket: false
 
 springdoc:
   api-docs:

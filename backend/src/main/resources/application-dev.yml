@@ -10,6 +10,10 @@ spring:
       password: ${ECOLE_REDIS_PASSWORD:redis-dev}
 
 ecole:
+  stockage:
+    access-key: ecole
+    secret-key: ${ECOLE_MINIO_PASSWORD:minio-dev-123}
+    creer-bucket: true
   tenant:
     resolution: entete
   securite:

@@ -161,6 +161,16 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000107",
+      "username": "secretariat.a",
+      "email": "secretariat.a@exemple.test",
+      "firstName": "Secrétariat",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
     }
   ]
 }

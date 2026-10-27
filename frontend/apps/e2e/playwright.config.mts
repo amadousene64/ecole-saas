@@ -26,7 +26,8 @@ export default defineConfig({
   })),
   projects: applications.map(({ nom, port }) => ({
     name: nom,
-    testMatch: `${nom}.spec.ts`,
+    // `<app>.spec.ts` et ses compléments `<app>-<sujet>.spec.ts`.
+    testMatch: new RegExp(`/${nom}(-[a-z-]+)?\\.spec\\.ts$`),
     use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${port}` },
   })),
 });

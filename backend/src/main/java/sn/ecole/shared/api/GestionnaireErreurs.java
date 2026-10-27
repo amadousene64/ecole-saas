@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,26 @@ class GestionnaireErreurs extends ResponseEntityExceptionHandler {
         HttpStatus.CONFLICT,
         "CONFLIT_VERSION",
         "La donnée a été modifiée entre-temps : rechargez-la puis recommencez.");
+  }
+
+  /** Contrainte de la base (unicité, clé étrangère) franchie malgré les contrôles applicatifs. */
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  ResponseEntity<ProblemDetail> conflitDonnees(DataIntegrityViolationException e) {
+    // Jamais le message du pilote : il peut citer les valeurs de la ligne (données d'élèves).
+    String contrainte = "inconnue";
+    String etat = "?";
+    for (Throwable t = e.getCause(); t != null; t = t.getCause()) {
+      if (t instanceof org.hibernate.exception.ConstraintViolationException c) {
+        contrainte = String.valueOf(c.getConstraintName());
+        etat = String.valueOf(c.getSQLState());
+        break;
+      }
+    }
+    LOG.warn("Contrainte de base violée : {} (SQLState {})", contrainte, etat);
+    return reponse(
+        HttpStatus.CONFLICT,
+        "CONFLIT_DONNEES",
+        "Cette opération entre en conflit avec des données existantes.");
   }
 
   @ExceptionHandler(Exception.class)

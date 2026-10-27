@@ -25,6 +25,17 @@ export default [
             // sauf auth qui s'appuie sur le client d'API.
             {
               sourceTag: 'type:app',
+              onlyDependOnLibsWithTags: [
+                'type:feature',
+                'type:auth',
+                'type:api',
+                'type:ui',
+              ],
+            },
+            // Une lib « feature » porte les écrans d'un module métier ; elle ne dépend
+            // que du socle (auth, client d'API, ui), jamais d'une autre feature.
+            {
+              sourceTag: 'type:feature',
               onlyDependOnLibsWithTags: ['type:auth', 'type:api', 'type:ui'],
             },
             {
