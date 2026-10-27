@@ -13,4 +13,7 @@ public interface PeriodeRepository {
   Optional<Periode> findById(UUID id);
 
   Periode save(Periode periode);
+
+  /** Écrit tout de suite : l'ancienne période doit être retirée avant d'insérer sa remplaçante. */
+  Periode saveAndFlush(Periode periode);
 }
