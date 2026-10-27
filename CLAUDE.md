@@ -30,7 +30,8 @@ docker compose -f infra/docker-compose.yml up -d   # postgres, keycloak, rabbitm
 ## Règles d'architecture (non négociables)
 
 1. **Monolithe modulaire.** Un package racine par module métier sous `sn.ecole` :
-   `etablissement`, `inscription`, `classe`, `personnel`, `emploidutemps`, `viescolaire`,
+   `etablissement` (structure de l'école : profil, cycles, niveaux, séries, années, périodes,
+   calendrier, **classes et salles**), `inscription`, `personnel`, `emploidutemps`, `viescolaire`,
    `evaluation`, `bulletin`, `finance`, `communication`, `statistique`, `shared`.
    Un module n'accède à un autre que par les types de son package racine (API publique)
    ou par événement de domaine. `ModularityTests` doit rester vert.
