@@ -3,7 +3,12 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Api, activationActiver } from '@ecole/api-client';
 import { EcoleCourante, Session } from '@ecole/auth';
-import { normaliserCode, PageActivation, presenterCode } from './activation';
+import {
+  normaliserCode,
+  PageActivation,
+  presenterCode,
+  sansSousDomaine,
+} from './activation';
 
 describe('normaliserCode / presenterCode', () => {
   it('tolère minuscules, espaces et tirets', () => {
@@ -11,6 +16,15 @@ describe('normaliserCode / presenterCode', () => {
     expect(presenterCode('7k2mx9qd4rtb')).toBe('7K2M-X9QD-4RTB');
     expect(presenterCode('7k2mx9qd4rtbEXTRA')).toBe('7K2M-X9QD-4RTB');
     expect(presenterCode('')).toBe('');
+  });
+});
+
+describe('sansSousDomaine', () => {
+  it('vrai sur localhost et une adresse IP, faux sur le domaine d’une école', () => {
+    expect(sansSousDomaine('localhost')).toBe(true);
+    expect(sansSousDomaine('192.168.1.20')).toBe(true);
+    expect(sansSousDomaine('lycee-a.ecole.sn')).toBe(false);
+    expect(sansSousDomaine('ecole.sn')).toBe(false);
   });
 });
 

@@ -9,13 +9,13 @@ const garde = gardeRoles('PARENT', 'ELEVE');
  * aucune école va à l'activation (il lui faut un code de l'école), pas à un écran « aucune école ».
  */
 export const gardeParent: CanActivateFn = async (route, state) => {
+  // `inject` n'est permis qu'avant le premier `await`.
+  const session = inject(Session);
+  const routeur = inject(Router);
   // gardeRoles est asynchrone (promesse), jamais un flux.
   const resultat = (await garde(route, state)) as GuardResult;
-  if (
-    resultat instanceof UrlTree &&
-    inject(Session).etat() === 'aucune-ecole'
-  ) {
-    return inject(Router).parseUrl('/activer');
+  if (resultat instanceof UrlTree && session.etat() === 'aucune-ecole') {
+    return routeur.parseUrl('/activer');
   }
   return resultat;
 };

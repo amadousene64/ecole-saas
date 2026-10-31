@@ -3,12 +3,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
-  isDevMode,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Api, activationActiver } from '@ecole/api-client';
 import { EcoleCourante, Session } from '@ecole/auth';
+
+/** Vrai sur localhost ou une adresse IP : il n'y a pas de sous-domaine d'école pour la désigner. */
+export function sansSousDomaine(hote = window.location.hostname): boolean {
+  return hote === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(hote);
+}
 
 /** Saisie tolérée comme côté serveur : majuscules, sans espaces ni tirets superflus. */
 export function normaliserCode(saisie: string): string {
@@ -119,10 +123,12 @@ export class PageActivation {
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   /**
-   * En production l'école vient du sous-domaine, côté serveur. En développement, sans école
-   * mémorisée, on la désigne à la main.
+   * En production l'école vient du sous-domaine, côté serveur. Sur un poste de développement
+   * (localhost, adresse IP), sans école mémorisée, on la désigne à la main.
    */
-  protected readonly champEcole = signal(isDevMode() && !this.courante.id());
+  protected readonly champEcole = signal(
+    !this.courante.id() && sansSousDomaine(),
+  );
 
   protected complet(): boolean {
     return normaliserCode(this.code()).length === 12;
