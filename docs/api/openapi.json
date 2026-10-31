@@ -1621,6 +1621,183 @@
         "tags" : [ "eleve-controller" ]
       }
     },
+    "/api/v1/eleves/{eleveId}/pieces" : {
+      "get" : {
+        "operationId" : "piece_lister",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PieceDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Pièces du dossier, avec leur statut d'analyse",
+        "tags" : [ "piece-controller" ]
+      },
+      "post" : {
+        "operationId" : "piece_deposer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  },
+                  "type" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [ "fichier", "type" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PieceDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Dépose une pièce (PDF, JPEG ou PNG, 5 Mo au plus) ; inaccessible jusqu'à l'analyse antivirus",
+        "tags" : [ "piece-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/pieces/{pieceId}" : {
+      "delete" : {
+        "operationId" : "piece_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "pieceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une pièce ; le fichier est effacé du stockage",
+        "tags" : [ "piece-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/pieces/{pieceId}/url" : {
+      "get" : {
+        "operationId" : "piece_url",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "pieceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UrlDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "URL de téléchargement (5 minutes), seulement pour une pièce saine",
+        "tags" : [ "piece-controller" ]
+      }
+    },
     "/api/v1/eleves/{eleveId}/responsables" : {
       "get" : {
         "operationId" : "lienParental_lister",
@@ -4428,6 +4605,38 @@
           }
         }
       },
+      "PieceDto" : {
+        "type" : "object",
+        "properties" : {
+          "analyseLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "contentType" : {
+            "type" : "string"
+          },
+          "creeLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "EN_ANALYSE", "SAIN", "INFECTE" ]
+          },
+          "taille" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "ACTE_NAISSANCE", "CERTIFICAT", "PHOTO_IDENTITE" ]
+          }
+        }
+      },
       "ResponsableDto" : {
         "type" : "object",
         "properties" : {
@@ -4590,6 +4799,18 @@
           }
         },
         "required" : [ "date", "statut" ]
+      },
+      "UrlDto" : {
+        "type" : "object",
+        "properties" : {
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        }
       }
     },
     "securitySchemes" : {

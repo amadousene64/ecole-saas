@@ -69,6 +69,25 @@ services:
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis-dev}
 
+  clamav:
+    # Antivirus des pièces déposées (dossiers élèves). Démarrage : 1 à 2 minutes.
+    # Réglages pour limiter la mémoire en dev (production : à revoir) :
+    #  - pas de freshclam : la base de signatures est celle incluse dans l'image (pas de mise à jour
+    #    pendant que le conteneur tourne) ;
+    #  - pas de rechargement concurrent de la base : sinon clamd garde deux bases en mémoire
+    #    (environ 1 Go de plus) le temps d'un rechargement.
+    image: clamav/clamav:1.5.4
+    environment:
+      CLAMAV_NO_FRESHCLAMD: "true"
+      CLAMD_CONF_ConcurrentDatabaseReload: "no"
+    ports: ["127.0.0.1:3310:3310"]
+    healthcheck:
+      test: ["CMD-SHELL", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
   minio:
     # L'éditeur ne publie plus d'images MinIO publiques : dernière image Bitnami figée (dev uniquement).
     image: bitnamilegacy/minio:2025.7.23-debian-12-r5

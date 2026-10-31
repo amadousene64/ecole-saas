@@ -7,9 +7,10 @@ spring:
     name: ecole-backend
   servlet:
     multipart:
-      # Images officielles : 1 Mo au plus (voir TypeImage). Au-delà, refus avant tout traitement.
-      max-file-size: 1MB
-      max-request-size: 1MB
+      # Plafond global : pièces du dossier (5 Mo, voir ControlePiece). Chaque usage applique ensuite
+      # sa propre limite (images officielles et photos : 1 Mo ; import : 2 Mo).
+      max-file-size: 5MB
+      max-request-size: 6MB
   threads:
     virtual:
       enabled: true
@@ -60,6 +61,11 @@ ecole:
     relais:
       actif: true
       delai: 5s
+  clamav:
+    # clamd (protocole INSTREAM) : analyse des pièces déposées avant mise à disposition.
+    hote: ${ECOLE_CLAMAV_HOTE:localhost}
+    port: ${ECOLE_CLAMAV_PORT:3310}
+    delai: 60s
   tenant:
     resolution: sous-domaine
     domaine-racine: ${ECOLE_DOMAINE_RACINE:monapp.sn}

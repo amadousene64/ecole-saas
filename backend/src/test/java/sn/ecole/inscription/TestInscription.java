@@ -26,7 +26,8 @@ public abstract class TestInscription extends TestEtablissement {
     superUtilisateur()
         .execute(
             """
-            TRUNCATE ecole.inscription_option, ecole.inscription, ecole.code_activation,
+            TRUNCATE ecole.piece_dossier, ecole.inscription_option,
+              ecole.inscription, ecole.code_activation,
               ecole.lien_parental, ecole.responsable,
               ecole.eleve_dossier_sensible, ecole.eleve, ecole.sequence_matricule,
               ecole.parametres_inscription, ecole.journal_audit CASCADE""");

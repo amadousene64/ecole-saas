@@ -131,6 +131,10 @@ class DroitsInscriptionTest extends TestInscription {
     cas.add(new Cas("GET", "/api/v1/classes/" + X + "/eleves", null, scolarite));
     cas.add(new Cas("POST", ELEVES + "/" + X + "/codes-activation", null, ECRITURE));
     cas.add(new Cas("GET", "/api/v1/moi/eleve", null, Set.of(ELEVE)));
+    String pieces = ELEVES + "/" + X + "/pieces";
+    cas.add(new Cas("GET", pieces, null, ECRITURE));
+    cas.add(new Cas("GET", pieces + "/" + X + "/url", null, ECRITURE));
+    cas.add(new Cas("DELETE", pieces + "/" + X, null, ECRITURE));
     return cas;
   }
 
