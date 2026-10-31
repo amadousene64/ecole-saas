@@ -45,6 +45,7 @@ export type { ParametresInscriptionRequete } from './models/parametres-inscripti
 export type { PeriodeDto } from './models/periode-dto';
 export type { PieceDto } from './models/piece-dto';
 export type { RapportImportDto } from './models/rapport-import-dto';
+export type { RechercheElevesRequete } from './models/recherche-eleves-requete';
 export type { ResponsableDto } from './models/responsable-dto';
 export type { ResponsableRequete } from './models/responsable-requete';
 export type { ResultatImportDto } from './models/resultat-import-dto';

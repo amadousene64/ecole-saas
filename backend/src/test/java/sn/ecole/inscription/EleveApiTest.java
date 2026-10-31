@@ -6,6 +6,7 @@ import static sn.ecole.Fixtures.COMPTABLE_A;
 import static sn.ecole.Fixtures.DIRECTEUR_A;
 import static sn.ecole.Fixtures.DIRECTEUR_B;
 import static sn.ecole.Fixtures.ELEVE_A;
+import static sn.ecole.Fixtures.PARENT_A;
 import static sn.ecole.Fixtures.SECRETARIAT_A;
 
 import java.time.LocalDate;
@@ -115,6 +116,58 @@ class EleveApiTest extends TestInscription {
     }
   }
 
+  private Reponse chercher(UUID qui, String terme) throws Exception {
+    Reponse r = post(qui, A, ELEVES + "/recherche", corps("recherche", terme));
+    assertThat(r.statut()).as(r.corps().toString()).isEqualTo(200);
+    return r;
+  }
+
+  @Test
+  void laRechercheParNomPasseParLeCorpsEtLeCurseurNePorteAucunNom() throws Exception {
+    creerEleve(A, "Aminata");
+    creerEleve(A, "Bineta");
+    creerEleve(A, "Codou");
+
+    Reponse page1 =
+        post(SECRETARIAT_A, A, ELEVES + "/recherche", corps("recherche", "fictif", "taille", 1));
+    assertThat(prenoms(page1)).containsExactly("Aminata");
+    String curseur = page1.corps().path("curseurSuivant").asText();
+    // Le curseur est opaque : ni le nom ni le prénom du dernier élève n'y figurent, même décodé.
+    String decode =
+        new String(
+            java.util.Base64.getUrlDecoder().decode(curseur),
+            java.nio.charset.StandardCharsets.UTF_8);
+    assertThat(decode.toLowerCase()).doesNotContain("aminata").doesNotContain("fictif");
+    Reponse page2 =
+        post(
+            SECRETARIAT_A,
+            A,
+            ELEVES + "/recherche",
+            corps("recherche", "fictif", "taille", 1, "curseur", curseur));
+    assertThat(prenoms(page2)).containsExactly("Bineta");
+
+    // Un curseur qui désigne un élève d'une autre école (ou inventé) est refusé, jamais interprété.
+    String etranger = sn.ecole.shared.domain.PageCurseur.encoder(creerEleve(B, "Zoe").toString());
+    assertThat(post(SECRETARIAT_A, A, ELEVES + "/recherche", corps("curseur", etranger)).code())
+        .isEqualTo("CURSEUR_INVALIDE");
+  }
+
+  @Test
+  void laRechercheParNomExigeLesMemesDroitsQueLaListe() throws Exception {
+    creerEleve(A, "Awa");
+    assertThat(post(PARENT_A, A, ELEVES + "/recherche", corps("recherche", "awa")).statut())
+        .isEqualTo(403);
+    assertThat(post(COMPTABLE_A, A, ELEVES + "/recherche", corps("statut", "INSCRIT")).statut())
+        .isEqualTo(403);
+    assertThat(
+            post(SECRETARIAT_A, A, ELEVES + "/recherche", corps("recherche", "a".repeat(101)))
+                .statut())
+        .isEqualTo(400);
+    // L'école B ne voit pas les élèves de l'école A par cette voie non plus.
+    assertThat(prenoms(post(DIRECTEUR_B, B, ELEVES + "/recherche", corps("recherche", "awa"))))
+        .isEmpty();
+  }
+
   @Test
   void laRechercheIgnoreLesAccentsEtPagineParCurseur() throws Exception {
     creerEleve(A, "Élodie");
@@ -123,10 +176,9 @@ class EleveApiTest extends TestInscription {
     creerEleve(A, "Codou");
     creerEleve(A, "Dior");
 
-    Reponse r = get(SECRETARIAT_A, A, ELEVES + "?recherche=ELODIE");
+    Reponse r = chercher(SECRETARIAT_A, "ELODIE");
     assertThat(prenoms(r)).containsExactly("Élodie");
-    assertThat(prenoms(get(SECRETARIAT_A, A, ELEVES + "?recherche=fictif b")))
-        .containsExactly("Bineta");
+    assertThat(prenoms(chercher(SECRETARIAT_A, "fictif b"))).containsExactly("Bineta");
 
     List<String> tous = new ArrayList<>();
     String curseur = null;
@@ -149,10 +201,13 @@ class EleveApiTest extends TestInscription {
   @Test
   void laRechercheParMatriculeExact() throws Exception {
     creerEleve(A, "Awa");
-    assertThat(prenoms(get(COMPTABLE_A, A, ELEVES + "?recherche=" + ANNEE + "00001")))
-        .containsExactly("Awa");
+    assertThat(prenoms(chercher(COMPTABLE_A, ANNEE + "00001"))).containsExactly("Awa");
     // Les jokers SQL sont des caractères ordinaires.
-    assertThat(prenoms(get(COMPTABLE_A, A, ELEVES + "?recherche=%25"))).isEmpty();
+    assertThat(prenoms(chercher(COMPTABLE_A, "%"))).isEmpty();
+    // Filtre GET non nominatif : matricule exact.
+    assertThat(prenoms(get(COMPTABLE_A, A, ELEVES + "?matricule=" + ANNEE.toLowerCase() + "00001")))
+        .containsExactly("Awa");
+    assertThat(prenoms(get(COMPTABLE_A, A, ELEVES + "?matricule=" + ANNEE + "99999"))).isEmpty();
   }
 
   @Test

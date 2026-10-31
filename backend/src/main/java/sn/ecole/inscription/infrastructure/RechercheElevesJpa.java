@@ -28,6 +28,7 @@ class RechercheElevesJpa implements RechercheEleves {
   @Override
   public List<Eleve> rechercher(
       String terme,
+      String matricule,
       UUID classeId,
       StatutInscription statut,
       String apresNom,
@@ -39,6 +40,10 @@ class RechercheElevesJpa implements RechercheEleves {
       jpql.append(" and (e.nomRecherche like :motif escape '\\' or e.matricule = :matricule)");
       parametres.put("motif", "%" + echapper(terme) + "%");
       parametres.put("matricule", terme.strip().toUpperCase(Locale.ROOT));
+    }
+    if (matricule != null && !matricule.isBlank()) {
+      jpql.append(" and e.matricule = :matriculeExact");
+      parametres.put("matriculeExact", matricule.strip().toUpperCase(Locale.ROOT));
     }
     if (classeId != null) {
       jpql.append(

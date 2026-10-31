@@ -1079,15 +1079,8 @@
     },
     "/api/v1/eleves" : {
       "get" : {
-        "operationId" : "eleve_rechercher",
+        "operationId" : "eleve_lister",
         "parameters" : [ {
-          "in" : "query",
-          "name" : "recherche",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
           "in" : "query",
           "name" : "classe",
           "required" : false,
@@ -1102,6 +1095,13 @@
           "schema" : {
             "type" : "string",
             "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "matricule",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
           }
         }, {
           "in" : "query",
@@ -1140,7 +1140,7 @@
             "description" : "OK"
           }
         },
-        "summary" : "Recherche des élèves (nom, prénoms ou matricule ; filtres classe et statut), avec le statut et l'état du dossier, paginée par curseur",
+        "summary" : "Liste des élèves, filtres non nominatifs (classe, statut, matricule), avec le statut et l'état du dossier, paginée par curseur. La recherche par nom est en POST /api/v1/eleves/recherche.",
         "tags" : [ "eleve-controller" ]
       },
       "post" : {
@@ -1178,6 +1178,45 @@
           }
         },
         "summary" : "Crée un élève ; le matricule est attribué selon le format de l'école",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/recherche" : {
+      "post" : {
+        "operationId" : "eleve_rechercher",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RechercheElevesRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageDtoEleveListeDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recherche d'élèves par nom, prénoms ou matricule (le terme est dans le corps, pas dans l'URL), avec les mêmes filtres et la même pagination que la liste",
         "tags" : [ "eleve-controller" ]
       }
     },
@@ -4872,6 +4911,33 @@
             "type" : "boolean"
           },
           "lignes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "RechercheElevesRequete" : {
+        "type" : "object",
+        "properties" : {
+          "classe" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "curseur" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "recherche" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          },
+          "taille" : {
             "type" : "integer",
             "format" : "int32"
           }

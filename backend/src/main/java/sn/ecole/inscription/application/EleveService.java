@@ -104,18 +104,32 @@ public class EleveService {
   @PreAuthorize(Droits.IDENTITE)
   @Transactional(readOnly = true)
   public PageCurseur<LigneEleve> rechercher(
-      String terme, UUID classeId, StatutInscription statut, String curseur, Integer taille) {
+      String terme,
+      String matricule,
+      UUID classeId,
+      StatutInscription statut,
+      String curseur,
+      Integer taille) {
     int n = PageCurseur.taille(taille);
     String apresNom = null;
     UUID apresId = null;
     if (curseur != null && !curseur.isBlank()) {
-      String[] cle = PageCurseur.decoder(curseur, 2);
-      apresNom = cle[0];
+      // Le curseur ne porte que l'identifiant du dernier élève (opaque) : jamais son nom, qui
+      // finirait sinon dans une URL ou un journal. La clé de tri est relue en base, pour l'école.
+      String[] cle = PageCurseur.decoder(curseur, 1);
       try {
-        apresId = UUID.fromString(cle[1]);
+        apresId = UUID.fromString(cle[0]);
       } catch (IllegalArgumentException e) {
         throw Erreurs.invalide("CURSEUR_INVALIDE", "Curseur de page invalide.");
       }
+      apresNom =
+          eleves
+              .findById(apresId)
+              .map(Eleve::getNomRecherche)
+              .orElseThrow(() -> Erreurs.invalide("CURSEUR_INVALIDE", "Curseur de page invalide."));
+    }
+    if (matricule != null && matricule.strip().length() > 40) {
+      throw Erreurs.invalide("RECHERCHE_INVALIDE", "Matricule trop long.");
     }
     String normalise = terme == null || terme.isBlank() ? null : Saisies.normaliser(terme.strip());
     if (normalise != null && normalise.length() > 100) {
@@ -131,9 +145,9 @@ public class EleveService {
       throw new ErreurMetier(
           "ACCES_REFUSE", TypeErreur.INTERDIT, "Le filtre par statut est réservé à la scolarité.");
     }
-    List<Eleve> lus = recherche.rechercher(normalise, classeId, statut, apresNom, apresId, n + 1);
-    PageCurseur<Eleve> page =
-        PageCurseur.depuis(lus, n, e -> new String[] {e.getNomRecherche(), e.getId().toString()});
+    List<Eleve> lus =
+        recherche.rechercher(normalise, matricule, classeId, statut, apresNom, apresId, n + 1);
+    PageCurseur<Eleve> page = PageCurseur.depuis(lus, n, e -> new String[] {e.getId().toString()});
     List<UUID> ids = page.elements().stream().map(Eleve::getId).toList();
     Map<UUID, InscriptionService.Situation> situations = inscriptions.situations(ids);
     // Même règle par type que PieceService : les pièces exigées (acte, photo) sont lues par la

@@ -38,8 +38,12 @@ export interface CritereListe {
 export class ServiceEleves {
   private readonly api = inject(Api);
 
+  /**
+   * Toujours en POST : le nom cherché et le curseur voyagent dans le corps, jamais dans l'URL (les
+   * noms de mineurs n'ont rien à faire dans un journal d'accès ou un historique).
+   */
   rechercher(critere: CritereListe): Promise<PageDtoEleveListeDto> {
-    return this.api.invoke(eleveRechercher, { ...critere });
+    return this.api.invoke(eleveRechercher, { body: { ...critere } });
   }
 
   lire(eleveId: string): Promise<EleveDto> {

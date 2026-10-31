@@ -53,7 +53,7 @@ async function creer(
   const recherches = () =>
     invoke.mock.calls
       .filter(([fn]) => fn === eleveRechercher)
-      .map(([, params]) => params as Record<string, unknown>);
+      .map(([, params]) => (params as { body: Record<string, unknown> }).body);
   return { fixture, racine: fixture.nativeElement as HTMLElement, recherches };
 }
 
