@@ -2204,6 +2204,129 @@
         "tags" : [ "etablissement-controller" ]
       }
     },
+    "/api/v1/imports-eleves" : {
+      "post" : {
+        "operationId" : "importEleves_importer",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "empreinte",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "annee",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResultatImportDto"
+                }
+              }
+            },
+            "description" : "Import effectué"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RapportImportDto"
+                }
+              }
+            },
+            "description" : "Le fichier contient des erreurs : rien n'est écrit, voici le rapport"
+          }
+        },
+        "summary" : "Importe le fichier validé (même empreinte), tout ou rien ; 422 avec le rapport s'il reste des erreurs",
+        "tags" : [ "import-eleves-controller" ]
+      }
+    },
+    "/api/v1/imports-eleves/validation" : {
+      "post" : {
+        "operationId" : "importEleves_valider",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "annee",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RapportImportDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Valide à blanc un fichier CSV ou XLSX (2 Mo, 2000 lignes) : rapport ligne par ligne, rien n'est écrit",
+        "tags" : [ "import-eleves-controller" ]
+      }
+    },
     "/api/v1/inscriptions" : {
       "post" : {
         "operationId" : "inscription_inscrire",
@@ -4272,6 +4395,24 @@
         },
         "required" : [ "autoriseRecuperer", "contactUrgence", "payeur", "recoitNotifications", "responsableLegal", "type" ]
       },
+      "LigneImportDto" : {
+        "type" : "object",
+        "properties" : {
+          "messages" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "numero" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "statut" : {
+            "type" : "string"
+          }
+        }
+      },
       "ModificationInscriptionRequete" : {
         "type" : "object",
         "properties" : {
@@ -4637,6 +4778,41 @@
           }
         }
       },
+      "RapportImportDto" : {
+        "type" : "object",
+        "properties" : {
+          "avertissements" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "colonnesIgnorees" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "details" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LigneImportDto"
+            }
+          },
+          "empreinte" : {
+            "type" : "string"
+          },
+          "erreurs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "importable" : {
+            "type" : "boolean"
+          },
+          "lignes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "ResponsableDto" : {
         "type" : "object",
         "properties" : {
@@ -4698,6 +4874,26 @@
           }
         },
         "required" : [ "nom", "prenoms", "telephone" ]
+      },
+      "ResultatImportDto" : {
+        "type" : "object",
+        "properties" : {
+          "elevesCrees" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "inscriptions" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rapport" : {
+            "$ref" : "#/components/schemas/RapportImportDto"
+          },
+          "responsablesCrees" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
       },
       "SalleDto" : {
         "type" : "object",

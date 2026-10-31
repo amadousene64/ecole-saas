@@ -119,6 +119,10 @@ export type { EtablissementDeposerImage$Params as EtablissementDeposerImage$Para
 export { etablissementDeposerImage as etablissementDeposerImage } from './fn/etablissement-controller/etablissement-deposer-image';
 export type { EtablissementSupprimerImage$Params as EtablissementSupprimerImage$Params } from './fn/etablissement-controller/etablissement-supprimer-image';
 export { etablissementSupprimerImage as etablissementSupprimerImage } from './fn/etablissement-controller/etablissement-supprimer-image';
+export type { ImportElevesImporter$Params as ImportElevesImporter$Params } from './fn/import-eleves-controller/import-eleves-importer';
+export { importElevesImporter as importElevesImporter } from './fn/import-eleves-controller/import-eleves-importer';
+export type { ImportElevesValider$Params as ImportElevesValider$Params } from './fn/import-eleves-controller/import-eleves-valider';
+export { importElevesValider as importElevesValider } from './fn/import-eleves-controller/import-eleves-valider';
 export type { Moi$Params as Moi$Params } from './fn/moi-controller/moi';
 export { moi as moi } from './fn/moi-controller/moi';
 export type { MesEcoles$Params as MesEcoles$Params } from './fn/moi-controller/mes-ecoles';

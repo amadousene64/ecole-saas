@@ -27,6 +27,7 @@ export type { InscriptionDto } from './models/inscription-dto';
 export type { InscriptionRequete } from './models/inscription-requete';
 export type { LienParentalDto } from './models/lien-parental-dto';
 export type { LienParentalRequete } from './models/lien-parental-requete';
+export type { LigneImportDto } from './models/ligne-import-dto';
 export type { ModificationInscriptionRequete } from './models/modification-inscription-requete';
 export type { ModifierCycleRequete } from './models/modifier-cycle-requete';
 export type { ModifierEtablissementRequete } from './models/modifier-etablissement-requete';
@@ -41,8 +42,10 @@ export type { ParametresInscriptionDto } from './models/parametres-inscription-d
 export type { ParametresInscriptionRequete } from './models/parametres-inscription-requete';
 export type { PeriodeDto } from './models/periode-dto';
 export type { PieceDto } from './models/piece-dto';
+export type { RapportImportDto } from './models/rapport-import-dto';
 export type { ResponsableDto } from './models/responsable-dto';
 export type { ResponsableRequete } from './models/responsable-requete';
+export type { ResultatImportDto } from './models/resultat-import-dto';
 export type { SalleDto } from './models/salle-dto';
 export type { SalleRequete } from './models/salle-requete';
 export type { SerieDto } from './models/serie-dto';

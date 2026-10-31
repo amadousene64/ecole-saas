@@ -139,13 +139,19 @@ public class EleveService {
   }
 
   /**
-   * Création avec un matricule existant (reprise de données) : il doit être libre, même parmi les
-   * élèves supprimés. Sans contrôle de droits : réservé à l'import, qui les contrôle.
+   * Création par l'import (reprise de données). Matricule fourni : il doit être libre, même parmi
+   * les élèves supprimés ; absent : attribué selon le format. Sans contrôle de droits : réservé à
+   * l'import, qui les contrôle.
    */
   Eleve creerAvecMatricule(String matricule, IdentiteEleve identite) {
-    String propre = Matricule.verifier(matricule);
-    if (eleves.matriculeExiste(propre)) {
-      throw Erreurs.conflit("MATRICULE_EXISTANT", "Ce matricule est déjà attribué.");
+    String propre;
+    if (matricule == null || matricule.isBlank()) {
+      propre = attribuerMatricule();
+    } else {
+      propre = Matricule.verifier(matricule);
+      if (eleves.matriculeExiste(propre)) {
+        throw Erreurs.conflit("MATRICULE_EXISTANT", "Ce matricule est déjà attribué.");
+      }
     }
     verifierIdentifiantNationalLibre(identite.identifiantNational(), null);
     Eleve eleve = eleves.save(Eleve.creer(propre, identite));

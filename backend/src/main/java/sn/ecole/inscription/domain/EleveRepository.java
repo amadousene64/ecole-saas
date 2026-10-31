@@ -16,6 +16,9 @@ public interface EleveRepository {
 
   Optional<Eleve> findByIdentifiantNational(String identifiantNational);
 
+  /** Doublon probable : même nom et prénoms (normalisés) et même date de naissance. */
+  boolean existsByNomRechercheAndDateNaissance(String nomRecherche, java.time.LocalDate naissance);
+
   /** Compte aussi les élèves supprimés : un matricule n'est jamais réutilisé. */
   boolean matriculeExiste(String matricule);
 

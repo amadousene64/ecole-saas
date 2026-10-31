@@ -261,6 +261,11 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     return resultat;
   }
 
+  /** Élèves pré-inscrits ou inscrits dans la classe (sans verrou : estimation pour l'import). */
+  long effectif(UUID classeId) {
+    return inscriptions.countByClasseIdAndStatutIn(classeId, StatutInscription.ACTIFS);
+  }
+
   /** Inscriptions actives de l'élève (pour l'éligibilité à un compte élève). */
   List<Inscription> actives(UUID eleveId) {
     return inscriptions.findByEleveIdInAndStatutIn(List.of(eleveId), StatutInscription.ACTIFS);
