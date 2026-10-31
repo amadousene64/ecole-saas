@@ -54,6 +54,26 @@ test.afterAll(async () => {
   await contextParent?.close();
 });
 
+/** Toutes les adresses appelées par les navigateurs du scénario (API et pages de l'application). */
+const urlsAppelees: string[] = [];
+
+function surveillerUrls(page: Page): void {
+  page.on('request', (req) => urlsAppelees.push(req.url()));
+  page.on('framenavigated', (frame) => urlsAppelees.push(frame.url()));
+}
+
+/** Aucun nom d'élève ni de responsable dans une URL : ni requête d'API, ni adresse de l'application. */
+function verifierAucunNomDansLesUrls(): void {
+  expect(urlsAppelees.length).toBeGreaterThan(20);
+  const interdits = [PRENOM_ELEVE, NOM_ELEVE, NOM_RESPONSABLE];
+  for (const url of urlsAppelees) {
+    const lisible = decodeURIComponent(url).toLowerCase();
+    for (const nom of interdits) {
+      expect(lisible, `nom dans l'URL ${url}`).not.toContain(nom.toLowerCase());
+    }
+  }
+}
+
 async function ouvrirFiche(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Élèves', exact: true }).click();
   await page.getByTestId('filtre-recherche').fill(PRENOM_ELEVE);
@@ -62,12 +82,17 @@ async function ouvrirFiche(page: Page): Promise<void> {
   ).toBeVisible();
   await page.getByRole('link', { name: new RegExp(PRENOM_ELEVE) }).click();
   await expect(page.getByTestId('titre-fiche')).toContainText(PRENOM_ELEVE);
+  // Le terme cherché n'est jamais reporté dans l'adresse de l'application.
+  expect(decodeURIComponent(page.url()).toLowerCase()).not.toContain(
+    PRENOM_ELEVE.toLowerCase(),
+  );
   eleveId = page.url().split('/').pop() ?? '';
 }
 
 test("le secrétariat inscrit un élève et génère un code d'activation", async ({
   page,
 }) => {
+  surveillerUrls(page);
   await seConnecter(page, 'secretariat.a');
   await page.getByRole('link', { name: 'Élèves', exact: true }).click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
@@ -165,6 +190,7 @@ test('le parent active son compte avec le code et ne voit que son enfant', async
     }
   });
 
+  surveillerUrls(pageParent);
   await seConnecter(pageParent, UTILISATEUR_PARENT);
   // Aucune école : l'espace parent mène à l'activation.
   await expect(
@@ -216,6 +242,7 @@ test('le censeur consulte des données sensibles : une lecture, seulement au cli
     }
   });
 
+  surveillerUrls(page);
   await seConnecter(page, 'censeur.a');
   await ouvrirFiche(page);
   await expect(page.getByTestId('mention-journal')).toContainText('journal');
@@ -255,6 +282,7 @@ test("le directeur bloque l'accès d'un parent : sa requête suivante est refus�
     !eleveId || !pageParent,
     "pas de parent actif : l'étape précédente a échoué",
   );
+  surveillerUrls(page);
   await seConnecter(page, 'directeur.a');
   await ouvrirFiche(page);
   await page.getByRole('tab', { name: 'Responsables' }).click();
@@ -282,6 +310,7 @@ test("le directeur bloque l'accès d'un parent : sa requête suivante est refus�
   // Le directeur peut rétablir l'accès, et l'effet est tout aussi immédiat.
   await interrupteur.click();
   await expect(page.getByTestId('acces-bloque')).toHaveCount(0);
+  verifierAucunNomDansLesUrls();
   const retabli = await contextParent.request.get(
     `${URL_API}/api/v1/eleves/${eleveId}`,
     {

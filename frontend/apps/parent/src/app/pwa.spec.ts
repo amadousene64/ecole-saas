@@ -22,10 +22,11 @@ const ADRESSES_API = [
   '/api/v1/activations',
 ];
 
-/** Motifs du service worker Angular : `**` toute suite, `*` sans barre, `?` un caractère. */
+/** Motifs du service worker Angular : `**` toute suite, `*` sans barre, `?` un caractère, `(a|b)` au choix. */
 function enExpression(motif: string): RegExp {
   const source = motif
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    // `(`, `)` et `|` restent des opérateurs de groupe, comme dans les motifs du service worker.
+    .replace(/[.+^${}[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '@@TOUT@@')
     .replace(/\*/g, '[^/]*')
     .replace(/\?/g, '[^/]')
@@ -60,6 +61,36 @@ describe('service worker : aucune réponse d’API en cache', () => {
     }
     // Aucun motif ne vise un hôte externe non plus (pas de cache de réponses de tiers).
     expect(motifs.some((m) => /^https?:/.test(m))).toBe(false);
+  });
+
+  it('le cache d’images exclut explicitement l’API et le chemin du stockage', () => {
+    /** Une adresse est mise en cache si un motif positif la désigne et qu’aucun motif négatif ne l’écarte. */
+    const miseEnCache = (adresse: string) =>
+      conf.assetGroups.some((g) => {
+        const motifs = [
+          ...(g.resources?.files ?? []),
+          ...(g.resources?.urls ?? []),
+        ];
+        const positifs = motifs.filter((m) => !m.startsWith('!'));
+        const negatifs = motifs.filter((m) => m.startsWith('!'));
+        return (
+          positifs.some((m) => enExpression(m).test(adresse)) &&
+          !negatifs.some((m) => enExpression(m.slice(1)).test(adresse))
+        );
+      });
+
+    // Photos d'élèves et pièces servies par le stockage (URL signées), si un jour même origine.
+    for (const adresse of [
+      '/stockage/ecoles/a/eleves/e1/photo.jpg',
+      '/ecole-fichiers/ecoles/a/eleves/e1/photo.png',
+      '/api/v1/eleves/e1/photo.jpg',
+    ]) {
+      expect(miseEnCache(adresse), `${adresse} ne doit pas être en cache`).toBe(
+        false,
+      );
+    }
+    // Les icônes de l'application, elles, restent en cache (le test n'exclut pas tout).
+    expect(miseEnCache('/icons/icone-192.png')).toBe(true);
   });
 
   it('exclut l’API de la navigation servie par index.html', () => {

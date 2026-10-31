@@ -5,13 +5,24 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Api, activationActiver } from '@ecole/api-client';
 import { EcoleCourante, Session } from '@ecole/auth';
+import { environnement } from './environnement';
 
 /** Vrai sur localhost ou une adresse IP : il n'y a pas de sous-domaine d'école pour la désigner. */
 export function sansSousDomaine(hote = window.location.hostname): boolean {
   return hote === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(hote);
+}
+
+/** Valeur du paramètre `?ecole=` si c'est un UUID, sinon vide (jamais d'autre contenu repris). */
+export function ecolePropose(valeur: string | null): string {
+  return valeur &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      valeur,
+    )
+    ? valeur.toLowerCase()
+    : '';
 }
 
 /** Saisie tolérée comme côté serveur : majuscules, sans espaces ni tirets superflus. */
@@ -117,17 +128,21 @@ export class PageActivation {
   private readonly session = inject(Session);
   private readonly courante = inject(EcoleCourante);
   private readonly routeur = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly code = signal('');
-  protected readonly ecole = signal('');
+  /** Identifiant d'école proposé par le lien ou le QR code de l'école (`?ecole=`), s'il est valide. */
+  protected readonly ecole = signal(
+    ecolePropose(this.route.snapshot.queryParamMap.get('ecole')),
+  );
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   /**
-   * En production l'école vient du sous-domaine, côté serveur. Sur un poste de développement
-   * (localhost, adresse IP), sans école mémorisée, on la désigne à la main.
+   * Sur un sous-domaine d'école, l'école vient du serveur. Sur l'hôte commun (environnement.hoteCommun) ou
+   * un poste de développement (localhost, adresse IP), sans école mémorisée, on la désigne ici.
    */
   protected readonly champEcole = signal(
-    !this.courante.id() && sansSousDomaine(),
+    !this.courante.id() && (environnement.hoteCommun || sansSousDomaine()),
   );
 
   protected complet(): boolean {

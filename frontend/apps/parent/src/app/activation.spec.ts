@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { Api, activationActiver } from '@ecole/api-client';
 import { EcoleCourante, Session } from '@ecole/auth';
 import {
+  ecolePropose,
   normaliserCode,
   PageActivation,
   presenterCode,
@@ -28,12 +29,22 @@ describe('sansSousDomaine', () => {
   });
 });
 
+describe('ecolePropose', () => {
+  it('ne reprend que des UUID', () => {
+    const id = '01930000-0000-7000-8000-0000000000A1';
+    expect(ecolePropose(id)).toBe(id.toLowerCase());
+    expect(ecolePropose('<script>alert(1)</script>')).toBe('');
+    expect(ecolePropose('lycee-a')).toBe('');
+    expect(ecolePropose(null)).toBe('');
+  });
+});
+
 describe('PageActivation', () => {
   const recharger = vi.fn(async () => undefined);
   const naviguer = vi.fn(async () => true);
   let invoke: ReturnType<typeof vi.fn>;
 
-  async function creer(reponse: () => unknown) {
+  async function creer(reponse: () => unknown, ecole: string | null = null) {
     sessionStorage.clear();
     vi.clearAllMocks();
     invoke = vi.fn(async (fn: unknown) => {
@@ -47,9 +58,20 @@ describe('PageActivation', () => {
         { provide: Api, useValue: { invoke } },
         { provide: Session, useValue: { recharger } },
         { provide: Router, useValue: { navigateByUrl: naviguer } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap(ecole ? { ecole } : {}),
+            },
+          },
+        },
       ],
     });
-    TestBed.inject(EcoleCourante).choisir('ecole-a');
+    // Sans lien d'école, l'école est déjà mémorisée ; avec un lien, aucune ne l'est encore.
+    if (!ecole) {
+      TestBed.inject(EcoleCourante).choisir('ecole-a');
+    }
     const fixture = TestBed.createComponent(PageActivation);
     await fixture.whenStable();
     const racine = fixture.nativeElement as HTMLElement;
@@ -80,6 +102,21 @@ describe('PageActivation', () => {
     expect(invoke.mock.calls[0][1]).toEqual({ body: { code: '7K2MX9QD4RTB' } });
     expect(recharger).toHaveBeenCalledOnce();
     expect(naviguer).toHaveBeenCalledWith('/enfants');
+  });
+
+  it('préremplit l’école depuis le lien remis par l’école, et la désigne à l’activation', async () => {
+    const id = '01930000-0000-7000-8000-0000000000a1';
+    sessionStorage.clear();
+    const { racine, saisir, valider } = await creer(() => ({}), id);
+    // Le champ n'est visible que si l'école n'est pas déjà connue ET que l'hôte n'en désigne pas.
+    // Sous jsdom (localhost), il l'est : sa valeur vient du lien.
+    expect(
+      racine.querySelector<HTMLInputElement>('[data-testid="champ-ecole"]')!
+        .value,
+    ).toBe(id);
+    await saisir('7K2MX9QD4RTB');
+    await valider();
+    expect(TestBed.inject(EcoleCourante).id()).toBe(id);
   });
 
   it('n’envoie rien tant que le code est incomplet', async () => {
