@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Icone } from '../icones/icone';
 import { LienNavigation } from '../modeles';
 import { TEXTES } from '../textes';
 
@@ -11,7 +12,7 @@ import { TEXTES } from '../textes';
  */
 @Component({
   selector: 'ecole-coquille-legere',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, Icone],
   templateUrl: './coquille-legere.html',
   styleUrl: './coquille-legere.scss',
 })

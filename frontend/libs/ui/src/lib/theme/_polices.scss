@@ -1,0 +1,22 @@
+// Polices auto-hébergées (aucun appel à Google Fonts : 3G et vie privée). Les fichiers woff2,
+// sous-ensemble latin (couvre le français), sont copiés dans /fonts/ par la configuration
+// « assets » de chaque application depuis @fontsource. font-display: swap : le texte s'affiche
+// tout de suite dans la police système, puis bascule.
+
+@mixin police($famille, $fichier, $graisse) {
+  @font-face {
+    font-family: $famille;
+    font-style: normal;
+    font-weight: $graisse;
+    font-display: swap;
+    src: url('/fonts/#{$fichier}-latin-#{$graisse}-normal.woff2')
+      format('woff2');
+  }
+}
+
+@mixin polices() {
+  @each $graisse in (400, 500, 600, 700) {
+    @include police('Figtree', 'figtree', $graisse);
+  }
+  @include police('IBM Plex Mono', 'ibm-plex-mono', 500);
+}

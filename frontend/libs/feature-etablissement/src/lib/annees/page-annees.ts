@@ -1,3 +1,4 @@
+import { Pastille, TonStatut } from '@ecole/ui';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import {
@@ -38,6 +39,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
     MatButtonModule,
     SectionPeriodes,
     SectionCalendrier,
+    Pastille,
   ],
   template: `
     <h1>Années scolaires et périodes</h1>
@@ -81,9 +83,9 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
             <td>{{ a.dateDebut | date: 'dd/MM/yyyy' }}</td>
             <td>{{ a.dateFin | date: 'dd/MM/yyyy' }}</td>
             <td>
-              <span class="pastille" [class.en-cours]="a.statut === 'EN_COURS'">
+              <ecole-pastille [ton]="tonStatut(a.statut)">
                 {{ libelleStatut(a.statut) }}
-              </span>
+              </ecole-pastille>
             </td>
             <td>
               @if (droits.estDirecteur() && a.statut === 'PREPARATION') {
@@ -159,7 +161,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
         class="grille"
         data-testid="form-annee"
       >
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Année (AAAA-AAAA)</mat-label>
           <input
             matInput
@@ -171,7 +173,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
             <mat-error>Format AAAA-AAAA, par exemple 2027-2028.</mat-error>
           }
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Début</mat-label>
           <input
             matInput
@@ -180,7 +182,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
             data-testid="champ-annee-debut"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Fin</mat-label>
           <input
             matInput
@@ -261,6 +263,11 @@ export class PageAnnees {
 
   constructor() {
     void this.charger();
+  }
+
+  /** En cours : vert ; en préparation et clôturée : neutre (le texte porte le sens). */
+  protected tonStatut(statut: string | undefined): TonStatut {
+    return statut === 'EN_COURS' ? 'primaire' : 'neutre';
   }
 
   protected libelleStatut(statut: string | undefined): string {

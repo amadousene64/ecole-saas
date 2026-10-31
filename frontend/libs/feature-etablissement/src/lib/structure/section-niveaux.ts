@@ -1,3 +1,4 @@
+import { Pastille } from '@ecole/ui';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -26,6 +27,7 @@ import { ServiceStructure } from '../services/service-structure';
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
+    Pastille,
   ],
   template: `
     @if (erreur(); as message) {
@@ -56,7 +58,7 @@ import { ServiceStructure } from '../services/service-structure';
             <td>
               Sur {{ n.baseMoyenneEffective }}
               @if (n.baseMoyenne) {
-                <span class="pastille">propre au niveau</span>
+                <ecole-pastille ton="fleuve">propre au niveau</ecole-pastille>
               }
             </td>
             <td>{{ codesSeries(n) }}</td>
@@ -89,7 +91,7 @@ import { ServiceStructure } from '../services/service-structure';
         data-testid="form-niveau"
       >
         @if (!edition()) {
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Cycle</mat-label>
             <mat-select
               formControlName="cycleId"
@@ -100,7 +102,7 @@ import { ServiceStructure } from '../services/service-structure';
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Code</mat-label>
             <input
               matInput
@@ -109,7 +111,7 @@ import { ServiceStructure } from '../services/service-structure';
             />
           </mat-form-field>
         }
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Libellé</mat-label>
           <input
             matInput
@@ -117,11 +119,11 @@ import { ServiceStructure } from '../services/service-structure';
             data-testid="champ-niveau-libelle"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Ordre</mat-label>
           <input matInput type="number" min="1" formControlName="ordre" />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Base de la moyenne</mat-label>
           <mat-select formControlName="base" data-testid="champ-niveau-base">
             <mat-option [value]="0">Suit celle du cycle</mat-option>
@@ -132,7 +134,7 @@ import { ServiceStructure } from '../services/service-structure';
             <mat-hint>Réservé au directeur.</mat-hint>
           }
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Séries proposées</mat-label>
           <mat-select
             formControlName="serieIds"

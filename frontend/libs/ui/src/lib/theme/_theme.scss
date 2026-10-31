@@ -1,33 +1,138 @@
+@use 'sass:map';
 @use '@angular/material' as mat;
+@use 'jetons';
+@use 'polices';
+@use 'base';
 
-// Thème commun aux trois applications. Dans le styles.scss de chaque app :
-//   @use 'libs/ui/src/lib/theme/theme' as ecole;
-//   @include ecole.theme();
+// Deux points d'entrée, dans le styles.scss de chaque app :
+//   @use '../../../libs/ui/src/lib/theme/theme' as ecole;
+//   @include ecole.theme();        // back-office, vie scolaire (Angular Material)
+//   @include ecole.theme-leger();  // espace parent : sans Material (budget de 500 Ko)
+
+$c: jetons.$couleurs;
+
+/** Jetons, polices et styles de base, sans Angular Material. */
+@mixin theme-leger() {
+  @include polices.polices();
+  @include jetons.variables();
+  @include base.base();
+}
+
+/** Thème complet : base + Angular Material 3 construit sur les jetons. */
 @mixin theme() {
+  @include theme-leger();
+
   html {
-    color-scheme: light dark;
+    // Palettes de départ (tons intermédiaires générés), puis les rôles utilisés par les
+    // composants sont fixés exactement sur la charte.
     @include mat.theme(
       (
         color: (
-          primary: mat.$azure-palette,
+          primary: mat.$green-palette,
           tertiary: mat.$blue-palette,
-          theme-type: color-scheme,
+          theme-type: light,
         ),
-        typography: Roboto,
+        typography: (
+          plain-family: jetons.$police,
+          brand-family: jetons.$police,
+          bold-weight: 700,
+          medium-weight: 600,
+          regular-weight: 400,
+        ),
         density: 0,
       )
     );
-  }
 
-  body {
-    margin: 0;
-    background: var(--mat-sys-surface);
-    color: var(--mat-sys-on-surface);
-    font: var(--mat-sys-body-large);
-  }
+    @include mat.theme-overrides(
+      (
+        primary: map.get($c, 'primaire'),
+        on-primary: map.get($c, 'sur-primaire'),
+        primary-container: map.get($c, 'primaire-doux'),
+        on-primary-container: map.get($c, 'primaire-survol'),
+        secondary-container: map.get($c, 'primaire-doux'),
+        on-secondary-container: map.get($c, 'primaire-survol'),
+        tertiary: map.get($c, 'fleuve'),
+        tertiary-container: map.get($c, 'fleuve-fond'),
+        on-tertiary-container: map.get($c, 'fleuve'),
+        error: map.get($c, 'bissap'),
+        on-error: #ffffff,
+        error-container: map.get($c, 'bissap-fond'),
+        on-error-container: map.get($c, 'bissap'),
+        background: map.get($c, 'fond'),
+        on-background: map.get($c, 'texte'),
+        surface: map.get($c, 'surface'),
+        on-surface: map.get($c, 'texte'),
+        on-surface-variant: map.get($c, 'texte-secondaire'),
+        surface-container-lowest: map.get($c, 'surface'),
+        surface-container-low: map.get($c, 'surface'),
+        surface-container: map.get($c, 'surface'),
+        surface-container-high: map.get($c, 'fond'),
+        surface-container-highest: map.get($c, 'fond'),
+        outline: map.get($c, 'bordure-champ'),
+        outline-variant: map.get($c, 'bordure'),
+        // Échelle : corps 15, libellés 13/600 (boutons : 15/600).
+        body-large-size: 15px,
+        body-large-line-height: 22px,
+        body-medium-size: 15px,
+        body-medium-line-height: 22px,
+        label-large-size: 15px,
+        label-large-weight: 600,
+        label-medium-size: 13px,
+        label-medium-weight: 600,
+        title-large-size: 20px,
+        title-large-weight: 600,
+        headline-small-size: 28px,
+        headline-small-weight: 700,
+      )
+    );
 
-  :focus-visible {
-    outline: 3px solid var(--mat-sys-primary);
-    outline-offset: 2px;
+    // Boutons : 44 px de haut, rayon 10.
+    @include mat.button-overrides(
+      (
+        filled-container-height: jetons.$hauteur-controle,
+        outlined-container-height: jetons.$hauteur-controle,
+        text-container-height: jetons.$hauteur-controle,
+        tonal-container-height: jetons.$hauteur-controle,
+        protected-container-height: jetons.$hauteur-controle,
+        filled-container-shape: jetons.$rayon-controle,
+        outlined-container-shape: jetons.$rayon-controle,
+        text-container-shape: jetons.$rayon-controle,
+        tonal-container-shape: jetons.$rayon-controle,
+        protected-container-shape: jetons.$rayon-controle,
+        outlined-outline-color: map.get($c, 'bordure-champ'),
+      )
+    );
+
+    // Champs : 48 px (≥ 44), rayon 10, bordure de la charte.
+    @include mat.form-field-overrides(
+      (
+        container-height: 48px,
+        container-vertical-padding: 12px,
+        outlined-container-shape: jetons.$rayon-controle,
+        outlined-outline-color: map.get($c, 'bordure-champ'),
+        outlined-hover-outline-color: map.get($c, 'texte-secondaire'),
+        outlined-focus-outline-color: map.get($c, 'primaire'),
+      )
+    );
+
+    // Cartes : rayon 12, bordure 1 px, sans ombre.
+    @include mat.card-overrides(
+      (
+        outlined-container-color: map.get($c, 'surface'),
+        outlined-container-shape: jetons.$rayon-carte,
+        outlined-container-elevation: none,
+        outlined-outline-color: map.get($c, 'bordure'),
+        outlined-outline-width: 1px,
+      )
+    );
+
+    // Navigation latérale blanche.
+    @include mat.sidenav-overrides(
+      (
+        container-background-color: map.get($c, 'surface'),
+        container-shape: 0,
+        content-background-color: map.get($c, 'fond'),
+      )
+    );
   }
 }

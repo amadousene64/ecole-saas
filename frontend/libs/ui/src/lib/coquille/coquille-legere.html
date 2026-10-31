@@ -2,7 +2,7 @@
 <header>
   <span class="titre">{{ titre() }}</span>
   @if (ecole(); as nomEcole) {
-  <span class="ecole" title="École courante">{{ nomEcole }}</span>
+  <span class="ecole libelle" title="École courante">{{ nomEcole }}</span>
   }
   <span class="espace"></span>
   @if (utilisateur(); as nom) {
@@ -21,18 +21,23 @@
   </details>
   }
 </header>
+<main id="contenu" tabindex="-1" [class.avec-barre]="liens().length > 0">
+  <ng-content />
+</main>
 @if (liens().length > 0) {
-<nav [attr.aria-label]="textes.navigationPrincipale">
+<nav class="barre-basse" [attr.aria-label]="textes.navigationPrincipale">
   @for (lien of liens(); track lien.chemin) {
   <a
     [routerLink]="lien.chemin"
     routerLinkActive="actif"
+    [routerLinkActiveOptions]="{ exact: lien.chemin === '/' }"
     ariaCurrentWhenActive="page"
-    >{{ lien.libelle }}</a
   >
+    @if (lien.icone; as icone) {
+    <ecole-icone [nom]="icone" />
+    }
+    <span>{{ lien.libelle }}</span>
+  </a>
   }
 </nav>
 }
-<main id="contenu" tabindex="-1">
-  <ng-content />
-</main>

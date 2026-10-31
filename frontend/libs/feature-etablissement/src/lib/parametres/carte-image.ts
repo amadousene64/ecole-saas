@@ -52,8 +52,6 @@ const TYPES_ACCEPTES = ['image/png', 'image/jpeg'];
   `,
   styles: `
     .carte {
-      border: 1px solid var(--mat-sys-outline-variant, #ccc);
-      border-radius: 8px;
       padding: 12px 16px;
     }
     h3 {

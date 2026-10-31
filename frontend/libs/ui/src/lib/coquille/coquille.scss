@@ -13,23 +13,31 @@
     top: 8px;
     z-index: 1000;
     padding: 8px 16px;
-    background: var(--mat-sys-surface);
+    background: var(--ecole-surface);
   }
 }
 
 mat-toolbar {
   gap: 12px;
+  background: var(--ecole-surface);
+  color: var(--ecole-texte);
+  border-bottom: 1px solid var(--ecole-bordure);
 }
 
 .titre {
-  font: var(--mat-sys-title-medium);
+  font-size: var(--ecole-titre-section-taille);
+  font-weight: 700;
+  color: var(--ecole-primaire);
 }
 
 .ecole {
   padding: 2px 12px;
-  border-radius: 12px;
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
+  border-radius: 999px;
+  background: var(--ecole-primaire-doux);
+  color: var(--ecole-primaire-survol);
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+  font-weight: var(--ecole-libelle-graisse);
 }
 
 .espace {
@@ -38,31 +46,47 @@ mat-toolbar {
 
 .conteneur {
   flex: 1;
+  background: var(--ecole-fond);
 }
 
+// Navigation latérale blanche, élément actif sur fond vert doux.
 mat-sidenav {
-  width: 240px;
+  width: 248px;
+  border-right: 1px solid var(--ecole-bordure);
 }
 
 nav {
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  gap: 2px;
+  padding: 12px;
 }
 
 .lien {
   justify-content: flex-start;
+  color: var(--ecole-texte);
+  font-weight: 500;
+
+  &:hover {
+    background: var(--ecole-fond);
+  }
 
   &.actif {
-    background: var(--mat-sys-secondary-container);
+    background: var(--ecole-primaire-doux);
+    color: var(--ecole-primaire-survol);
+    font-weight: 600;
   }
 }
 
 main {
-  padding: 16px;
+  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
   outline: none;
+
+  @media (max-width: 599.98px) {
+    padding: 16px;
+  }
 }
 
 .bouton-menu {

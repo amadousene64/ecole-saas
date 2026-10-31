@@ -44,7 +44,7 @@ import { ServiceStructure } from '../services/service-structure';
       </p>
     }
     <div class="grille">
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Année scolaire</mat-label>
         <mat-select
           [value]="anneeId()"
@@ -115,7 +115,7 @@ import { ServiceStructure } from '../services/service-structure';
         class="grille"
         data-testid="form-classe"
       >
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Nom (ex. TS2B)</mat-label>
           <input
             matInput
@@ -123,7 +123,7 @@ import { ServiceStructure } from '../services/service-structure';
             data-testid="champ-classe-nom"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Niveau</mat-label>
           <mat-select
             formControlName="niveauId"
@@ -140,7 +140,7 @@ import { ServiceStructure } from '../services/service-structure';
           }
         </mat-form-field>
         @if (seriesDuNiveau().length > 0) {
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Série</mat-label>
             <mat-select
               formControlName="serieId"
@@ -153,7 +153,7 @@ import { ServiceStructure } from '../services/service-structure';
             </mat-select>
           </mat-form-field>
         }
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Capacité</mat-label>
           <input
             matInput
@@ -164,7 +164,7 @@ import { ServiceStructure } from '../services/service-structure';
             data-testid="champ-classe-capacite"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Salle</mat-label>
           <mat-select
             formControlName="salleId"
