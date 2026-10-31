@@ -1,9 +1,12 @@
 import { Route } from '@angular/router';
-import { gardeRoles, ROUTES_SESSION } from '@ecole/auth';
+import { gardeAuthentifie, ROUTES_SESSION } from '@ecole/auth';
+import { PageActivation } from './activation';
+import { PageEnfants } from './enfants';
+import { gardeParent } from './garde-parent';
 import { AccueilParent } from './accueil';
 import { PageBientot } from './bientot';
 
-const garde = gardeRoles('PARENT', 'ELEVE');
+const garde = gardeParent;
 
 export const appRoutes: Route[] = [
   ...ROUTES_SESSION,
@@ -13,6 +16,19 @@ export const appRoutes: Route[] = [
     canActivate: [garde],
     component: AccueilParent,
     title: 'Accueil · Espace parent',
+  },
+  {
+    // Avant l'activation, le compte n'a aucun rôle dans l'école : il suffit d'être connecté.
+    path: 'activer',
+    canActivate: [gardeAuthentifie],
+    component: PageActivation,
+    title: 'Activer mon compte · Espace parent',
+  },
+  {
+    path: 'enfants',
+    canActivate: [garde],
+    component: PageEnfants,
+    title: 'Mes enfants · Espace parent',
   },
   {
     path: 'notes',

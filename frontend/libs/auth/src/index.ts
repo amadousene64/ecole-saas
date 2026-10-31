@@ -7,3 +7,4 @@ export * from './lib/routes';
 export * from './lib/session';
 export * from './lib/pages/page-moi';
 export * from './lib/coquille-application-legere';
+export * from './lib/etat-local';

@@ -33,7 +33,13 @@ export const intercepteurApi: HttpInterceptorFn = (req, next) => {
         entetes = entetes.set('Authorization', `Bearer ${jeton}`);
       }
       const ecole = courante.id();
-      if (ecole && url.pathname !== CHEMIN_SANS_ECOLE) {
+      // Un appel qui désigne lui-même son école (« Mes enfants », école par école) est respecté ;
+      // le serveur vérifie de toute façon l'appartenance à celle-ci.
+      if (
+        ecole &&
+        url.pathname !== CHEMIN_SANS_ECOLE &&
+        !req.headers.has('X-Tenant-Id')
+      ) {
         entetes = entetes.set('X-Tenant-Id', ecole);
       }
       return next(req.clone({ headers: entetes }));
