@@ -51,7 +51,10 @@ export const intercepteurApi: HttpInterceptorFn = (req, next) => {
           oidc.authorize();
         } else if (
           erreur.status === 403 &&
-          erreur.error?.code === 'TENANT_NON_AUTORISE'
+          erreur.error?.code === 'TENANT_NON_AUTORISE' &&
+          // Un appel qui désignait une AUTRE école que la courante (Mes enfants) ne remet pas en
+          // cause l'école courante.
+          (req.headers.get('X-Tenant-Id') ?? courante.id()) === courante.id()
         ) {
           session.surEcoleRefusee();
           void router.navigateByUrl('/choix-ecole');

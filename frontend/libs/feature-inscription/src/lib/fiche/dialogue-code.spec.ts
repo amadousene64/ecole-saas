@@ -46,7 +46,9 @@ describe('DialogueCode', () => {
   });
 
   it('lance l’impression du navigateur', async () => {
-    const imprimer = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const imprimer = vi
+      .spyOn(window, 'print')
+      .mockImplementation(() => undefined);
     const racine = await creer();
     racine
       .querySelector<HTMLButtonElement>('[data-testid="imprimer-code"]')!

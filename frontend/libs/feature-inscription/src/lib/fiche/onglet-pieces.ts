@@ -305,6 +305,10 @@ export class OngletPieces {
     this.erreur.set(null);
     try {
       const url = await this.service.url(this.eleveId(), p.id ?? '');
+      // Défense en profondeur : seule une adresse http(s) est ouverte (jamais javascript: ou data:).
+      if (!/^https?:\/\//i.test(url)) {
+        throw new Error('Adresse de pièce invalide.');
+      }
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (e) {
       this.erreur.set(messageErreur(e));

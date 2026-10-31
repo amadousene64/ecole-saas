@@ -65,6 +65,21 @@ describe('intercepteurApi', () => {
     req.flush([]);
   });
 
+  it("un refus d'école sur un appel qui désignait une autre école garde l'école courante", () => {
+    courante.choisir('ecole-a');
+    http
+      .get('/api/v1/moi/enfants', { headers: { 'X-Tenant-Id': 'ecole-b' } })
+      .subscribe({ error: () => undefined });
+    controle
+      .expectOne('/api/v1/moi/enfants')
+      .flush(
+        { code: 'TENANT_NON_AUTORISE' },
+        { status: 403, statusText: 'Forbidden' },
+      );
+    expect(session.surEcoleRefusee).not.toHaveBeenCalled();
+    expect(courante.id()).toBe('ecole-a');
+  });
+
   it("n'envoie pas X-Tenant-Id pour la liste des écoles, mais envoie le jeton", () => {
     courante.choisir('ecole-a');
     http.get('/api/v1/moi/ecoles').subscribe();
