@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -35,6 +36,8 @@ import sn.ecole.shared.domain.TenantRepository;
  */
 @Component
 @Profile("dev")
+// Avant l'amorçage des autres modules (inscription…), qui s'appuient sur l'année et les classes.
+@Order(0)
 class DonneesDev implements ApplicationRunner {
 
   /** Directeur fictif de l'école A (voir realm-ecole.json) : agit pour les contrôles de droits. */

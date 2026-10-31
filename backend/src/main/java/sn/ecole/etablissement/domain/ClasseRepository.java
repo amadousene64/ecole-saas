@@ -12,6 +12,8 @@ public interface ClasseRepository {
 
   Optional<Classe> findById(UUID id);
 
+  List<Classe> findByIdIn(java.util.Collection<UUID> ids);
+
   Optional<Classe> findByAnneeIdAndNomIgnoreCase(UUID anneeId, String nom);
 
   boolean existsByNiveauId(UUID niveauId);

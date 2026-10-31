@@ -1,7 +1,9 @@
 package sn.ecole.etablissement;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,6 +11,13 @@ import java.util.UUID;
 public interface ReferentielScolaire {
 
   Optional<AnneeEnCours> anneeEnCours();
+
+  /**
+   * Une année scolaire, quel que soit son statut.
+   *
+   * @throws sn.ecole.shared.domain.ErreurMetier ANNEE_INTROUVABLE si elle n'existe pas
+   */
+  AnneeScolaireInfo annee(UUID anneeId);
 
   /** Périodes de l'année, tous cycles confondus, par cycle puis numéro. */
   List<PeriodeScolaire> periodes(UUID anneeId);
@@ -28,19 +37,53 @@ public interface ReferentielScolaire {
   ParametresNotation parametresNotation(UUID anneeId);
 
   /**
-   * Une classe : son année, son niveau, sa série éventuelle et le cycle du niveau. Pour les autres
-   * modules (inscription, bulletin) ; le niveau et la série sont figés dès que l'année est en
-   * cours.
+   * Une classe : son année, son niveau, sa série éventuelle, le cycle du niveau, sa capacité et les
+   * options qu'elle propose. Pour les autres modules (inscription, bulletin) ; le niveau et la
+   * série sont figés dès que l'année est en cours. Réservé au personnel.
    *
    * @throws sn.ecole.shared.domain.ErreurMetier CLASSE_INTROUVABLE si elle n'existe pas (ou est
    *     d'une autre école)
    */
   ClasseScolaire classe(UUID classeId);
 
+  /** Classes d'une année, par nom. Réservé au personnel. */
+  List<ClasseScolaire> classes(UUID anneeId);
+
+  /**
+   * Noms des classes demandées (les inconnues sont absentes). Ouvert à tous les rôles : le module
+   * appelant a déjà vérifié que l'utilisateur peut voir l'élève inscrit dans ces classes.
+   */
+  Map<UUID, String> nomsClasses(Collection<UUID> classeIds);
+
   record ClasseScolaire(
-      UUID id, UUID anneeId, UUID niveauId, UUID serieId, UUID cycleId, String nom) {}
+      UUID id,
+      UUID anneeId,
+      UUID niveauId,
+      UUID serieId,
+      UUID cycleId,
+      CodeCycle codeCycle,
+      String nom,
+      int capacite,
+      List<OptionScolaire> options) {
+
+    public ClasseScolaire {
+      options = List.copyOf(options);
+    }
+  }
+
+  /** Option d'enseignement proposée par une classe ; une seule par groupe pour un élève. */
+  record OptionScolaire(UUID id, String code, String libelle, String groupe) {}
 
   record AnneeEnCours(UUID id, String libelle, LocalDate dateDebut, LocalDate dateFin) {}
+
+  /** {@code cloturee} : lecture seule ; {@code enCours} : l'année ouverte de l'école. */
+  record AnneeScolaireInfo(
+      UUID id,
+      String libelle,
+      LocalDate dateDebut,
+      LocalDate dateFin,
+      boolean enCours,
+      boolean cloturee) {}
 
   record PeriodeScolaire(
       UUID id, UUID cycleId, int numero, String libelle, LocalDate dateDebut, LocalDate dateFin) {}

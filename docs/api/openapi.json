@@ -8,6 +8,45 @@
     "jwt" : [ ]
   } ],
   "paths" : {
+    "/api/v1/activations" : {
+      "post" : {
+        "operationId" : "activation_activer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ActivationRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ActivationDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Relie le compte connecté au responsable (ou à l'élève) désigné par le code remis par l'école ; essais limités",
+        "tags" : [ "activation-controller" ]
+      }
+    },
     "/api/v1/annees-scolaires" : {
       "get" : {
         "operationId" : "anneeScolaire_lister",
@@ -707,6 +746,46 @@
         "tags" : [ "classe-controller" ]
       }
     },
+    "/api/v1/classes/{classeId}/eleves" : {
+      "get" : {
+        "operationId" : "inscription_elevesDeLaClasse",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "classeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EleveResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Élèves pré-inscrits ou inscrits dans la classe",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
     "/api/v1/classes/{id}" : {
       "delete" : {
         "operationId" : "classe_supprimer",
@@ -824,6 +903,94 @@
         "tags" : [ "classe-controller" ]
       }
     },
+    "/api/v1/classes/{id}/options" : {
+      "get" : {
+        "operationId" : "classe_options",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OptionEnseignementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Options d'enseignement proposées par la classe",
+        "tags" : [ "classe-controller" ]
+      },
+      "put" : {
+        "operationId" : "classe_definirOptions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ClasseOptionsRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OptionEnseignementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Remplace les options proposées par la classe",
+        "tags" : [ "classe-controller" ]
+      }
+    },
     "/api/v1/cycles" : {
       "get" : {
         "operationId" : "cycle_lister",
@@ -908,6 +1075,972 @@
         },
         "summary" : "Modifie les paramètres d'un cycle (directeur ; If-Match : version lue)",
         "tags" : [ "cycle-controller" ]
+      }
+    },
+    "/api/v1/eleves" : {
+      "get" : {
+        "operationId" : "eleve_rechercher",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "recherche",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classe",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "curseur",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "taille",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageDtoEleveResumeDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recherche des élèves (nom, prénoms ou matricule ; filtre par classe), paginée par curseur",
+        "tags" : [ "eleve-controller" ]
+      },
+      "post" : {
+        "operationId" : "eleve_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EleveRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée un élève ; le matricule est attribué selon le format de l'école",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}" : {
+      "delete" : {
+        "operationId" : "eleve_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) un élève créé par erreur, sans donnée rattachée",
+        "tags" : [ "eleve-controller" ]
+      },
+      "get" : {
+        "operationId" : "eleve_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Identité d'un élève, avec l'URL signée de sa photo",
+        "tags" : [ "eleve-controller" ]
+      },
+      "put" : {
+        "operationId" : "eleve_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EleveRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Corrige l'identité (If-Match : version lue) ; le matricule ne change pas",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/codes-activation" : {
+      "post" : {
+        "operationId" : "inscription_emettreCodeEleve",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeActivationDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Émet un code d'activation du compte élève (collège et lycée seulement) ; affiché une seule fois",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/donnees-sensibles" : {
+      "get" : {
+        "operationId" : "donneesSensibles_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DonneesSensiblesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Lit les données sensibles (directeur, censeur) ; chaque lecture est journalisée",
+        "tags" : [ "donnees-sensibles-controller" ]
+      },
+      "put" : {
+        "operationId" : "donneesSensibles_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DonneesSensiblesRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtatDonneesSensiblesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Complète ou corrige les données sensibles (If-Match) : champ absent inchangé, vide effacé ; renvoie seulement l'état",
+        "tags" : [ "donnees-sensibles-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/donnees-sensibles/etat" : {
+      "get" : {
+        "operationId" : "donneesSensibles_etat",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtatDonneesSensiblesDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Champs renseignés, sans leur contenu (pour le secrétariat)",
+        "tags" : [ "donnees-sensibles-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/fratrie" : {
+      "get" : {
+        "operationId" : "lienParental_fratrie",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EleveResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Frères et sœurs : élèves ayant un responsable en commun",
+        "tags" : [ "lien-parental-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/inscriptions" : {
+      "get" : {
+        "operationId" : "inscription_historique",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/InscriptionDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Scolarité de l'élève : ses inscriptions, de la plus récente à la plus ancienne",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/photo" : {
+      "delete" : {
+        "operationId" : "eleve_supprimerPhoto",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Retire la photo",
+        "tags" : [ "eleve-controller" ]
+      },
+      "put" : {
+        "operationId" : "eleve_deposerPhoto",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Dépose la photo (PNG ou JPEG, 1 Mo et 2000 px au plus)",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/pieces" : {
+      "get" : {
+        "operationId" : "piece_lister",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PieceDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Pièces du dossier, avec leur statut d'analyse",
+        "tags" : [ "piece-controller" ]
+      },
+      "post" : {
+        "operationId" : "piece_deposer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  },
+                  "type" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [ "fichier", "type" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PieceDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Dépose une pièce (PDF, JPEG ou PNG, 5 Mo au plus) ; inaccessible jusqu'à l'analyse antivirus",
+        "tags" : [ "piece-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/pieces/{pieceId}" : {
+      "delete" : {
+        "operationId" : "piece_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "pieceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une pièce ; le fichier est effacé du stockage",
+        "tags" : [ "piece-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/pieces/{pieceId}/url" : {
+      "get" : {
+        "operationId" : "piece_url",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "pieceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UrlDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "URL de téléchargement (5 minutes), seulement pour une pièce saine ; certificat médical : direction et censeur seulement, chaque ouverture journalisée",
+        "tags" : [ "piece-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/responsables" : {
+      "get" : {
+        "operationId" : "lienParental_lister",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/LienParentalDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Responsables de l'élève (comptable : payeurs seulement ; parent : son propre lien)",
+        "tags" : [ "lien-parental-controller" ]
+      },
+      "post" : {
+        "operationId" : "lienParental_ajouter",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LienParentalRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LienParentalDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Lie un responsable à l'élève, avec ses droits",
+        "tags" : [ "lien-parental-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/responsables/{lienId}" : {
+      "delete" : {
+        "operationId" : "lienParental_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "lienId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Retire le lien (pas le dernier responsable légal)",
+        "tags" : [ "lien-parental-controller" ]
+      },
+      "put" : {
+        "operationId" : "lienParental_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "lienId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LienParentalRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LienParentalDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie le type et les droits du lien (If-Match : version lue)",
+        "tags" : [ "lien-parental-controller" ]
+      }
+    },
+    "/api/v1/eleves/{eleveId}/responsables/{lienId}/acces-espace-parent" : {
+      "put" : {
+        "operationId" : "lienParental_definirAcces",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eleveId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "lienId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AccesEspaceParentRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LienParentalDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Accorde ou retire l'accès à l'espace parent (directeur ; sans accès, ni consultation ni notification)",
+        "tags" : [ "lien-parental-controller" ]
       }
     },
     "/api/v1/etablissement" : {
@@ -1071,6 +2204,355 @@
         "tags" : [ "etablissement-controller" ]
       }
     },
+    "/api/v1/imports-eleves" : {
+      "post" : {
+        "operationId" : "importEleves_importer",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "empreinte",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "annee",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResultatImportDto"
+                }
+              }
+            },
+            "description" : "Import effectué"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RapportImportDto"
+                }
+              }
+            },
+            "description" : "Le fichier contient des erreurs : rien n'est écrit, voici le rapport"
+          }
+        },
+        "summary" : "Importe le fichier validé (même empreinte), tout ou rien ; 422 avec le rapport s'il reste des erreurs",
+        "tags" : [ "import-eleves-controller" ]
+      }
+    },
+    "/api/v1/imports-eleves/validation" : {
+      "post" : {
+        "operationId" : "importEleves_valider",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "annee",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RapportImportDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Valide à blanc un fichier CSV ou XLSX (2 Mo, 2000 lignes) : rapport ligne par ligne, rien n'est écrit",
+        "tags" : [ "import-eleves-controller" ]
+      }
+    },
+    "/api/v1/inscriptions" : {
+      "post" : {
+        "operationId" : "inscription_inscrire",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InscriptionRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Inscrit (ou pré-inscrit) un élève dans une classe d'une année non clôturée ; capacité contrôlée",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/inscriptions/{id}" : {
+      "get" : {
+        "operationId" : "inscription_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Une inscription",
+        "tags" : [ "inscription-controller" ]
+      },
+      "put" : {
+        "operationId" : "inscription_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModificationInscriptionRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Change de classe (même année), redoublement, options (If-Match)",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/inscriptions/{id}/sortie" : {
+      "post" : {
+        "operationId" : "inscription_sortir",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SortieRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Transfert, abandon, ou radiation (directeur seul) ; définitif (If-Match)",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/inscriptions/{id}/validation" : {
+      "post" : {
+        "operationId" : "inscription_valider",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Valide une pré-inscription (If-Match)",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
     "/api/v1/moi" : {
       "get" : {
         "operationId" : "moi",
@@ -1120,6 +2602,67 @@
         },
         "summary" : "Écoles dans lesquelles l'utilisateur connecté a un rôle",
         "tags" : [ "moi-controller" ]
+      }
+    },
+    "/api/v1/moi/eleve" : {
+      "get" : {
+        "operationId" : "inscription_moi",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "L'élève connecté : sa propre fiche d'identité",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/moi/enfants" : {
+      "get" : {
+        "operationId" : "activation_mesEnfants",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EleveResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Enfants du parent connecté dans l'école courante",
+        "tags" : [ "activation-controller" ]
       }
     },
     "/api/v1/niveaux" : {
@@ -1353,6 +2896,476 @@
         },
         "summary" : "Définit les séries proposées par un niveau",
         "tags" : [ "niveau-controller" ]
+      }
+    },
+    "/api/v1/options-enseignement" : {
+      "get" : {
+        "operationId" : "optionEnseignement_lister",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OptionEnseignementDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Catalogue des options d'enseignement (LV2, arts…)",
+        "tags" : [ "option-enseignement-controller" ]
+      },
+      "post" : {
+        "operationId" : "optionEnseignement_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OptionEnseignementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OptionEnseignementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ajoute une option au catalogue",
+        "tags" : [ "option-enseignement-controller" ]
+      }
+    },
+    "/api/v1/options-enseignement/{id}" : {
+      "delete" : {
+        "operationId" : "optionEnseignement_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une option proposée par aucune classe",
+        "tags" : [ "option-enseignement-controller" ]
+      },
+      "put" : {
+        "operationId" : "optionEnseignement_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OptionEnseignementRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OptionEnseignementDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie une option (If-Match : version lue)",
+        "tags" : [ "option-enseignement-controller" ]
+      }
+    },
+    "/api/v1/parametres-inscription" : {
+      "get" : {
+        "operationId" : "parametresInscription_lire",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ParametresInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Format des matricules et politique de capacité des classes",
+        "tags" : [ "parametres-inscription-controller" ]
+      },
+      "put" : {
+        "operationId" : "parametresInscription_modifier",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ParametresInscriptionRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ParametresInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie les paramètres (directeur ; If-Match : version lue)",
+        "tags" : [ "parametres-inscription-controller" ]
+      }
+    },
+    "/api/v1/responsables" : {
+      "get" : {
+        "operationId" : "responsable_rechercher",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "telephone",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "nom",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ResponsableDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recherche des responsables par téléphone (doublons) ou par nom (2 lettres au moins)",
+        "tags" : [ "responsable-controller" ]
+      },
+      "post" : {
+        "operationId" : "responsable_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResponsableRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée un responsable (propre à l'école)",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/{id}" : {
+      "get" : {
+        "operationId" : "responsable_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Un responsable",
+        "tags" : [ "responsable-controller" ]
+      },
+      "put" : {
+        "operationId" : "responsable_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResponsableRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie un responsable (If-Match : version lue)",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/{id}/codes-activation" : {
+      "post" : {
+        "operationId" : "responsable_emettreCode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeActivationDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Émet un code d'activation à usage unique (7 jours) ; affiché une seule fois, les codes précédents sont révoqués",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/{id}/compte" : {
+      "delete" : {
+        "operationId" : "responsable_delierCompte",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResponsableDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Détache le compte parent relié et lui retire le rôle PARENT (directeur ; perte d'accès)",
+        "tags" : [ "responsable-controller" ]
       }
     },
     "/api/v1/salles" : {
@@ -1695,6 +3708,35 @@
   },
   "components" : {
     "schemas" : {
+      "AccesEspaceParentRequete" : {
+        "type" : "object",
+        "properties" : {
+          "acces" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "acces" ]
+      },
+      "ActivationDto" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string",
+            "enum" : [ "DIRECTEUR", "CENSEUR", "SECRETARIAT", "SURVEILLANT", "ENSEIGNANT", "COMPTABLE", "PARENT", "ELEVE" ]
+          }
+        }
+      },
+      "ActivationRequete" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code" ]
+      },
       "AnneeScolaireDto" : {
         "type" : "object",
         "properties" : {
@@ -1778,6 +3820,22 @@
           }
         }
       },
+      "ClasseOptionsRequete" : {
+        "type" : "object",
+        "properties" : {
+          "optionIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 30,
+            "minItems" : 0,
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "optionIds" ]
+      },
       "ClasseRequete" : {
         "type" : "object",
         "properties" : {
@@ -1808,6 +3866,18 @@
           }
         },
         "required" : [ "capacite", "niveauId", "nom" ]
+      },
+      "CodeActivationDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
       },
       "CreerNiveauRequete" : {
         "type" : "object",
@@ -1885,6 +3955,40 @@
         },
         "required" : [ "serieIds" ]
       },
+      "DonneesSensiblesDto" : {
+        "type" : "object",
+        "properties" : {
+          "allergies" : {
+            "type" : "string"
+          },
+          "sante" : {
+            "type" : "string"
+          },
+          "situationFamiliale" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DonneesSensiblesRequete" : {
+        "type" : "object",
+        "properties" : {
+          "allergies" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "sante" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "situationFamiliale" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        }
+      },
       "EcoleDto" : {
         "type" : "object",
         "properties" : {
@@ -1897,6 +4001,119 @@
           },
           "nom" : {
             "type" : "string"
+          }
+        }
+      },
+      "EleveDto" : {
+        "type" : "object",
+        "properties" : {
+          "compteActive" : {
+            "type" : "boolean"
+          },
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "identifiantNational" : {
+            "type" : "string"
+          },
+          "lieuNaissance" : {
+            "type" : "string"
+          },
+          "matricule" : {
+            "type" : "string"
+          },
+          "nationalite" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "photoUrl" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "EleveRequete" : {
+        "type" : "object",
+        "properties" : {
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "identifiantNational" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          },
+          "lieuNaissance" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "nationalite" : {
+            "type" : "string",
+            "maxLength" : 2,
+            "minLength" : 2
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "prenoms" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          }
+        },
+        "required" : [ "dateNaissance", "lieuNaissance", "nationalite", "nom", "prenoms", "sexe" ]
+      },
+      "EleveResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "classe" : {
+            "type" : "string"
+          },
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "matricule" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
           }
         }
       },
@@ -1950,6 +4167,20 @@
           "version" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "EtatDonneesSensiblesDto" : {
+        "type" : "object",
+        "properties" : {
+          "allergiesRenseignees" : {
+            "type" : "boolean"
+          },
+          "santeRenseignee" : {
+            "type" : "boolean"
+          },
+          "situationFamilialeRenseignee" : {
+            "type" : "boolean"
           }
         }
       },
@@ -2007,6 +4238,201 @@
           }
         },
         "required" : [ "dateDebut", "dateFin", "libelle", "type" ]
+      },
+      "InscriptionDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "avertissements" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "classe" : {
+            "type" : "string"
+          },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "dateEntree" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dateSortie" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "eleveId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "motifSortie" : {
+            "type" : "string"
+          },
+          "optionIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "redoublant" : {
+            "type" : "boolean"
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "InscriptionRequete" : {
+        "type" : "object",
+        "properties" : {
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "eleveId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "optionIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          },
+          "redoublant" : {
+            "type" : "boolean"
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          }
+        },
+        "required" : [ "classeId", "eleveId", "statut" ]
+      },
+      "LienParentalDto" : {
+        "type" : "object",
+        "properties" : {
+          "accesEspaceParent" : {
+            "type" : "boolean"
+          },
+          "autoriseRecuperer" : {
+            "type" : "boolean"
+          },
+          "contactUrgence" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "payeur" : {
+            "type" : "boolean"
+          },
+          "recoitNotifications" : {
+            "type" : "boolean"
+          },
+          "responsable" : {
+            "$ref" : "#/components/schemas/ResponsableDto"
+          },
+          "responsableLegal" : {
+            "type" : "boolean"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PERE", "MERE", "TUTEUR", "AUTRE" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "LienParentalRequete" : {
+        "type" : "object",
+        "properties" : {
+          "autoriseRecuperer" : {
+            "type" : "boolean"
+          },
+          "contactUrgence" : {
+            "type" : "boolean"
+          },
+          "payeur" : {
+            "type" : "boolean"
+          },
+          "recoitNotifications" : {
+            "type" : "boolean"
+          },
+          "responsableId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "responsableLegal" : {
+            "type" : "boolean"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PERE", "MERE", "TUTEUR", "AUTRE" ]
+          }
+        },
+        "required" : [ "autoriseRecuperer", "contactUrgence", "payeur", "recoitNotifications", "responsableLegal", "type" ]
+      },
+      "LigneImportDto" : {
+        "type" : "object",
+        "properties" : {
+          "messages" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "numero" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "statut" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ModificationInscriptionRequete" : {
+        "type" : "object",
+        "properties" : {
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "optionIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          },
+          "redoublant" : {
+            "type" : "boolean"
+          }
+        }
       },
       "ModifierCycleRequete" : {
         "type" : "object",
@@ -2191,6 +4617,99 @@
           }
         }
       },
+      "OptionEnseignementDto" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "groupe" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "OptionEnseignementRequete" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "groupe" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code", "groupe", "libelle" ]
+      },
+      "PageDtoEleveResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "curseurSuivant" : {
+            "type" : "string"
+          },
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EleveResumeDto"
+            }
+          }
+        }
+      },
+      "ParametresInscriptionDto" : {
+        "type" : "object",
+        "properties" : {
+          "exempleMatricule" : {
+            "type" : "string"
+          },
+          "formatMatricule" : {
+            "type" : "string"
+          },
+          "politiqueCapacite" : {
+            "type" : "string",
+            "enum" : [ "AVERTIR", "BLOQUER" ]
+          }
+        }
+      },
+      "ParametresInscriptionRequete" : {
+        "type" : "object",
+        "properties" : {
+          "formatMatricule" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "politiqueCapacite" : {
+            "type" : "string",
+            "enum" : [ "AVERTIR", "BLOQUER" ]
+          }
+        },
+        "required" : [ "formatMatricule", "politiqueCapacite" ]
+      },
       "PeriodeDto" : {
         "type" : "object",
         "properties" : {
@@ -2222,6 +4741,155 @@
             "format" : "int32"
           },
           "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "PieceDto" : {
+        "type" : "object",
+        "properties" : {
+          "analyseLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "contentType" : {
+            "type" : "string"
+          },
+          "creeLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "EN_ANALYSE", "SAIN", "INFECTE" ]
+          },
+          "taille" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "ACTE_NAISSANCE", "CERTIFICAT_SCOLARITE", "CERTIFICAT_MEDICAL", "PHOTO_IDENTITE" ]
+          }
+        }
+      },
+      "RapportImportDto" : {
+        "type" : "object",
+        "properties" : {
+          "avertissements" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "colonnesIgnorees" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "details" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LigneImportDto"
+            }
+          },
+          "empreinte" : {
+            "type" : "string"
+          },
+          "erreurs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "importable" : {
+            "type" : "boolean"
+          },
+          "lignes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ResponsableDto" : {
+        "type" : "object",
+        "properties" : {
+          "compteActive" : {
+            "type" : "boolean"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "profession" : {
+            "type" : "string"
+          },
+          "telephone" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ResponsableRequete" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "prenoms" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "profession" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "telephone" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "nom", "prenoms", "telephone" ]
+      },
+      "ResultatImportDto" : {
+        "type" : "object",
+        "properties" : {
+          "elevesCrees" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "inscriptions" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rapport" : {
+            "$ref" : "#/components/schemas/RapportImportDto"
+          },
+          "responsablesCrees" : {
             "type" : "integer",
             "format" : "int32"
           }
@@ -2308,6 +4976,37 @@
           }
         },
         "required" : [ "code", "libelle" ]
+      },
+      "SortieRequete" : {
+        "type" : "object",
+        "properties" : {
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "motif" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          }
+        },
+        "required" : [ "date", "statut" ]
+      },
+      "UrlDto" : {
+        "type" : "object",
+        "properties" : {
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        }
       }
     },
     "securitySchemes" : {

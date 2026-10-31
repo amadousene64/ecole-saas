@@ -11,6 +11,7 @@ import java.util.Currency;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import sn.ecole.etablissement.StatutEtablissement;
+import sn.ecole.shared.domain.Telephone;
 import sn.ecole.shared.domain.TenantAwareEntity;
 
 /**
