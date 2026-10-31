@@ -71,10 +71,12 @@ export type { CycleLister$Params as CycleLister$Params } from './fn/cycle-contro
 export { cycleLister as cycleLister } from './fn/cycle-controller/cycle-lister';
 export type { CycleModifier$Params as CycleModifier$Params } from './fn/cycle-controller/cycle-modifier';
 export { cycleModifier as cycleModifier } from './fn/cycle-controller/cycle-modifier';
-export type { EleveRechercher$Params as EleveRechercher$Params } from './fn/eleve-controller/eleve-rechercher';
-export { eleveRechercher as eleveRechercher } from './fn/eleve-controller/eleve-rechercher';
+export type { EleveLister$Params as EleveLister$Params } from './fn/eleve-controller/eleve-lister';
+export { eleveLister as eleveLister } from './fn/eleve-controller/eleve-lister';
 export type { EleveCreer$Params as EleveCreer$Params } from './fn/eleve-controller/eleve-creer';
 export { eleveCreer as eleveCreer } from './fn/eleve-controller/eleve-creer';
+export type { EleveRechercher$Params as EleveRechercher$Params } from './fn/eleve-controller/eleve-rechercher';
+export { eleveRechercher as eleveRechercher } from './fn/eleve-controller/eleve-rechercher';
 export type { EleveLire$Params as EleveLire$Params } from './fn/eleve-controller/eleve-lire';
 export { eleveLire as eleveLire } from './fn/eleve-controller/eleve-lire';
 export type { EleveModifier$Params as EleveModifier$Params } from './fn/eleve-controller/eleve-modifier';

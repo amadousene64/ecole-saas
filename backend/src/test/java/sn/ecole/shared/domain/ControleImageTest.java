@@ -153,4 +153,73 @@ class ControleImageTest {
     assertThatThrownBy(() -> ControleImage.reduire(pngAnnoncant(20_000, 10), 5_000_000, 2500))
         .hasMessageContaining("pixels");
   }
+
+  /** Coin où le carré rouge (haut-gauche dans le fichier) doit se retrouver, par orientation. */
+  private static final String[] COIN_ATTENDU = {"", "HG", "HD", "BD", "BG", "HG", "HD", "BD", "BG"};
+
+  private static boolean rouge(BufferedImage image, String coin) {
+    int x = coin.charAt(1) == 'G' ? 4 : image.getWidth() - 5;
+    int y = coin.charAt(0) == 'H' ? 4 : image.getHeight() - 5;
+    int rgb = image.getRGB(x, y);
+    return ((rgb >> 16) & 0xFF) > 200 && ((rgb >> 8) & 0xFF) < 90 && (rgb & 0xFF) < 90;
+  }
+
+  @Test
+  void lOrientationExifEstAppliqueeAuxPixelsPourLesHuitValeurs() throws IOException {
+    for (int valeur = 1; valeur <= 8; valeur++) {
+      var resultat =
+          ControleImage.controler(sn.ecole.ImagesFictives.jpegAvecOrientation(valeur), 1_000_000);
+      BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(resultat.octets()));
+      boolean permute = valeur >= 5;
+      assertThat(resultat.largeur())
+          .as("largeur, orientation %d", valeur)
+          .isEqualTo(permute ? 40 : 60);
+      assertThat(resultat.hauteur())
+          .as("hauteur, orientation %d", valeur)
+          .isEqualTo(permute ? 60 : 40);
+      assertThat(image.getWidth()).isEqualTo(resultat.largeur());
+      assertThat(rouge(image, COIN_ATTENDU[valeur]))
+          .as("coin rouge, orientation %d", valeur)
+          .isTrue();
+      // Le coin opposé reste blanc : le carré n'a pas été étalé.
+      String oppose =
+          (COIN_ATTENDU[valeur].charAt(0) == 'H' ? "B" : "H")
+              + (COIN_ATTENDU[valeur].charAt(1) == 'G' ? "D" : "G");
+      assertThat(rouge(image, oppose)).isFalse();
+      assertThat(sn.ecole.ImagesFictives.segmentsApp1(resultat.octets())).isZero();
+    }
+  }
+
+  @Test
+  void uneOrientationExifIllisibleLaisseLImageTelleQuelle() throws IOException {
+    byte[] tronque = java.util.Arrays.copyOf(sn.ecole.ImagesFictives.tiffOrientation(6), 12);
+    byte[] ifdHorsSegment = sn.ecole.ImagesFictives.tiffOrientation(6);
+    ifdHorsSegment[4] = (byte) 0xF0;
+    byte[] grandBoutisteFaux = sn.ecole.ImagesFictives.tiffOrientation(6);
+    grandBoutisteFaux[0] = 'X';
+    for (byte[] tiff :
+        new byte[][] {
+          tronque,
+          ifdHorsSegment,
+          grandBoutisteFaux,
+          sn.ecole.ImagesFictives.tiffOrientation(0),
+          sn.ecole.ImagesFictives.tiffOrientation(9),
+          sn.ecole.ImagesFictives.tiffOrientation(0xFFFF)
+        }) {
+      var resultat = ControleImage.controler(sn.ecole.ImagesFictives.jpegAvecExif(tiff), 1_000_000);
+      BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(resultat.octets()));
+      assertThat(resultat.largeur()).isEqualTo(60);
+      assertThat(resultat.hauteur()).isEqualTo(40);
+      assertThat(rouge(image, "HG")).isTrue();
+    }
+  }
+
+  @Test
+  void orientationExifSansSegmentExifOuAvecSegmentTronque() throws IOException {
+    assertThat(ControleImage.orientationExif(image("jpeg", 20, 20))).isEqualTo(1);
+    byte[] jpeg = sn.ecole.ImagesFictives.jpegAvecOrientation(6);
+    assertThat(ControleImage.orientationExif(jpeg)).isEqualTo(6);
+    // Fichier coupé au milieu du segment APP1 : pas d'exception, pas de rotation.
+    assertThat(ControleImage.orientationExif(java.util.Arrays.copyOf(jpeg, 30))).isEqualTo(1);
+  }
 }

@@ -121,4 +121,87 @@ class ResolveurTenantRequeteTest {
     assertThat(new TenantProperties(null, "monapp.sn").resolution())
         .isEqualTo(TenantProperties.Resolution.SOUS_DOMAINE);
   }
+
+  private static ResolveurTenantRequete avecHotesCommuns(String... hotes) {
+    return new ResolveurTenantRequete(
+        new TenantProperties(TenantProperties.Resolution.SOUS_DOMAINE, "monapp.sn", List.of(hotes)),
+        TENANTS);
+  }
+
+  @Test
+  void surUnHoteCommunLEcoleEstCelleDeLEntete() {
+    var resolveur = avecHotesCommuns("parent.monapp.sn");
+    UUID ecole = UUID.randomUUID();
+    assertThat(resolveur.resoudre(requete("parent.monapp.sn", ecole.toString()))).contains(ecole);
+    assertThat(resolveur.resoudre(requete("PARENT.MonApp.sn", LYCEE_X.toString())))
+        .contains(LYCEE_X);
+    // Sans en-tête : aucune école désignée (jamais le sous-domaine « parent », ni AUCUN).
+    assertThat(resolveur.resoudre(requete("parent.monapp.sn", null))).isEmpty();
+  }
+
+  @Test
+  void surUnHoteCommunUnEnteteMalFormeResteRefuse() {
+    assertThatThrownBy(
+            () -> avecHotesCommuns("parent.monapp.sn").resoudre(requete("parent.monapp.sn", "abc")))
+        .isInstanceOfSatisfying(
+            ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("TENANT_INVALIDE"));
+  }
+
+  @Test
+  void surUnSousDomaineDEcoleLeModeResteStrictMemeAvecUnHoteCommunDeclare() {
+    var resolveur = avecHotesCommuns("parent.monapp.sn");
+    assertThatThrownBy(
+            () -> resolveur.resoudre(requete("lycee-x.monapp.sn", UUID.randomUUID().toString())))
+        .isInstanceOfSatisfying(
+            ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("TENANT_INCOHERENT"));
+    assertThat(resolveur.resoudre(requete("lycee-x.monapp.sn", null))).contains(LYCEE_X);
+    // Un hôte voisin non déclaré n'hérite de rien.
+    assertThatThrownBy(
+            () -> resolveur.resoudre(requete("parent2.monapp.sn", UUID.randomUUID().toString())))
+        .isInstanceOfSatisfying(
+            ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("TENANT_INCOHERENT"));
+  }
+
+  @Test
+  void unHoteAvecPointFinalNEstPasCommunNiUneEcole() {
+    var resolveur = avecHotesCommuns("parent.monapp.sn");
+    // « parent.monapp.sn. » n'est pas l'hôte déclaré : le mode strict s'applique, et rien n'est lu.
+    assertThatThrownBy(
+            () -> resolveur.resoudre(requete("parent.monapp.sn.", UUID.randomUUID().toString())))
+        .isInstanceOfSatisfying(
+            ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("TENANT_INCOHERENT"));
+    assertThat(resolveur.resoudre(requete("parent.monapp.sn.", null))).isEmpty();
+  }
+
+  @Test
+  void sansHoteCommunDeclareRienNeChange() {
+    assertThatThrownBy(
+            () ->
+                enMode(TenantProperties.Resolution.SOUS_DOMAINE)
+                    .resoudre(requete("parent.monapp.sn", UUID.randomUUID().toString())))
+        .isInstanceOfSatisfying(
+            ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("TENANT_INCOHERENT"));
+  }
+
+  @Test
+  void leshotesCommunsSontNormalisesEtValides() {
+    var proprietes =
+        new TenantProperties(
+            TenantProperties.Resolution.SOUS_DOMAINE,
+            "monapp.sn",
+            java.util.Arrays.asList(" Parent.MonApp.sn ", "", null, "parent.monapp.sn"));
+    assertThat(proprietes.hotesCommuns()).containsExactly("parent.monapp.sn");
+    assertThat(proprietes.estHoteCommun("PARENT.monapp.sn")).isTrue();
+    assertThat(proprietes.estHoteCommun("autre.monapp.sn")).isFalse();
+    assertThatThrownBy(
+            () ->
+                new TenantProperties(
+                    TenantProperties.Resolution.SOUS_DOMAINE, "monapp.sn", List.of("*.monapp.sn")))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(
+            () ->
+                new TenantProperties(
+                    TenantProperties.Resolution.SOUS_DOMAINE, "monapp.sn", List.of("localhost")))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 }

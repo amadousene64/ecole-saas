@@ -23,8 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 import sn.ecole.inscription.application.EleveService;
 import sn.ecole.inscription.application.EleveService.Saisie;
 import sn.ecole.inscription.application.EleveService.VueEleve;
-import sn.ecole.inscription.application.ResumeEleve;
+import sn.ecole.inscription.application.LigneEleve;
 import sn.ecole.inscription.domain.Eleve;
+import sn.ecole.inscription.domain.StatutInscription;
 import sn.ecole.shared.domain.PageCurseur;
 
 @RestController
@@ -42,14 +43,33 @@ class EleveController {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
       summary =
-          "Recherche des élèves (nom, prénoms ou matricule ; filtre par classe), paginée par curseur")
-  ResponseEntity<PageDto<EleveResumeDto>> rechercher(
-      @RequestParam(name = "recherche", required = false) String recherche,
+          "Liste des élèves, filtres non nominatifs (classe, statut, matricule), avec le statut et"
+              + " l'état du dossier, paginée par curseur. La recherche par nom est en POST"
+              + " /api/v1/eleves/recherche.")
+  ResponseEntity<PageDto<EleveListeDto>> lister(
       @RequestParam(name = "classe", required = false) UUID classeId,
+      @RequestParam(name = "statut", required = false) StatutInscription statut,
+      @RequestParam(name = "matricule", required = false) String matricule,
       @RequestParam(name = "curseur", required = false) String curseur,
       @RequestParam(name = "taille", required = false) Integer taille) {
-    PageCurseur<ResumeEleve> page = service.rechercher(recherche, classeId, curseur, taille);
-    return Reponses.ok(new PageDto<>(mapper.versResumes(page.elements()), page.curseurSuivant()));
+    return page(service.rechercher(null, matricule, classeId, statut, curseur, taille));
+  }
+
+  @PostMapping(
+      path = "/recherche",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(
+      summary =
+          "Recherche d'élèves par nom, prénoms ou matricule (le terme est dans le corps, pas dans"
+              + " l'URL), avec les mêmes filtres et la même pagination que la liste")
+  ResponseEntity<PageDto<EleveListeDto>> rechercher(@Valid @RequestBody RechercheElevesRequete r) {
+    return page(
+        service.rechercher(r.recherche(), null, r.classe(), r.statut(), r.curseur(), r.taille()));
+  }
+
+  private ResponseEntity<PageDto<EleveListeDto>> page(PageCurseur<LigneEleve> page) {
+    return Reponses.ok(new PageDto<>(mapper.versLignes(page.elements()), page.curseurSuivant()));
   }
 
   @PostMapping(

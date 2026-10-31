@@ -33,7 +33,13 @@ export const intercepteurApi: HttpInterceptorFn = (req, next) => {
         entetes = entetes.set('Authorization', `Bearer ${jeton}`);
       }
       const ecole = courante.id();
-      if (ecole && url.pathname !== CHEMIN_SANS_ECOLE) {
+      // Un appel qui désigne lui-même son école (« Mes enfants », école par école) est respecté ;
+      // le serveur vérifie de toute façon l'appartenance à celle-ci.
+      if (
+        ecole &&
+        url.pathname !== CHEMIN_SANS_ECOLE &&
+        !req.headers.has('X-Tenant-Id')
+      ) {
         entetes = entetes.set('X-Tenant-Id', ecole);
       }
       return next(req.clone({ headers: entetes }));
@@ -45,7 +51,10 @@ export const intercepteurApi: HttpInterceptorFn = (req, next) => {
           oidc.authorize();
         } else if (
           erreur.status === 403 &&
-          erreur.error?.code === 'TENANT_NON_AUTORISE'
+          erreur.error?.code === 'TENANT_NON_AUTORISE' &&
+          // Un appel qui désignait une AUTRE école que la courante (Mes enfants) ne remet pas en
+          // cause l'école courante.
+          (req.headers.get('X-Tenant-Id') ?? courante.id()) === courante.id()
         ) {
           session.surEcoleRefusee();
           void router.navigateByUrl('/choix-ecole');

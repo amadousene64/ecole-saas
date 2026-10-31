@@ -244,6 +244,22 @@ class PiecesApiTest extends TestInscription {
   }
 
   @Test
+  void unePhotoDeTelephoneEnPortraitEstRedresseeAvantLeReencodage() throws Exception {
+    // Fichier 60 x 40 « couché », orientation 6 : à l'écran il est debout (40 x 60), le carré
+    // rouge du coin haut-gauche du fichier passant en haut à droite.
+    Reponse r = deposer(SECRETARIAT_A, A, "PHOTO_IDENTITE", ImagesFictives.jpegAvecOrientation(6));
+    assertThat(r.statut()).as(r.corps().toString()).isEqualTo(201);
+    byte[] stocke = stockage.objets().values().iterator().next().contenu();
+    BufferedImage relue = ImageIO.read(new ByteArrayInputStream(stocke));
+    assertThat(relue.getWidth()).isEqualTo(40);
+    assertThat(relue.getHeight()).isEqualTo(60);
+    int rgb = relue.getRGB(relue.getWidth() - 5, 4);
+    assertThat((rgb >> 16) & 0xFF).isGreaterThan(200);
+    assertThat((rgb >> 8) & 0xFF).isLessThan(90);
+    assertThat(ImagesFictives.segmentsApp1(stocke)).isZero();
+  }
+
+  @Test
   void unPngDeposeEstReencodeEtUneGrandePhotoEstReduite() throws Exception {
     byte[] png = ImagesFictives.pngAvecTexte("Commentaire fictif GPS 14.69 -17.44");
     Reponse r = deposer(SECRETARIAT_A, A, "ACTE_NAISSANCE", png);
