@@ -65,7 +65,7 @@ export function presenterCode(brut: string): string {
     >
       @if (champEcole()) {
         <div class="champ">
-          <label for="ecole-dev">Identifiant de l'école (développement)</label>
+          <label for="ecole-dev">Identifiant de l'école</label>
           <input
             id="ecole-dev"
             type="text"
@@ -133,16 +133,19 @@ export class PageActivation {
   protected readonly code = signal('');
   /** Identifiant d'école proposé par le lien ou le QR code de l'école (`?ecole=`), s'il est valide. */
   protected readonly ecole = signal(
-    ecolePropose(this.route.snapshot.queryParamMap.get('ecole')),
+    ecolePropose(this.route.snapshot.queryParamMap.get('ecole')) ||
+      this.courante.id() ||
+      '',
   );
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   /**
    * Sur un sous-domaine d'école, l'école vient du serveur. Sur l'hôte commun (environnement.hoteCommun) ou
-   * un poste de développement (localhost, adresse IP), sans école mémorisée, on la désigne ici.
+   * un poste de développement (localhost, adresse IP), on la désigne ici (même si le compte a déjà
+   * une école : on peut activer le code d'un enfant d'une autre école).
    */
   protected readonly champEcole = signal(
-    !this.courante.id() && (environnement.hoteCommun || sansSousDomaine()),
+    environnement.hoteCommun || sansSousDomaine(),
   );
 
   protected complet(): boolean {
@@ -158,15 +161,19 @@ export class PageActivation {
     if (!this.complet() || this.occupe()) {
       return;
     }
-    if (this.champEcole() && this.ecole().trim()) {
-      this.courante.choisir(this.ecole().trim());
-    }
+    // L'école visée est désignée par CET appel (X-Tenant-Id) : l'école courante n'est changée
+    // qu'après un succès, jamais sur un UUID non validé.
+    const ecole = this.champEcole() ? this.ecole().trim() : '';
     this.erreur.set(null);
     this.occupe.set(true);
     try {
       await this.api.invoke(activationActiver, {
+        ...(ecole ? { 'X-Tenant-Id': ecole } : {}),
         body: { code: normaliserCode(this.code()) },
       });
+      if (ecole) {
+        this.courante.choisir(ecole);
+      }
       // Le profil dans l'école n'existait pas : on le recharge avant de montrer les enfants.
       this.code.set('');
       await this.session.recharger();

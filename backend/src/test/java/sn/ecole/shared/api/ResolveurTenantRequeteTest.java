@@ -163,6 +163,17 @@ class ResolveurTenantRequeteTest {
   }
 
   @Test
+  void unHoteAvecPointFinalNEstPasCommunNiUneEcole() {
+    var resolveur = avecHotesCommuns("parent.monapp.sn");
+    // « parent.monapp.sn. » n'est pas l'hôte déclaré : le mode strict s'applique, et rien n'est lu.
+    assertThatThrownBy(
+            () -> resolveur.resoudre(requete("parent.monapp.sn.", UUID.randomUUID().toString())))
+        .isInstanceOfSatisfying(
+            ErreurMetier.class, e -> assertThat(e.code()).isEqualTo("TENANT_INCOHERENT"));
+    assertThat(resolveur.resoudre(requete("parent.monapp.sn.", null))).isEmpty();
+  }
+
+  @Test
   void sansHoteCommunDeclareRienNeChange() {
     assertThatThrownBy(
             () ->

@@ -41,12 +41,8 @@ class ResolveurTenantRequete {
       return parEntete;
     }
     // Hôte commun déclaré (app parent) : l'école est désignée par l'en-tête, contrôlée ensuite par
-    // les appartenances. Tout autre hôte reste strict.
-    if (proprietes.estHoteCommun(requete.getServerName())) {
-      return parEntete;
-    }
-    // Hôte commun déclaré (app parent) : l'école est désignée par l'en-tête, contrôlée ensuite par
-    // les appartenances. Tout autre hôte reste strict.
+    // les appartenances. Tout autre hôte reste strict. L'hôte est celui que voit Tomcat : le
+    // répartiteur de charge doit écraser Host / X-Forwarded-Host (voir docs/resolution-ecole.md).
     if (proprietes.estHoteCommun(requete.getServerName())) {
       return parEntete;
     }

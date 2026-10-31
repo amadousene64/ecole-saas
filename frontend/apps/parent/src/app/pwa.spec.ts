@@ -41,8 +41,13 @@ describe('service worker : aucune réponse d’API en cache', () => {
     navigationUrls: string[];
   };
 
-  it('ne déclare aucun dataGroups', () => {
+  it('ne déclare aucun dataGroups ni aucune adresse (urls) à mettre en cache', () => {
+    // Les vrais garde-fous : seuls `dataGroups` et `resources.urls` mettent en cache des réponses
+    // HTTP à l'exécution ; `resources.files` ne désigne que des fichiers du build.
     expect(conf.dataGroups ?? []).toEqual([]);
+    for (const g of conf.assetGroups) {
+      expect(g.resources?.urls ?? [], `urls du groupe ${g.name}`).toEqual([]);
+    }
   });
 
   it('aucun groupe de ressources ne désigne une adresse de l’API', () => {

@@ -48,6 +48,20 @@ L'application parent désigne l'école elle-même :
   `environnement.hoteCommun = true` pour l'hôte commun (les postes `localhost` et les adresses IP
   affichent déjà le champ).
 
+Mise en production :
+
+- le répartiteur de charge doit **écraser** `Host` et `X-Forwarded-Host` (jamais relayer ceux du
+  client) : l'hôte vu par l'application détermine le mode (commun ou strict). Un client qui
+  imposerait un hôte commun depuis le sous-domaine d'une école n'obtiendrait que ce qu'un appel direct
+  à l'hôte commun donne, avec l'appartenance toujours contrôlée ; mais l'hôte doit rester fiable ;
+- `apps/parent/src/app/environnement.ts` est remplacé au déploiement (adresse du realm Keycloak,
+  `hoteCommun: true` sur l'hôte commun) ; sans cela le champ « Identifiant de l'école » n'apparaît
+  pas et l'activation échoue faute d'école désignée ;
+- ne pas donner à une école un sous-domaine identique à un hôte commun déclaré (elle passerait en
+  mode en-tête) ;
+- tous les clients autorisés (`backoffice`, `parent`, `vie-scolaire`) fonctionnent sur l'hôte
+  commun : restreindre aux jetons `azp=parent` serait un durcissement possible.
+
 À noter : sur un hôte commun, l'activation par code (qui n'exige aucune appartenance) est
 accessible pour n'importe quelle école dont on connaît l'identifiant ; elle reste protégée par la
 limite d'essais par code et par adresse, et le code secret de 40 bits.
@@ -72,7 +86,9 @@ l'application ni dans une URL d'API (vérifié par `service-eleves.spec.ts` et p
 
 ## Service worker de l'app parent
 
-Aucune réponse de l'API n'est mise en cache : pas de `dataGroups`, `/api/**` exclu de la navigation
-et du cache d'images, ainsi que les chemins de stockage `/stockage/**` et `/ecole-fichiers/**`
-(`apps/parent/ngsw-config.json`, testé dans `pwa.spec.ts`). À la déconnexion, les stockages du
+Aucune réponse de l'API n'est mise en cache : pas de `dataGroups`, aucune `urls` dans les groupes de
+ressources (seuls ces deux réglages mettent en cache des réponses HTTP à l'exécution) et `/api/**`
+exclu de la navigation. Les exclusions `!/api/**`, `!/stockage/**`, `!/ecole-fichiers/**` du groupe
+d'images sont une ceinture supplémentaire, explicite et testée (`apps/parent/ngsw-config.json`,
+`pwa.spec.ts`). À la déconnexion, les stockages du
 navigateur et les caches sont vidés (`libs/auth`, `etat-local.ts`).

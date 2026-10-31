@@ -99,7 +99,10 @@ describe('PageActivation', () => {
     await saisir('7k2m x9qd 4rtb');
     await valider();
 
-    expect(invoke.mock.calls[0][1]).toEqual({ body: { code: '7K2MX9QD4RTB' } });
+    expect(invoke.mock.calls[0][1]).toEqual({
+      'X-Tenant-Id': 'ecole-a',
+      body: { code: '7K2MX9QD4RTB' },
+    });
     expect(recharger).toHaveBeenCalledOnce();
     expect(naviguer).toHaveBeenCalledWith('/enfants');
   });
@@ -117,6 +120,33 @@ describe('PageActivation', () => {
     await saisir('7K2MX9QD4RTB');
     await valider();
     expect(TestBed.inject(EcoleCourante).id()).toBe(id);
+  });
+
+  it('désigne l’école par l’appel lui-même et ne mémorise une autre école qu’après un succès', async () => {
+    const autre = '01930000-0000-7000-8000-0000000000b2';
+    let reussite = false;
+    const { saisir, valider } = await creer(() => {
+      if (!reussite) {
+        throw new HttpErrorResponse({
+          status: 403,
+          error: { code: 'TENANT_NON_AUTORISE' },
+        });
+      }
+      return {};
+    }, autre);
+    TestBed.inject(EcoleCourante).choisir('ecole-a');
+    await saisir('7K2MX9QD4RTB');
+
+    await valider();
+    expect(invoke.mock.calls[0][1]).toMatchObject({ 'X-Tenant-Id': autre });
+    // Échec : l'école courante n'a pas bougé, aucune école arbitraire n'est mémorisée.
+    expect(TestBed.inject(EcoleCourante).id()).toBe('ecole-a');
+    expect(recharger).not.toHaveBeenCalled();
+
+    reussite = true;
+    await valider();
+    expect(TestBed.inject(EcoleCourante).id()).toBe(autre);
+    expect(naviguer).toHaveBeenCalledWith('/enfants');
   });
 
   it('n’envoie rien tant que le code est incomplet', async () => {
