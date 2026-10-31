@@ -1097,6 +1097,14 @@
           }
         }, {
           "in" : "query",
+          "name" : "statut",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          }
+        }, {
+          "in" : "query",
           "name" : "curseur",
           "required" : false,
           "schema" : {
@@ -1125,14 +1133,14 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PageDtoEleveResumeDto"
+                  "$ref" : "#/components/schemas/PageDtoEleveListeDto"
                 }
               }
             },
             "description" : "OK"
           }
         },
-        "summary" : "Recherche des élèves (nom, prénoms ou matricule ; filtre par classe), paginée par curseur",
+        "summary" : "Recherche des élèves (nom, prénoms ou matricule ; filtres classe et statut), avec le statut et l'état du dossier, paginée par curseur",
         "tags" : [ "eleve-controller" ]
       },
       "post" : {
@@ -3989,6 +3997,26 @@
           }
         }
       },
+      "DossierDto" : {
+        "type" : "object",
+        "properties" : {
+          "enAnalyse" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "manquantes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ACTE_NAISSANCE", "CERTIFICAT_SCOLARITE", "CERTIFICAT_MEDICAL", "PHOTO_IDENTITE" ]
+            }
+          },
+          "refusees" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "EcoleDto" : {
         "type" : "object",
         "properties" : {
@@ -4046,6 +4074,42 @@
           "version" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "EleveListeDto" : {
+        "type" : "object",
+        "properties" : {
+          "classe" : {
+            "type" : "string"
+          },
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dossier" : {
+            "$ref" : "#/components/schemas/DossierDto"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "matricule" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
           }
         }
       },
@@ -4666,7 +4730,7 @@
         },
         "required" : [ "code", "groupe", "libelle" ]
       },
-      "PageDtoEleveResumeDto" : {
+      "PageDtoEleveListeDto" : {
         "type" : "object",
         "properties" : {
           "curseurSuivant" : {
@@ -4675,7 +4739,7 @@
           "elements" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/EleveResumeDto"
+              "$ref" : "#/components/schemas/EleveListeDto"
             }
           }
         }

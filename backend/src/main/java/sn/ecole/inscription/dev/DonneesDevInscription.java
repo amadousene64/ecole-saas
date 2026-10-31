@@ -75,7 +75,7 @@ class DonneesDevInscription implements ApplicationRunner {
   }
 
   private void semer() {
-    if (!eleves.rechercher(null, null, null, 1).elements().isEmpty()) {
+    if (!eleves.rechercher(null, null, null, null, 1).elements().isEmpty()) {
       return;
     }
     List<ClasseScolaire> classes =

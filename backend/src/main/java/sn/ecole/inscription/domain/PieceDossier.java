@@ -27,6 +27,10 @@ public class PieceDossier extends TenantAwareEntity {
     PHOTO_IDENTITE
   }
 
+  /** Pièces exigées pour un dossier complet : liste fixe (issue #42 : paramétrable par école). */
+  public static final java.util.List<Type> EXIGEES =
+      java.util.List.of(Type.ACTE_NAISSANCE, Type.PHOTO_IDENTITE);
+
   public enum Statut {
     EN_ANALYSE,
     SAIN,

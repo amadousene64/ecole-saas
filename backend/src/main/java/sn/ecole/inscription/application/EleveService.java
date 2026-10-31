@@ -20,6 +20,7 @@ import sn.ecole.inscription.domain.Matricule;
 import sn.ecole.inscription.domain.RechercheEleves;
 import sn.ecole.inscription.domain.Saisies;
 import sn.ecole.inscription.domain.Sexe;
+import sn.ecole.inscription.domain.StatutInscription;
 import sn.ecole.shared.application.ApresTransaction;
 import sn.ecole.shared.application.JournalAudit;
 import sn.ecole.shared.domain.ContexteTenant;
@@ -27,6 +28,7 @@ import sn.ecole.shared.domain.ControleImage;
 import sn.ecole.shared.domain.ControleImage.ImageValidee;
 import sn.ecole.shared.domain.Identifiants;
 import sn.ecole.shared.domain.PageCurseur;
+import sn.ecole.shared.domain.RoleEcole;
 import sn.ecole.shared.domain.StockageFichiers;
 
 /** Identité des élèves : création avec matricule, correction, photo, recherche. */
@@ -69,6 +71,7 @@ public class EleveService {
   private final JournalAudit journal;
   private final List<UtilisationEleve> utilisations;
   private final InscriptionService inscriptions;
+  private final PieceService pieces;
 
   public EleveService(
       EleveRepository eleves,
@@ -78,7 +81,8 @@ public class EleveService {
       StockageFichiers stockage,
       JournalAudit journal,
       List<UtilisationEleve> utilisations,
-      InscriptionService inscriptions) {
+      InscriptionService inscriptions,
+      PieceService pieces) {
     this.eleves = eleves;
     this.recherche = recherche;
     this.compteur = compteur;
@@ -87,16 +91,18 @@ public class EleveService {
     this.journal = journal;
     this.utilisations = List.copyOf(utilisations);
     this.inscriptions = inscriptions;
+    this.pieces = pieces;
   }
 
   /**
    * @param terme nom, prénoms (sans tenir compte des accents) ou matricule exact ; null : tous
    * @param classeId élèves pré-inscrits ou inscrits dans cette classe ; null : tous
+   * @param statut élèves dont l'inscription la plus récente a ce statut ; null : tous
    */
   @PreAuthorize(Droits.IDENTITE)
   @Transactional(readOnly = true)
-  public PageCurseur<ResumeEleve> rechercher(
-      String terme, UUID classeId, String curseur, Integer taille) {
+  public PageCurseur<LigneEleve> rechercher(
+      String terme, UUID classeId, StatutInscription statut, String curseur, Integer taille) {
     int n = PageCurseur.taille(taille);
     String apresNom = null;
     UUID apresId = null;
@@ -113,12 +119,27 @@ public class EleveService {
     if (normalise != null && normalise.length() > 100) {
       throw Erreurs.invalide("RECHERCHE_INVALIDE", "Recherche trop longue.");
     }
-    List<Eleve> lus = recherche.rechercher(normalise, classeId, apresNom, apresId, n + 1);
+    List<Eleve> lus = recherche.rechercher(normalise, classeId, statut, apresNom, apresId, n + 1);
     PageCurseur<Eleve> page =
         PageCurseur.depuis(lus, n, e -> new String[] {e.getNomRecherche(), e.getId().toString()});
-    Map<UUID, String> classes =
-        inscriptions.classesActuelles(page.elements().stream().map(Eleve::getId).toList());
-    return page.map(e -> new ResumeEleve(e, classes.get(e.getId())));
+    List<UUID> ids = page.elements().stream().map(Eleve::getId).toList();
+    Map<UUID, InscriptionService.Situation> situations = inscriptions.situations(ids);
+    // L'état du dossier ne se calcule que pour qui peut lire les pièces.
+    Map<UUID, DossierPieces> dossiers =
+        Erreurs.aLeRole(RoleEcole.DIRECTEUR)
+                || Erreurs.aLeRole(RoleEcole.SECRETARIAT)
+                || Erreurs.aLeRole(RoleEcole.CENSEUR)
+            ? pieces.dossiers(ids)
+            : Map.of();
+    return page.map(
+        e -> {
+          InscriptionService.Situation s = situations.get(e.getId());
+          return new LigneEleve(
+              e,
+              s == null ? null : s.classe(),
+              s == null ? null : s.statut(),
+              dossiers.get(e.getId()));
+        });
   }
 
   @PreAuthorize(Droits.IDENTITE_ELEVE)

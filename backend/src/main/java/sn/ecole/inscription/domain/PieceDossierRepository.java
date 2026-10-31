@@ -11,6 +11,8 @@ public interface PieceDossierRepository {
 
   List<PieceDossier> findByEleveIdOrderByCreeLeDesc(UUID eleveId);
 
+  List<PieceDossier> findByEleveIdIn(java.util.Collection<UUID> eleveIds);
+
   boolean existsByEleveId(UUID eleveId);
 
   PieceDossier save(PieceDossier piece);

@@ -7,11 +7,12 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { PageDtoEleveResumeDto } from '../../models/page-dto-eleve-resume-dto';
+import { PageDtoEleveListeDto } from '../../models/page-dto-eleve-liste-dto';
 
 export interface EleveRechercher$Params {
   recherche?: string;
   classe?: string;
+  statut?: 'PRE_INSCRIT' | 'INSCRIT' | 'TRANSFERE' | 'RADIE' | 'ABANDON';
   curseur?: string;
   taille?: number;
 
@@ -21,11 +22,12 @@ export interface EleveRechercher$Params {
   'X-Tenant-Id'?: string;
 }
 
-export function eleveRechercher(http: HttpClient, rootUrl: string, params?: EleveRechercher$Params, context?: HttpContext): Observable<StrictHttpResponse<PageDtoEleveResumeDto>> {
+export function eleveRechercher(http: HttpClient, rootUrl: string, params?: EleveRechercher$Params, context?: HttpContext): Observable<StrictHttpResponse<PageDtoEleveListeDto>> {
   const rb = new RequestBuilder(rootUrl, eleveRechercher.PATH, 'get');
   if (params) {
     rb.query('recherche', params.recherche, {});
     rb.query('classe', params.classe, {});
+    rb.query('statut', params.statut, {});
     rb.query('curseur', params.curseur, {});
     rb.query('taille', params.taille, {});
     rb.header('X-Tenant-Id', params['X-Tenant-Id'], {});
@@ -36,7 +38,7 @@ export function eleveRechercher(http: HttpClient, rootUrl: string, params?: Elev
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<PageDtoEleveResumeDto>;
+      return r as StrictHttpResponse<PageDtoEleveListeDto>;
     })
   );
 }
