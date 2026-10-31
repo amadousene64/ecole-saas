@@ -50,7 +50,8 @@ class PieceController {
       throw new sn.ecole.shared.domain.ErreurMetier(
           "CHAMP_INVALIDE",
           sn.ecole.shared.domain.TypeErreur.INVALIDE,
-          "Type de pièce : ACTE_NAISSANCE, CERTIFICAT ou PHOTO_IDENTITE.");
+          "Type de pièce : ACTE_NAISSANCE, CERTIFICAT_SCOLARITE, CERTIFICAT_MEDICAL ou"
+              + " PHOTO_IDENTITE.");
     }
     PieceDossier piece = service.deposer(eleveId, t, fichier.getBytes());
     return Reponses.cree("/api/v1/eleves/" + eleveId + "/pieces/" + piece.getId(), versDto(piece));
@@ -63,7 +64,10 @@ class PieceController {
   }
 
   @GetMapping(path = "/{pieceId}/url", produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "URL de téléchargement (5 minutes), seulement pour une pièce saine")
+  @Operation(
+      summary =
+          "URL de téléchargement (5 minutes), seulement pour une pièce saine ; certificat médical :"
+              + " direction et censeur seulement, chaque ouverture journalisée")
   ResponseEntity<UrlDto> url(@PathVariable UUID eleveId, @PathVariable UUID pieceId) {
     return Reponses.ok(
         new UrlDto(

@@ -17,17 +17,25 @@ import sn.ecole.shared.application.ApresTransaction;
 import sn.ecole.shared.application.JournalAudit;
 import sn.ecole.shared.application.OutboxPublisher;
 import sn.ecole.shared.domain.ContexteTenant;
+import sn.ecole.shared.domain.ErreurMetier;
 import sn.ecole.shared.domain.Identifiants;
+import sn.ecole.shared.domain.RoleEcole;
 import sn.ecole.shared.domain.StockageFichiers;
+import sn.ecole.shared.domain.TypeErreur;
 
 /**
- * Pièces du dossier (acte de naissance, certificat, photo d'identité) : direction et secrétariat.
+ * Pièces du dossier (acte de naissance, certificats, photo d'identité) : direction et secrétariat.
+ *
+ * <p>Le certificat médical est une donnée de santé et suit les règles des données sensibles : la
+ * direction et le secrétariat le déposent, seuls le DIRECTEUR et le CENSEUR l'ouvrent, et chaque
+ * ouverture est journalisée ({@link DossierSensibleService#LECTURE}). Le secrétariat le voit dans
+ * la liste (il sait qu'il est déposé) sans pouvoir l'ouvrir ; le censeur ne voit que lui.
  *
  * <p>Dépôt : type vérifié par les octets magiques, taille bornée, fichier stocké sous une clé
- * construite par le serveur, pièce EN_ANALYSE et demande d'analyse écrite dans l'outbox (même
- * transaction). Le relais la confie à ClamAV ({@link AnalysePieces}). Tant que la pièce n'est pas
- * SAIN, aucune URL n'est délivrée ; une fois saine, l'URL signée vaut 5 minutes et force le
- * téléchargement.
+ * construite par le serveur (image ré-encodée, sans métadonnées), pièce EN_ANALYSE et demande
+ * d'analyse écrite dans l'outbox (même transaction). Le relais la confie à ClamAV ({@link
+ * AnalysePieces}). Tant que la pièce n'est pas SAIN, aucune URL n'est délivrée ; une fois saine,
+ * l'URL signée vaut 5 minutes et force le téléchargement.
  */
 @Service
 @Transactional
@@ -64,7 +72,7 @@ public class PieceService implements UtilisationEleve {
     ControlePiece.PieceValidee validee = ControlePiece.controler(contenu);
     String cle =
         ContexteTenant.exiger() + "/eleves/" + eleveId + "/pieces/" + Identifiants.uuidV7();
-    stockage.deposer(cle, contenu, validee.contentType());
+    stockage.deposer(cle, validee.octets(), validee.contentType());
     ApresTransaction.siAnnulee(() -> stockage.supprimer(cle));
     PieceDossier piece = pieces.save(PieceDossier.deposer(eleveId, type, cle, validee));
     outbox.publier("PieceDossier", piece.getId(), ANALYSE_DEMANDEE, Map.of("piece", piece.getId()));
@@ -76,17 +84,34 @@ public class PieceService implements UtilisationEleve {
     return piece;
   }
 
-  @PreAuthorize(Droits.ECRITURE)
+  @PreAuthorize(Droits.PIECES_LECTURE)
   @Transactional(readOnly = true)
   public List<PieceDossier> lister(UUID eleveId) {
     eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
-    return pieces.findByEleveIdOrderByCreeLeDesc(eleveId);
+    List<PieceDossier> toutes = pieces.findByEleveIdOrderByCreeLeDesc(eleveId);
+    if (ecriture()) {
+      return toutes;
+    }
+    // Censeur : le certificat médical seulement.
+    return toutes.stream().filter(PieceDossier::estSensible).toList();
   }
 
-  /** URL de téléchargement (5 minutes), seulement pour une pièce analysée et saine. */
-  @PreAuthorize(Droits.ECRITURE)
+  /**
+   * URL de téléchargement (5 minutes), seulement pour une pièce analysée et saine. Certificat
+   * médical : DIRECTEUR et CENSEUR seulement, ouverture journalisée comme une lecture de données
+   * sensibles ; autres pièces : direction et secrétariat.
+   */
+  @PreAuthorize(Droits.PIECES_LECTURE)
   public URI url(UUID eleveId, UUID pieceId) {
     PieceDossier piece = charger(eleveId, pieceId);
+    boolean autorise =
+        piece.estSensible()
+            ? Erreurs.aLeRole(RoleEcole.DIRECTEUR) || Erreurs.aLeRole(RoleEcole.CENSEUR)
+            : ecriture();
+    if (!autorise) {
+      throw new ErreurMetier(
+          "ACCES_REFUSE", TypeErreur.INTERDIT, "Vous n'avez pas accès à cette pièce.");
+    }
     if (!piece.disponible()) {
       throw Erreurs.conflit(
           "PIECE_NON_DISPONIBLE",
@@ -94,7 +119,15 @@ public class PieceService implements UtilisationEleve {
               ? "Cette pièce a été bloquée par l'antivirus."
               : "Cette pièce est en cours d'analyse antivirus : réessayez dans un instant.");
     }
-    journal.consigner("PIECE_CONSULTEE", "Eleve", eleveId, Map.of("piece", pieceId));
+    if (piece.estSensible()) {
+      journal.consigner(
+          DossierSensibleService.LECTURE,
+          "Eleve",
+          eleveId,
+          Map.of("champs", List.of("certificat_medical"), "piece", pieceId));
+    } else {
+      journal.consigner("PIECE_CONSULTEE", "Eleve", eleveId, Map.of("piece", pieceId));
+    }
     return stockage.urlTelechargement(
         piece.getCle(), VALIDITE_URL, piece.getContentType(), piece.nomFichier());
   }
@@ -112,6 +145,10 @@ public class PieceService implements UtilisationEleve {
   @Override
   public boolean eleveUtilise(UUID eleveId) {
     return pieces.existsByEleveId(eleveId);
+  }
+
+  private static boolean ecriture() {
+    return Erreurs.aLeRole(RoleEcole.DIRECTEUR) || Erreurs.aLeRole(RoleEcole.SECRETARIAT);
   }
 
   private PieceDossier charger(UUID eleveId, UUID pieceId) {

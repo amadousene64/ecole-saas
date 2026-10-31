@@ -139,4 +139,18 @@ class ControleImageTest {
     assertThat(new String(resultat.octets(), StandardCharsets.ISO_8859_1))
         .doesNotContain("SECRET-PAYLOAD");
   }
+
+  @Test
+  void reduireSousEchantillonneUneGrandePhotoEtRetireLesMetadonnees() {
+    byte[] photo = sn.ecole.ImagesFictives.jpegAvecGps(4000, 3000);
+    assertThatThrownBy(() -> ControleImage.controler(photo, 5_000_000))
+        .isInstanceOf(ErreurMetier.class);
+    ControleImage.ImageValidee reduite = ControleImage.reduire(photo, 5_000_000, 2500);
+    assertThat(reduite.largeur()).isLessThanOrEqualTo(2500).isGreaterThan(1000);
+    assertThat(reduite.hauteur()).isLessThan(reduite.largeur());
+    assertThat(sn.ecole.ImagesFictives.segmentsApp1(reduite.octets())).isZero();
+    // Au-delà de la source maximale, refus avant décodage.
+    assertThatThrownBy(() -> ControleImage.reduire(pngAnnoncant(20_000, 10), 5_000_000, 2500))
+        .hasMessageContaining("pixels");
+  }
 }

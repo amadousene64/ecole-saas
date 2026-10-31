@@ -36,6 +36,12 @@ final class Droits {
   /** Saisie des données sensibles : le secrétariat écrit sans pouvoir relire. */
   static final String SENSIBLE_ECRITURE = "hasAnyRole('DIRECTEUR','SECRETARIAT')";
 
+  /**
+   * Pièces du dossier : la direction et le secrétariat, plus le censeur pour le seul certificat
+   * médical (donnée de santé). Le détail par type est vérifié dans {@link PieceService}.
+   */
+  static final String PIECES_LECTURE = "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR')";
+
   /** Savoir si une donnée sensible est renseignée, sans la lire. */
   static final String SENSIBLE_ETAT = "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR')";
 

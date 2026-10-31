@@ -114,7 +114,8 @@ class AntivirusClamAvTest extends TestInscription {
     return executer(
         MockMvcRequestBuilders.multipart(HttpMethod.POST, ELEVES + "/" + eleve + "/pieces")
             .file(new MockMultipartFile("fichier", "piece.pdf", "application/pdf", contenu))
-            .file(new MockMultipartFile("type", "", "text/plain", "CERTIFICAT".getBytes())),
+            .file(
+                new MockMultipartFile("type", "", "text/plain", "CERTIFICAT_SCOLARITE".getBytes())),
         SECRETARIAT_A,
         A);
   }

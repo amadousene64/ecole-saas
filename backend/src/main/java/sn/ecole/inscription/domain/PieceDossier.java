@@ -11,7 +11,7 @@ import java.util.UUID;
 import sn.ecole.shared.domain.TenantAwareEntity;
 
 /**
- * Pièce du dossier d'un élève (acte de naissance, certificat, photo d'identité), stockée dans
+ * Pièce du dossier d'un élève (acte de naissance, certificats, photo d'identité), stockée dans
  * MinIO. Arrive EN_ANALYSE ; ne devient accessible qu'une fois SAIN après l'analyse antivirus. Une
  * pièce INFECTE est retirée du stockage et ne redevient jamais accessible.
  */
@@ -21,7 +21,9 @@ public class PieceDossier extends TenantAwareEntity {
 
   public enum Type {
     ACTE_NAISSANCE,
-    CERTIFICAT,
+    CERTIFICAT_SCOLARITE,
+    /** Donnée de santé : lue par DIRECTEUR et CENSEUR seulement, chaque lecture journalisée. */
+    CERTIFICAT_MEDICAL,
     PHOTO_IDENTITE
   }
 
@@ -79,6 +81,11 @@ public class PieceDossier extends TenantAwareEntity {
     statut = saine ? Statut.SAIN : Statut.INFECTE;
     analyseLe = Objects.requireNonNull(quand);
     return true;
+  }
+
+  /** Pièce soumise aux règles des données sensibles (santé). */
+  public boolean estSensible() {
+    return type == Type.CERTIFICAT_MEDICAL;
   }
 
   public boolean disponible() {

@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
@@ -21,6 +22,14 @@ public final class ControleImage {
 
   /** Côté maximal, en pixels. */
   public static final int DIMENSION_MAX = 2000;
+
+  /**
+   * Pour {@link #reduire} : côté maximal de l'image source (photo de téléphone) et nombre maximal
+   * de pixels annoncés, contrôlés dans l'en-tête avant tout décodage.
+   */
+  public static final int SOURCE_COTE_MAX = 12_000;
+
+  public static final long SOURCE_PIXELS_MAX = 60_000_000L;
 
   private static final byte[] SIGNATURE_PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
 
@@ -38,6 +47,19 @@ public final class ControleImage {
    * @param tailleMax taille maximale du fichier, en octets
    */
   public static ImageValidee controler(byte[] brut, int tailleMax) {
+    return lire(brut, tailleMax, DIMENSION_MAX, DIMENSION_MAX);
+  }
+
+  /**
+   * Comme {@link #controler}, mais une image plus grande que {@code coteMax} (jusqu'à {@link
+   * #SOURCE_COTE_MAX} de côté) est réduite au décodage (sous-échantillonnage : la pleine résolution
+   * n'est jamais en mémoire) au lieu d'être refusée. Pièces du dossier photographiées au téléphone.
+   */
+  public static ImageValidee reduire(byte[] brut, int tailleMax, int coteMax) {
+    return lire(brut, tailleMax, SOURCE_COTE_MAX, coteMax);
+  }
+
+  private static ImageValidee lire(byte[] brut, int tailleMax, int sourceMax, int coteMax) {
     if (brut == null || brut.length == 0) {
       throw refus("FICHIER_INVALIDE", "Le fichier est vide.");
     }
@@ -71,14 +93,24 @@ public final class ControleImage {
         // En-tête seulement : aucune donnée de pixels n'est décodée à ce stade.
         int largeur = lecteur.getWidth(0);
         int hauteur = lecteur.getHeight(0);
-        if (largeur < 1 || hauteur < 1 || largeur > DIMENSION_MAX || hauteur > DIMENSION_MAX) {
+        if (largeur < 1
+            || hauteur < 1
+            || largeur > sourceMax
+            || hauteur > sourceMax
+            || (long) largeur * hauteur > SOURCE_PIXELS_MAX) {
           throw refus(
               "IMAGE_TROP_GRANDE",
-              "Dimensions refusées : " + DIMENSION_MAX + " pixels de côté au plus.");
+              "Dimensions refusées : " + sourceMax + " pixels de côté au plus.");
         }
-        BufferedImage image = lecteur.read(0);
+        int pas = Math.ceilDiv(Math.max(largeur, hauteur), coteMax);
+        ImageReadParam parametres = lecteur.getDefaultReadParam();
+        parametres.setSourceSubsampling(pas, pas, 0, 0);
+        BufferedImage image = lecteur.read(0, parametres);
         return new ImageValidee(
-            reencoder(image, png), png ? "image/png" : "image/jpeg", largeur, hauteur);
+            reencoder(image, png),
+            png ? "image/png" : "image/jpeg",
+            image.getWidth(),
+            image.getHeight());
       } finally {
         lecteur.dispose();
       }

@@ -1794,7 +1794,7 @@
             "description" : "OK"
           }
         },
-        "summary" : "URL de téléchargement (5 minutes), seulement pour une pièce saine",
+        "summary" : "URL de téléchargement (5 minutes), seulement pour une pièce saine ; certificat médical : direction et censeur seulement, chaque ouverture journalisée",
         "tags" : [ "piece-controller" ]
       }
     },
@@ -4774,7 +4774,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "ACTE_NAISSANCE", "CERTIFICAT", "PHOTO_IDENTITE" ]
+            "enum" : [ "ACTE_NAISSANCE", "CERTIFICAT_SCOLARITE", "CERTIFICAT_MEDICAL", "PHOTO_IDENTITE" ]
           }
         }
       },

@@ -8,5 +8,5 @@ export interface PieceDto {
   id?: string;
   statut?: 'EN_ANALYSE' | 'SAIN' | 'INFECTE';
   taille?: number;
-  type?: 'ACTE_NAISSANCE' | 'CERTIFICAT' | 'PHOTO_IDENTITE';
+  type?: 'ACTE_NAISSANCE' | 'CERTIFICAT_SCOLARITE' | 'CERTIFICAT_MEDICAL' | 'PHOTO_IDENTITE';
 }
