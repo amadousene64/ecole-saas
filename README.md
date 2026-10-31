@@ -8,12 +8,14 @@ Conception : `docs/conception/`. Contrat d'API : `docs/api/openapi.json`.
 Prérequis : JDK 25, Docker, `curl` et `jq` (pour le script de vérification).
 
 ```bash
-# 1. Infra : PostgreSQL 17, Keycloak, RabbitMQ, Redis, MinIO
+# 1. Infra : PostgreSQL 17, Keycloak, RabbitMQ, Redis, MinIO, ClamAV
 docker compose -f infra/docker-compose.yml up -d --wait
 
-# 2. Backend (profil dev : données fictives, école choisie par l'en-tête X-Tenant-Id)
+# 2. Backend (profil dev : données fictives, école choisie par l'en-tête X-Tenant-Id).
+#    Clés de chiffrement et HMAC : obligatoires, générées pour la session (jamais versionnées).
+eval "$(infra/scripts/generer-cles-dev.sh)"
 cd backend
-./mvnw spring-boot:run          # PowerShell : .\mvnw.cmd spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # PowerShell : .\mvnw.cmd ...
 
 # 3. Vérification de bout en bout (Git Bash)
 ./infra/scripts/verifier-connexion.sh
@@ -25,6 +27,7 @@ cd backend
 | Keycloak | http://localhost:8180 (realm `ecole`) | admin / admin-dev |
 | RabbitMQ | http://localhost:15672 | ecole / rabbit-dev |
 | MinIO | http://localhost:9001 | ecole / minio-dev-123 |
+| ClamAV (clamd) | localhost:3310 | — |
 | PostgreSQL | localhost:**55432**, base `ecole` | ecole_app / app-dev |
 | Redis | localhost:**56379** | redis-dev |
 
@@ -53,6 +56,17 @@ partiel de la console d'administration.
 ./mvnw spotless:apply                           # formatage
 ./mvnw test -Dtest=ContratOpenApiTest -Dopenapi.maj=true   # mettre à jour docs/api/openapi.json
 ```
+
+**Avant `./mvnw verify`, arrêtez la pile compose** : `docker compose -f infra/docker-compose.yml stop`
+(les données sont conservées ; `up -d --wait` pour repartir). Les tests démarrent leurs propres
+conteneurs (PostgreSQL, Redis, MinIO, ClamAV) ; avec la pile de dev en plus, la mémoire ne suffit
+pas sur un poste de 16 Go et des tests échouent au hasard (connexions perdues, conteneurs tués).
+Ne lancez jamais la pile compose pendant un `verify`.
+
+De même, ne compilez pas dans `backend/` pendant qu'un `spring-boot:run` y tourne : il charge ses
+classes depuis `backend/target/classes` au fil de l'eau, et un build qui les réécrit lui fait
+mélanger deux versions du code (erreurs 500 incompréhensibles). Arrêtez-le d'abord, ou travaillez
+dans un autre `git worktree`.
 
 ## Frontend
 
