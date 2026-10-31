@@ -6,11 +6,15 @@ import static sn.ecole.Fixtures.DIRECTEUR_A;
 import static sn.ecole.Fixtures.DIRECTEUR_B;
 import static sn.ecole.Fixtures.SECRETARIAT_A;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -269,6 +273,38 @@ class ImportElevesApiTest extends TestInscription {
       classeur.write(sortie);
     }
     assertThat(valider(sortie.toByteArray()).code()).isEqualTo("IMPORT_TROP_GRAND");
+  }
+
+  @Test
+  void unXlsxFabriqueQuiRepeteUnNumeroDeLigneEstRefuse() throws Exception {
+    ByteArrayOutputStream modele = new ByteArrayOutputStream();
+    try (XSSFWorkbook classeur = new XSSFWorkbook()) {
+      classeur.createSheet("Élèves").createRow(0).createCell(0).setCellValue("Prénoms");
+      classeur.write(modele);
+    }
+    // Feuille réécrite à la main : 3000 fois la ligne 2, pour contourner la limite de lignes.
+    StringBuilder feuille =
+        new StringBuilder(
+            "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+                + "<sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>Prénoms</t></is>"
+                + "</c></row>");
+    for (int i = 0; i < 3_000; i++) {
+      feuille.append("<row r=\"2\"><c r=\"A2\" t=\"inlineStr\"><is><t>x</t></is></c></row>");
+    }
+    feuille.append("</sheetData></worksheet>");
+    ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+    try (var entree = new ZipInputStream(new ByteArrayInputStream(modele.toByteArray()));
+        var zip = new ZipOutputStream(sortie)) {
+      for (ZipEntry e; (e = entree.getNextEntry()) != null; ) {
+        zip.putNextEntry(new ZipEntry(e.getName()));
+        zip.write(
+            e.getName().equals("xl/worksheets/sheet1.xml")
+                ? feuille.toString().getBytes(StandardCharsets.UTF_8)
+                : entree.readAllBytes());
+        zip.closeEntry();
+      }
+    }
+    assertThat(valider(sortie.toByteArray()).code()).isEqualTo("FICHIER_INVALIDE");
   }
 
   @Test

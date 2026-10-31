@@ -164,6 +164,11 @@ class LecteurTableurApache implements LecteurTableur {
 
     @Override
     public void startRow(int numero) {
+      // Un fichier fabriqué peut répéter ou reculer un numéro de ligne : refusé, sinon la limite
+      // de lignes serait contournée.
+      if (numero < lignes.size()) {
+        throw invalide("Fichier Excel invalide (lignes dans le désordre).");
+      }
       if (numero > LIGNES_MAX + 1) {
         throw trop();
       }
@@ -175,13 +180,17 @@ class LecteurTableurApache implements LecteurTableur {
 
     @Override
     public void endRow(int numero) {
+      if (lignes.size() > LIGNES_MAX + 1) {
+        throw trop();
+      }
       lignes.add(courante);
     }
 
     @Override
     public void cell(String reference, String valeur, XSSFComment commentaire) {
       int colonne = reference == null ? courante.size() : new CellReference(reference).getCol();
-      if (colonne >= COLONNES_MAX) {
+      // Colonne déjà écrite (référence répétée ou en arrière) ou hors limite : ignorée.
+      if (colonne < courante.size() || colonne >= COLONNES_MAX) {
         return;
       }
       while (courante.size() < colonne) {
