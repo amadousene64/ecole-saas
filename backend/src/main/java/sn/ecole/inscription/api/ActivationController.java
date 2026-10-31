@@ -43,8 +43,8 @@ class ActivationController {
               + " l'école ; essais limités")
   ResponseEntity<ActivationDto> activer(
       @Valid @RequestBody ActivationRequete r, HttpServletRequest requete) {
-    // L'adresse vue par le serveur : derrière un proxy, server.forward-headers-strategy doit être
-    // configuré pour qu'elle soit celle du client (sans quoi la limite par IP est globale).
+    // Adresse du client : derrière un proxy de confiance (ECOLE_PROXYS_INTERNES), celle de
+    // X-Forwarded-For (server.forward-headers-strategy=native).
     var resultat = activation.activer(r.code(), requete.getRemoteAddr());
     return Reponses.ok(new ActivationDto(resultat.role()));
   }

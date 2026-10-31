@@ -1,6 +1,13 @@
 # Valeurs par défaut prudentes (production) ; le profil « dev » les assouplit pour le poste local.
 server:
   port: 8080
+  # Adresse IP réelle du client derrière le répartiteur de charge (limites de débit par IP) : la
+  # valve Tomcat ne croit X-Forwarded-For que si la requête vient d'un proxy de confiance
+  # (réseaux privés par défaut ; à restreindre en production avec ECOLE_PROXYS_INTERNES).
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      internal-proxies: ${ECOLE_PROXYS_INTERNES:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0:0:0:0:0:0:0:1|::1}
 
 spring:
   application:
@@ -74,6 +81,8 @@ ecole:
     jeton:
       # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
       clients-autorises: [backoffice, parent, vie-scolaire]
+      # Seuls ces clients activent un code d'école (rattachement parent/élève).
+      clients-activation: [parent]
 
   stockage:
     # MinIO (API S3). Les clés d'accès viennent de l'environnement ; bucket privé.

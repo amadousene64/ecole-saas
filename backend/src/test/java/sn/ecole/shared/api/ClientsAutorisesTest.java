@@ -157,8 +157,9 @@ class ClientsAutorisesTest {
 
   @Test
   void uneListeVideEstRefuseeAuDemarrage() {
-    assertThatThrownBy(() -> new JetonProperties(List.of()))
+    assertThatThrownBy(() -> new JetonProperties(List.of(), null))
         .isInstanceOf(IllegalStateException.class);
-    assertThatThrownBy(() -> new JetonProperties(null)).isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(() -> new JetonProperties(null, null))
+        .isInstanceOf(IllegalStateException.class);
   }
 }

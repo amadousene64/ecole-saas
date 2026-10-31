@@ -1,6 +1,7 @@
 package sn.ecole.shared.api;
 
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,8 +22,10 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import sn.ecole.shared.application.AppartenanceService;
 import sn.ecole.shared.domain.Tenant;
@@ -57,8 +63,13 @@ class SecuriteConfig {
   @Bean
   @Order(0)
   SecurityFilterChain chaineActivation(
-      HttpSecurity http, TenantProperties proprietes, TenantRepository tenants, Problemes problemes)
+      HttpSecurity http,
+      TenantProperties proprietes,
+      TenantRepository tenants,
+      Problemes problemes,
+      JetonProperties jeton)
       throws Exception {
+    Set<String> clients = Set.copyOf(jeton.clientsActivation());
     FiltreTenant filtre =
         FiltreTenant.sansAppartenance(
             new ResolveurTenantRequete(proprietes, tenants),
@@ -67,7 +78,15 @@ class SecuriteConfig {
     http.securityMatcher(
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, CHEMIN_ACTIVATION))
         .addFilterAfter(filtre, BearerTokenAuthenticationFilter.class);
-    return configurerApi(http).build();
+    // Seule l'application de l'espace parent active un code (azp du jeton) : 403 sinon.
+    return configurerApi(
+            http,
+            (authentification, contexte) ->
+                new AuthorizationDecision(
+                    authentification.get() instanceof JwtAuthenticationToken j
+                        && j.getToken().getClaimAsString("azp") instanceof String client
+                        && clients.contains(client)))
+        .build();
   }
 
   /** API : jeton obligatoire, puis vérification de l'appartenance à l'école demandée. */
@@ -88,7 +107,12 @@ class SecuriteConfig {
   }
 
   private static HttpSecurity configurerApi(HttpSecurity http) throws Exception {
-    return http.authorizeHttpRequests(r -> r.anyRequest().authenticated())
+    return configurerApi(http, AuthenticatedAuthorizationManager.authenticated());
+  }
+
+  private static HttpSecurity configurerApi(
+      HttpSecurity http, AuthorizationManager<RequestAuthorizationContext> acces) throws Exception {
+    return http.authorizeHttpRequests(r -> r.anyRequest().access(acces))
         .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(sansRolesDuJeton())))
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // API sans état authentifiée par jeton Bearer (pas de cookie) : pas de CSRF possible.

@@ -1,8 +1,5 @@
 package sn.ecole.inscription.application;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
@@ -263,14 +260,9 @@ public class ActivationService {
     return ecole + "|code|" + identifiant;
   }
 
-  private static String hacher(String adresseIp) {
-    try {
-      byte[] empreinte =
-          MessageDigest.getInstance("SHA-256")
-              .digest(String.valueOf(adresseIp).getBytes(StandardCharsets.UTF_8));
-      return HexFormat.of().formatHex(empreinte, 0, 16);
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(e);
-    }
+  /** Clé de compteur pour une adresse IP : HMAC (clé hors base), jamais l'adresse en clair. */
+  private String hacher(String adresseIp) {
+    return HexFormat.of()
+        .formatHex(empreintes.empreinte(String.valueOf(adresseIp), "limite|ip"), 0, 16);
   }
 }

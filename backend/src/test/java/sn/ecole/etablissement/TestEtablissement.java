@@ -129,7 +129,19 @@ public abstract class TestEtablissement extends TestIntegration {
       AbstractMockHttpServletRequestBuilder<?> requete, UUID utilisateur, UUID ecole)
       throws Exception {
     AbstractMockHttpServletRequestBuilder<?> complet =
-        requete.with(jwt().jwt(j -> j.subject(utilisateur.toString())));
+        requete.with(
+            r ->
+                jwt()
+                    .jwt(
+                        j ->
+                            j.subject(utilisateur.toString())
+                                // Client du jeton (azp) : l'espace parent pour l'activation.
+                                .claim(
+                                    "azp",
+                                    "/api/v1/activations".equals(r.getRequestURI())
+                                        ? "parent"
+                                        : "backoffice"))
+                    .postProcessRequest(r));
     if (ecole != null) {
       complet.header("X-Tenant-Id", ecole.toString());
     }

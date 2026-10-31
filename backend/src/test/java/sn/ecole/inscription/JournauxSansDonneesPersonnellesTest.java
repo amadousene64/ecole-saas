@@ -10,6 +10,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.ThrowableProxyUtil;
 import ch.qos.logback.core.read.ListAppender;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * Aucun nom, téléphone ni donnée de santé dans les journaux applicatifs (CLAUDE.md, données de
@@ -89,6 +93,29 @@ class JournauxSansDonneesPersonnellesTest extends TestInscription {
         "/api/v1/activations",
         corps("code", code.substring(0, 5) + "ZZZZZZZZ"));
     post(UUID.randomUUID(), A, "/api/v1/activations", corps("code", code));
+
+    // Import d'une liste : ligne en erreur (date invalide), puis import refusé.
+    byte[] liste =
+        ("Prénoms;Nom;Sexe;Date de naissance;Lieu de naissance;Responsable prénoms;"
+                + "Responsable nom;Responsable téléphone\n"
+                + PRENOM
+                + ";"
+                + NOM
+                + ";F;pas une date;Ville Fictive;"
+                + PRENOM
+                + ";"
+                + NOM
+                + ";"
+                + TELEPHONE
+                + "\n")
+            .getBytes(StandardCharsets.UTF_8);
+    for (String chemin : List.of("/api/v1/imports-eleves/validation", "/api/v1/imports-eleves")) {
+      var requete =
+          MockMvcRequestBuilders.multipart(HttpMethod.POST, chemin)
+              .file(new MockMultipartFile("fichier", "eleves.csv", "text/csv", liste))
+              .param("empreinte", "0".repeat(64));
+      assertThat(executer(requete, SECRETARIAT_A, A).statut()).isBetween(200, 499);
+    }
 
     List<String> journaux =
         capture.list.stream()

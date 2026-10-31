@@ -117,5 +117,12 @@ class ChiffrementEtClesTest {
             () -> new ClesConfig().chiffrementDonnees(new ClesProperties(meme, null, null, meme)))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("distinctes");
+    String autre = b64(cle());
+    assertThatThrownBy(
+            () ->
+                new ClesConfig()
+                    .chiffrementDonnees(new ClesProperties(autre, "k2", Map.of("k1", meme), meme)))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("distinctes");
   }
 }

@@ -242,16 +242,33 @@ class ImportElevesApiTest extends TestInscription {
       cellule.setCellValue(LocalDate.of(2014, 5, 14));
       cellule.setCellStyle(date);
       eleve.createCell(4).setCellValue("Ville Fictive");
-      // Formule jamais évaluée : seule la valeur en cache compte (ici aucune, écrite par POI).
-      eleve.createCell(5).setCellFormula("HYPERLINK(\"http://exemple.test\",\"6E A\")");
+      // Formule jamais évaluée : seule la valeur en cache compte (« ZZ », classe inconnue).
+      var formule = eleve.createCell(5);
+      formule.setCellFormula("HYPERLINK(\"http://exemple.test\",\"6E A\")");
+      formule.setCellValue("ZZ");
       classeur.write(sortie);
     }
     Reponse r = valider(sortie.toByteArray());
     assertThat(r.statut()).as(r.corps().toString()).isEqualTo(200);
     assertThat(r.corps().path("lignes").asInt()).isEqualTo(1);
-    // La date Excel est lue (aucune erreur de date) ; la formule n'a pas donné « 6E A ».
+    // La date Excel est lue (aucune erreur de date) ; la valeur en cache « ZZ » est lue, pas « 6E A
+    // ».
     String messages = ligne(r, 2).path("messages").toString();
     assertThat(messages).doesNotContain("date_naissance").contains("classe inconnue");
+  }
+
+  @Test
+  void unXlsxDePlusDe2000LignesEstRefuse() throws Exception {
+    ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+    try (XSSFWorkbook classeur = new XSSFWorkbook()) {
+      Sheet feuille = classeur.createSheet("Élèves");
+      feuille.createRow(0).createCell(0).setCellValue("Prénoms");
+      for (int i = 1; i <= 2_001; i++) {
+        feuille.createRow(i).createCell(0).setCellValue("Fictif");
+      }
+      classeur.write(sortie);
+    }
+    assertThat(valider(sortie.toByteArray()).code()).isEqualTo("IMPORT_TROP_GRAND");
   }
 
   @Test

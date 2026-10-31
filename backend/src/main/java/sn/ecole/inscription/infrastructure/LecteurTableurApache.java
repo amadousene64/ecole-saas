@@ -11,32 +11,37 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.util.XMLHelper;
+import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
+import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.SheetContentsHandler;
+import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.springframework.stereotype.Component;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 import sn.ecole.inscription.domain.LecteurTableur;
 import sn.ecole.shared.domain.ErreurMetier;
 import sn.ecole.shared.domain.TypeErreur;
 
 /**
  * CSV (commons-csv : séparateur « ; » ou « , » détecté, UTF-8 avec ou sans BOM, sinon Windows-1252)
- * et XLSX (Apache POI, première feuille). Le format vient du contenu : un XLSX est une archive ZIP
- * (« PK »). Garde-fous : taille bornée avant lecture, archive protégée contre les bombes de
- * décompression (ZipSecureFile), nombre de lignes et de colonnes borné ; les formules ne sont
- * jamais évaluées (seule la valeur en cache est lue).
+ * et XLSX (Apache POI en flux SAX, première feuille). Le format vient du contenu : un XLSX est une
+ * archive ZIP (« PK »). Garde-fous : taille bornée avant lecture, archive protégée contre les
+ * bombes de décompression (ZipSecureFile), nombre de lignes et de colonnes borné ; les formules ne
+ * sont jamais évaluées (seule la valeur en cache est lue).
  */
 @Component
 class LecteurTableurApache implements LecteurTableur {
@@ -44,11 +49,17 @@ class LecteurTableurApache implements LecteurTableur {
   private static final int COLONNES_MAX = 40;
   private static final int CELLULE_MAX = 500;
 
+  /** Analyses simultanées pour toute l'instance : borne la mémoire prise par les fichiers. */
+  private static final int ANALYSES_SIMULTANEES = 2;
+
+  private final java.util.concurrent.Semaphore analyses =
+      new java.util.concurrent.Semaphore(ANALYSES_SIMULTANEES);
+
   static {
     // Taux de compression minimal et tailles maximales des entrées de l'archive XLSX.
     ZipSecureFile.setMinInflateRatio(0.01);
-    ZipSecureFile.setMaxEntrySize(50_000_000L);
-    ZipSecureFile.setMaxTextSize(20_000_000L);
+    ZipSecureFile.setMaxEntrySize(10_000_000L);
+    ZipSecureFile.setMaxTextSize(5_000_000L);
   }
 
   @Override
@@ -59,9 +70,18 @@ class LecteurTableurApache implements LecteurTableur {
     if (contenu.length > TAILLE_MAX) {
       throw invalide("Fichier trop volumineux (2 Mo au plus).");
     }
-    boolean zip = contenu.length > 3 && contenu[0] == 'P' && contenu[1] == 'K';
-    List<List<String>> brut = zip ? lireXlsx(contenu) : lireCsv(contenu);
-    return enLignes(brut);
+    if (!analyses.tryAcquire()) {
+      throw new ErreurMetier(
+          "TROP_DE_TENTATIVES",
+          TypeErreur.TROP_DE_TENTATIVES,
+          "Trop d'imports en cours ; réessayez dans un instant.");
+    }
+    try {
+      boolean zip = contenu.length > 3 && contenu[0] == 'P' && contenu[1] == 'K';
+      return enLignes(zip ? lireXlsx(contenu) : lireCsv(contenu));
+    } finally {
+      analyses.release();
+    }
   }
 
   private static List<List<String>> lireCsv(byte[] contenu) {
@@ -102,65 +122,89 @@ class LecteurTableurApache implements LecteurTableur {
   }
 
   private static List<List<String>> lireXlsx(byte[] contenu) {
-    List<List<String>> lignes = new ArrayList<>();
-    DataFormatter formateur = new DataFormatter();
-    try (InputStream flux = new ByteArrayInputStream(contenu);
-        Workbook classeur = new XSSFWorkbook(flux)) {
-      if (classeur.getNumberOfSheets() == 0) {
+    LignesXlsx lignes = new LignesXlsx();
+    try (OPCPackage paquet = OPCPackage.open(new ByteArrayInputStream(contenu))) {
+      XSSFReader lecteur = new XSSFReader(paquet);
+      Iterator<InputStream> feuilles = lecteur.getSheetsData();
+      if (!feuilles.hasNext()) {
         throw invalide("Le classeur ne contient aucune feuille.");
       }
-      Sheet feuille = classeur.getSheetAt(0);
-      if (feuille.getLastRowNum() > LIGNES_MAX + 1) {
-        throw trop();
+      XMLReader analyseur = XMLHelper.newXMLReader();
+      analyseur.setContentHandler(
+          new XSSFSheetXMLHandler(
+              lecteur.getStylesTable(),
+              new ReadOnlySharedStringsTable(paquet, false),
+              lignes,
+              new FormateurIso(),
+              false));
+      try (InputStream feuille = feuilles.next()) {
+        analyseur.parse(new InputSource(feuille));
       }
-      for (int i = 0; i <= feuille.getLastRowNum(); i++) {
-        Row ligne = feuille.getRow(i);
-        List<String> cellules = new ArrayList<>();
-        if (ligne != null) {
-          int derniere = Math.min(Math.max(ligne.getLastCellNum(), 0), COLONNES_MAX);
-          for (int j = 0; j < derniere; j++) {
-            cellules.add(texte(ligne.getCell(j), formateur));
-          }
+    } catch (ErreurMetier erreur) {
+      throw erreur;
+    } catch (Exception e) {
+      for (Throwable c = e; c != null; c = c.getCause()) {
+        if (c instanceof ErreurMetier erreur) {
+          throw erreur;
         }
-        lignes.add(cellules);
-      }
-    } catch (IOException | RuntimeException e) {
-      if (e instanceof ErreurMetier erreur) {
-        throw erreur;
       }
       throw invalide("Fichier Excel illisible (format XLSX attendu).");
     }
-    return lignes;
+    return lignes.lignes;
   }
 
   /**
-   * Valeur affichée de la cellule ; date en AAAA-MM-JJ ; formule : valeur en cache, jamais évaluée.
+   * Lecture en flux (SAX) de la première feuille : seules les lignes utiles sont gardées en mémoire
+   * et la lecture s'arrête dès que la limite de lignes est dépassée. Lignes absentes = lignes vides
+   * (les numéros de ligne restent ceux du fichier).
    */
-  private static String texte(Cell cellule, DataFormatter formateur) {
-    if (cellule == null) {
-      return "";
+  private static final class LignesXlsx implements SheetContentsHandler {
+    private final List<List<String>> lignes = new ArrayList<>();
+    private List<String> courante;
+
+    @Override
+    public void startRow(int numero) {
+      if (numero > LIGNES_MAX + 1) {
+        throw trop();
+      }
+      while (lignes.size() < numero) {
+        lignes.add(List.of());
+      }
+      courante = new ArrayList<>();
     }
-    CellType type =
-        cellule.getCellType() == CellType.FORMULA
-            ? cellule.getCachedFormulaResultType()
-            : cellule.getCellType();
-    if (type == CellType.NUMERIC && DateUtil.isCellDateFormatted(cellule)) {
-      return cellule
-          .getLocalDateTimeCellValue()
-          .toLocalDate()
-          .format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+    @Override
+    public void endRow(int numero) {
+      lignes.add(courante);
     }
-    if (type == CellType.NUMERIC) {
-      double v = cellule.getNumericCellValue();
-      return v == Math.rint(v) ? String.valueOf((long) v) : String.valueOf(v);
+
+    @Override
+    public void cell(String reference, String valeur, XSSFComment commentaire) {
+      int colonne = reference == null ? courante.size() : new CellReference(reference).getCol();
+      if (colonne >= COLONNES_MAX) {
+        return;
+      }
+      while (courante.size() < colonne) {
+        courante.add("");
+      }
+      courante.add(valeur == null ? "" : valeur);
     }
-    if (type == CellType.STRING) {
-      return cellule.getStringCellValue();
+  }
+
+  /** Dates Excel en AAAA-MM-JJ ; autres nombres bruts (sans séparateur ni zéro superflu). */
+  private static final class FormateurIso extends DataFormatter {
+    @Override
+    public String formatRawCellContents(
+        double valeur, int indexFormat, String format, boolean date1904) {
+      if (DateUtil.isADateFormat(indexFormat, format) && DateUtil.isValidExcelDate(valeur)) {
+        return DateUtil.getLocalDateTime(valeur, date1904)
+            .toLocalDate()
+            .format(DateTimeFormatter.ISO_LOCAL_DATE);
+      }
+      return valeur == Math.rint(valeur) && Math.abs(valeur) < 1e15
+          ? String.valueOf((long) valeur)
+          : String.valueOf(valeur);
     }
-    if (type == CellType.BOOLEAN) {
-      return String.valueOf(cellule.getBooleanCellValue());
-    }
-    return cellule.getCellType() == CellType.FORMULA ? "" : formateur.formatCellValue(cellule);
   }
 
   /** En-têtes = première ligne non vide ; lignes vides ignorées ; numéros de ligne du fichier. */

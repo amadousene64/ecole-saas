@@ -25,7 +25,15 @@ class ClesConfig {
     }
     Map<String, byte[]> anciennes = new HashMap<>();
     p.anciennesCles()
-        .forEach((id, cle) -> anciennes.put(id, Cles.decoder(cle, "ecole.cles.anciennes-cles")));
+        .forEach(
+            (id, cle) -> {
+              byte[] ancienne = Cles.decoder(cle, "ecole.cles.anciennes-cles");
+              if (Cles.identiques(ancienne, hmac)) {
+                throw new IllegalStateException(
+                    "Une ancienne clé de chiffrement et la clé HMAC doivent être distinctes.");
+              }
+              anciennes.put(id, ancienne);
+            });
     return new ChiffrementAesGcm(p.idChiffrement(), active, anciennes);
   }
 

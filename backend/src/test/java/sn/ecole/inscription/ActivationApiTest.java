@@ -42,11 +42,16 @@ class ActivationApiTest extends TestInscription {
   }
 
   private Reponse activer(UUID compte, UUID ecole, String code, String ip) throws Exception {
+    return activer(compte, ecole, code, ip, "parent");
+  }
+
+  private Reponse activer(UUID compte, UUID ecole, String code, String ip, String client)
+      throws Exception {
     var requete =
         MockMvcRequestBuilders.post(ACTIVATIONS)
             .contentType(MediaType.APPLICATION_JSON)
             .content(JSON.writeValueAsString(Map.of("code", code)))
-            .with(jwt().jwt(j -> j.subject(compte.toString())))
+            .with(jwt().jwt(j -> j.subject(compte.toString()).claim("azp", client)))
             .with(
                 r -> {
                   r.setRemoteAddr(ip);
@@ -102,6 +107,17 @@ class ActivationApiTest extends TestInscription {
         .doesNotContain(secret);
     assertThat((String) journal("CODE_ACTIVATION_EMIS").get(0).get("details"))
         .doesNotContain(secret);
+  }
+
+  @Test
+  void seuleLApplicationParentActiveUnCode() throws Exception {
+    String code = emettre(SECRETARIAT_A, A, responsable);
+    // Compte créé par auto-inscription sur un autre client : refusé, et le code reste valable.
+    for (String client : new String[] {"backoffice", "vie-scolaire"}) {
+      assertThat(activer(UUID.randomUUID(), A, code, "192.0.2.10", client).statut()).isEqualTo(403);
+    }
+    assertThat(activer(UUID.randomUUID(), A, code, "192.0.2.10", null).statut()).isEqualTo(403);
+    assertThat(activer(UUID.randomUUID(), A, code).statut()).isEqualTo(200);
   }
 
   @Test

@@ -93,6 +93,9 @@ Ces valeurs ne servent qu'à la création du volume PostgreSQL : après un chang
 Backend (production, sans profil) : `ECOLE_DB_URL`, `ECOLE_DB_APP_USER`, `ECOLE_DB_APP_PASSWORD`,
 `ECOLE_DB_OWNER_USER`, `ECOLE_DB_OWNER_PASSWORD`, `ECOLE_OIDC_ISSUER`, `ECOLE_REDIS_HOST`,
 `ECOLE_REDIS_PORT`, `ECOLE_REDIS_PASSWORD`, `ECOLE_DOMAINE_RACINE`.
+`ECOLE_PROXYS_INTERNES` (facultatif) : expression régulière des adresses des proxys de confiance dont
+on accepte `X-Forwarded-For` ; par défaut les réseaux privés et la boucle locale. À restreindre à
+l'adresse réelle du répartiteur de charge en production (limite de débit des activations par IP).
 
 ## Principes du socle multi-tenant
 
