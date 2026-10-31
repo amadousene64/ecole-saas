@@ -80,7 +80,7 @@ public final class ControlePiece {
     return true;
   }
 
-  private static String sha256(byte[] contenu) {
+  public static String sha256(byte[] contenu) {
     try {
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contenu));
     } catch (NoSuchAlgorithmException e) {

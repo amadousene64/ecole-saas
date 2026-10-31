@@ -4,6 +4,8 @@
 -- CERTIFICAT_MEDICAL : la règle la plus protectrice.
 
 ALTER TABLE piece_dossier DROP CONSTRAINT ck_piece_dossier_type;
+-- CERTIFICAT_SCOLARITE remplirait exactement VARCHAR(20) : marge pour de futurs types.
+ALTER TABLE piece_dossier ALTER COLUMN type TYPE VARCHAR(30);
 
 -- La RLS forcée cacherait les lignes au propriétaire (aucune école courante) : levée le temps de
 -- la reprise, dans la transaction de la migration.

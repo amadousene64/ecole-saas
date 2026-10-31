@@ -8,7 +8,10 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import sn.ecole.inscription.domain.ControlePiece;
 import sn.ecole.inscription.domain.EleveRepository;
 import sn.ecole.inscription.domain.PieceDossier;
@@ -49,27 +52,44 @@ public class PieceService implements UtilisationEleve {
   private final StockageFichiers stockage;
   private final OutboxPublisher outbox;
   private final JournalAudit journal;
+  private final TransactionTemplate transaction;
 
   public PieceService(
       PieceDossierRepository pieces,
       EleveRepository eleves,
       StockageFichiers stockage,
       OutboxPublisher outbox,
-      JournalAudit journal) {
+      JournalAudit journal,
+      PlatformTransactionManager transactions) {
     this.pieces = pieces;
     this.eleves = eleves;
     this.stockage = stockage;
     this.outbox = outbox;
     this.journal = journal;
+    this.transaction = new TransactionTemplate(transactions);
   }
 
+  /**
+   * Le contrôle du fichier (décodage et ré-encodage d'une image : long et gourmand) se fait hors
+   * transaction, pour ne pas garder une connexion à la base pendant ce temps.
+   */
   @PreAuthorize(Droits.ECRITURE)
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public PieceDossier deposer(UUID eleveId, PieceDossier.Type type, byte[] contenu) {
-    eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
     if (type == null) {
       throw Erreurs.invalide("CHAMP_INVALIDE", "Le type de pièce est obligatoire.");
     }
     ControlePiece.PieceValidee validee = ControlePiece.controler(contenu);
+    String sha256Depose = ControlePiece.sha256(contenu);
+    return transaction.execute(statut -> enregistrer(eleveId, type, validee, sha256Depose));
+  }
+
+  private PieceDossier enregistrer(
+      UUID eleveId,
+      PieceDossier.Type type,
+      ControlePiece.PieceValidee validee,
+      String sha256Depose) {
+    eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
     String cle =
         ContexteTenant.exiger() + "/eleves/" + eleveId + "/pieces/" + Identifiants.uuidV7();
     stockage.deposer(cle, validee.octets(), validee.contentType());
@@ -80,7 +100,16 @@ public class PieceService implements UtilisationEleve {
         "PIECE_DEPOSEE",
         "Eleve",
         eleveId,
-        Map.of("piece", piece.getId(), "type", type, "sha256", validee.sha256()));
+        Map.of(
+            "piece",
+            piece.getId(),
+            "type",
+            type,
+            "sha256",
+            validee.sha256(),
+            // Empreinte du fichier tel que déposé (une image est ré-encodée avant stockage).
+            "sha256Depose",
+            sha256Depose));
     return piece;
   }
 

@@ -99,7 +99,9 @@ class AdresseClientDerriereProxyTest extends TestIntegration {
             .orElseThrow();
     Pattern internes = Pattern.compile(valve.getInternalProxies());
     assertThat(internes.matcher("127.0.0.1").matches()).isTrue();
-    assertThat(internes.matcher("10.1.2.3").matches()).isTrue();
+    // Un réseau privé entier n'est pas de confiance par défaut (conteneur voisin, passerelle).
+    assertThat(internes.matcher("10.1.2.3").matches()).isFalse();
+    assertThat(internes.matcher("172.17.0.1").matches()).isFalse();
     assertThat(internes.matcher("203.0.113.9").matches()).isFalse();
     assertThat(internes.matcher("8.8.8.8").matches()).isFalse();
   }

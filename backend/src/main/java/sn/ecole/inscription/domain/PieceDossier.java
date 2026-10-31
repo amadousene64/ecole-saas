@@ -37,7 +37,7 @@ public class PieceDossier extends TenantAwareEntity {
   private UUID eleveId;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false, updatable = false, length = 20)
+  @Column(nullable = false, updatable = false, length = 30)
   private Type type;
 
   @Column(nullable = false, updatable = false, length = 200)

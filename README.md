@@ -94,8 +94,9 @@ Backend (production, sans profil) : `ECOLE_DB_URL`, `ECOLE_DB_APP_USER`, `ECOLE_
 `ECOLE_DB_OWNER_USER`, `ECOLE_DB_OWNER_PASSWORD`, `ECOLE_OIDC_ISSUER`, `ECOLE_REDIS_HOST`,
 `ECOLE_REDIS_PORT`, `ECOLE_REDIS_PASSWORD`, `ECOLE_DOMAINE_RACINE`.
 `ECOLE_PROXYS_INTERNES` (facultatif) : expression régulière des adresses des proxys de confiance dont
-on accepte `X-Forwarded-For` ; par défaut les réseaux privés et la boucle locale. À restreindre à
-l'adresse réelle du répartiteur de charge en production (limite de débit des activations par IP).
+on accepte `X-Forwarded-For` ; par défaut la boucle locale seulement. En production derrière un
+répartiteur de charge, y mettre son adresse exacte, jamais tout un réseau privé (sinon un client de
+ce réseau choisirait l'IP annoncée et contournerait la limite d'activations par IP).
 
 ## Principes du socle multi-tenant
 

@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
@@ -25,11 +27,18 @@ public final class ControleImage {
 
   /**
    * Pour {@link #reduire} : côté maximal de l'image source (photo de téléphone) et nombre maximal
-   * de pixels annoncés, contrôlés dans l'en-tête avant tout décodage.
+   * de pixels annoncés (24 Mpx : un téléphone courant en produit 12), contrôlés dans l'en-tête
+   * avant tout décodage. Le décodeur JPEG garde en mémoire native tous les coefficients d'un JPEG
+   * progressif, même sous-échantillonné : cette borne limite cette mémoire.
    */
-  public static final int SOURCE_COTE_MAX = 12_000;
+  public static final int SOURCE_COTE_MAX = 8_000;
 
-  public static final long SOURCE_PIXELS_MAX = 60_000_000L;
+  public static final long SOURCE_PIXELS_MAX = 24_000_000L;
+
+  /** Décodages simultanés pour toute l'instance : borne la mémoire native et le CPU. */
+  private static final Semaphore DECODAGES = new Semaphore(2);
+
+  private static final long ATTENTE_DECODAGE_SECONDES = 10;
 
   private static final byte[] SIGNATURE_PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
 
@@ -79,6 +88,26 @@ public final class ControleImage {
       throw refus("FICHIER_INVALIDE", "Seuls les formats PNG et JPEG sont acceptés.");
     }
     String format = png ? "png" : "jpeg";
+    try {
+      if (!DECODAGES.tryAcquire(ATTENTE_DECODAGE_SECONDES, TimeUnit.SECONDS)) {
+        throw new ErreurMetier(
+            "SERVEUR_OCCUPE",
+            TypeErreur.TROP_DE_TENTATIVES,
+            "Trop d'images en cours de traitement ; réessayez dans un instant.");
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw refus("FICHIER_INVALIDE", "Traitement de l'image interrompu.");
+    }
+    try {
+      return decoder(brut, png, format, sourceMax, coteMax);
+    } finally {
+      DECODAGES.release();
+    }
+  }
+
+  private static ImageValidee decoder(
+      byte[] brut, boolean png, String format, int sourceMax, int coteMax) {
     try (ImageInputStream flux = ImageIO.createImageInputStream(new ByteArrayInputStream(brut))) {
       Iterator<ImageReader> lecteurs = ImageIO.getImageReaders(flux);
       if (!lecteurs.hasNext()) {

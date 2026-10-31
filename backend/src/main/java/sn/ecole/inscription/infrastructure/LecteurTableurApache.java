@@ -19,6 +19,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.util.ZipInputStreamZipEntrySource;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -60,6 +61,8 @@ class LecteurTableurApache implements LecteurTableur {
     ZipSecureFile.setMinInflateRatio(0.01);
     ZipSecureFile.setMaxEntrySize(10_000_000L);
     ZipSecureFile.setMaxTextSize(5_000_000L);
+    // Entrée de plus de 1 Mo : décompressée dans un fichier temporaire chiffré, pas dans le tas.
+    ZipInputStreamZipEntrySource.setThresholdBytesForTempFiles(1_000_000);
   }
 
   @Override

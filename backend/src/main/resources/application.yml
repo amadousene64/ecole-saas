@@ -3,11 +3,12 @@ server:
   port: 8080
   # Adresse IP réelle du client derrière le répartiteur de charge (limites de débit par IP) : la
   # valve Tomcat ne croit X-Forwarded-For que si la requête vient d'un proxy de confiance
-  # (réseaux privés par défaut ; à restreindre en production avec ECOLE_PROXYS_INTERNES).
+  # (boucle locale par défaut). Derrière un répartiteur, ECOLE_PROXYS_INTERNES donne SON adresse
+  # exacte, jamais tout un réseau privé : un conteneur voisin annoncerait l'IP de son choix.
   forward-headers-strategy: native
   tomcat:
     remoteip:
-      internal-proxies: ${ECOLE_PROXYS_INTERNES:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0:0:0:0:0:0:0:1|::1}
+      internal-proxies: ${ECOLE_PROXYS_INTERNES:127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0:0:0:0:0:0:0:1|::1}
 
 spring:
   application:
