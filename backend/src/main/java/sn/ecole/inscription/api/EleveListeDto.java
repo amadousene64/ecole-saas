@@ -10,7 +10,8 @@ import sn.ecole.inscription.domain.StatutInscription;
 /**
  * Ligne de la liste des élèves du personnel. {@code classe} : classe actuelle, absente si non
  * inscrit ; {@code statut} : celui de l'inscription la plus récente, absent si l'élève n'en a
- * jamais eu ; {@code dossier} : absent pour qui ne peut pas lire les pièces.
+ * jamais eu, ou pour qui n'a pas accès à la scolarité (comptable) ; {@code dossier} : réservé à la
+ * direction et au secrétariat, qui lisent les pièces exigées.
  */
 public record EleveListeDto(
     UUID id,

@@ -202,29 +202,43 @@ class ListeElevesApiTest extends TestInscription {
   @Test
   void leCertificatMedicalNeChangeRienAuDossierDeLaListe() throws Exception {
     deposer(awa, "CERTIFICAT_MEDICAL");
-    JsonNode l = ligne(get(CENSEUR_A, A, ELEVES), awa);
+    JsonNode l = ligne(get(SECRETARIAT_A, A, ELEVES), awa);
     assertThat(manquantes(l)).containsExactlyInAnyOrder("ACTE_NAISSANCE", "PHOTO_IDENTITE");
     assertThat(l.path("dossier").path("enAnalyse").asInt()).isZero();
     assertThat(l.path("dossier").path("refusees").asInt()).isZero();
   }
 
   @Test
-  void seulsLesRolesQuiLisentLesPiecesVoientLEtatDuDossier() throws Exception {
-    for (UUID qui : List.of(DIRECTEUR_A, SECRETARIAT_A, CENSEUR_A)) {
+  void seulsLaDirectionEtLeSecretariatVoientLEtatDuDossier() throws Exception {
+    for (UUID qui : List.of(DIRECTEUR_A, SECRETARIAT_A)) {
       Reponse r = get(qui, A, ELEVES);
       assertThat(r.statut()).isEqualTo(200);
       assertThat(ligne(r, awa).path("dossier").isObject()).as("dossier visible").isTrue();
     }
-    for (UUID qui : List.of(SURVEILLANT_A, COMPTABLE_A)) {
+    // Le censeur ne lit que le certificat médical : pas l'état des pièces exigées.
+    for (UUID qui : List.of(CENSEUR_A, SURVEILLANT_A, COMPTABLE_A)) {
       Reponse r = get(qui, A, ELEVES);
       assertThat(r.statut()).isEqualTo(200);
       JsonNode l = ligne(r, awa);
       assertThat(absent(l.path("dossier"))).as("dossier masqué").isTrue();
-      // Le reste de la ligne (identité, statut) reste lisible.
       assertThat(l.path("matricule").asText()).isNotBlank();
     }
     // Un parent n'a pas accès à la liste du personnel.
     assertThat(get(PARENT_A, A, ELEVES).statut()).isEqualTo(403);
+  }
+
+  @Test
+  void leStatutEstDeLaScolariteEtLeComptableNeLeVoitNiNeLeFiltre() throws Exception {
+    inscrire(awa, "INSCRIT");
+    for (UUID qui : List.of(DIRECTEUR_A, SECRETARIAT_A, CENSEUR_A, SURVEILLANT_A)) {
+      Reponse r = get(qui, A, ELEVES + "?statut=INSCRIT");
+      assertThat(r.statut()).isEqualTo(200);
+      assertThat(ligne(r, awa).path("statut").asText()).isEqualTo("INSCRIT");
+    }
+    Reponse comptable = get(COMPTABLE_A, A, ELEVES);
+    assertThat(comptable.statut()).isEqualTo(200);
+    assertThat(absent(ligne(comptable, awa).path("statut"))).isTrue();
+    assertThat(get(COMPTABLE_A, A, ELEVES + "?statut=INSCRIT").statut()).isEqualTo(403);
   }
 
   @Test

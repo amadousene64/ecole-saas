@@ -26,10 +26,12 @@ import sn.ecole.shared.application.JournalAudit;
 import sn.ecole.shared.domain.ContexteTenant;
 import sn.ecole.shared.domain.ControleImage;
 import sn.ecole.shared.domain.ControleImage.ImageValidee;
+import sn.ecole.shared.domain.ErreurMetier;
 import sn.ecole.shared.domain.Identifiants;
 import sn.ecole.shared.domain.PageCurseur;
 import sn.ecole.shared.domain.RoleEcole;
 import sn.ecole.shared.domain.StockageFichiers;
+import sn.ecole.shared.domain.TypeErreur;
 
 /** Identité des élèves : création avec matricule, correction, photo, recherche. */
 @Service
@@ -119,16 +121,26 @@ public class EleveService {
     if (normalise != null && normalise.length() > 100) {
       throw Erreurs.invalide("RECHERCHE_INVALIDE", "Recherche trop longue.");
     }
+    // Le statut est de la scolarité : le comptable (identité seulement) ne le voit ni ne le filtre.
+    boolean scolarite =
+        Erreurs.aLeRole(RoleEcole.DIRECTEUR)
+            || Erreurs.aLeRole(RoleEcole.SECRETARIAT)
+            || Erreurs.aLeRole(RoleEcole.CENSEUR)
+            || Erreurs.aLeRole(RoleEcole.SURVEILLANT);
+    if (statut != null && !scolarite) {
+      throw new ErreurMetier(
+          "ACCES_REFUSE", TypeErreur.INTERDIT, "Le filtre par statut est réservé à la scolarité.");
+    }
     List<Eleve> lus = recherche.rechercher(normalise, classeId, statut, apresNom, apresId, n + 1);
     PageCurseur<Eleve> page =
         PageCurseur.depuis(lus, n, e -> new String[] {e.getNomRecherche(), e.getId().toString()});
     List<UUID> ids = page.elements().stream().map(Eleve::getId).toList();
     Map<UUID, InscriptionService.Situation> situations = inscriptions.situations(ids);
-    // L'état du dossier ne se calcule que pour qui peut lire les pièces.
+    // Même règle par type que PieceService : les pièces exigées (acte, photo) sont lues par la
+    // direction et le secrétariat ; le censeur ne lit que le certificat médical, donc pas l'état
+    // ici.
     Map<UUID, DossierPieces> dossiers =
-        Erreurs.aLeRole(RoleEcole.DIRECTEUR)
-                || Erreurs.aLeRole(RoleEcole.SECRETARIAT)
-                || Erreurs.aLeRole(RoleEcole.CENSEUR)
+        Erreurs.aLeRole(RoleEcole.DIRECTEUR) || Erreurs.aLeRole(RoleEcole.SECRETARIAT)
             ? pieces.dossiers(ids)
             : Map.of();
     return page.map(
@@ -137,7 +149,7 @@ public class EleveService {
           return new LigneEleve(
               e,
               s == null ? null : s.classe(),
-              s == null ? null : s.statut(),
+              s == null || !scolarite ? null : s.statut(),
               dossiers.get(e.getId()));
         });
   }
