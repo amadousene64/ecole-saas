@@ -84,16 +84,10 @@
     },
     "serve-static": {
       "continuous": true,
-      "readyWhen": {
-        "signal": true
-      },
       "dependsOn": ["build"],
-      "executor": "@nx/web:file-server",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "backoffice:build",
-        "port": 4200,
-        "staticFilePath": "dist/apps/backoffice/browser",
-        "spa": true
+        "command": "node tools/serveur-statique.mjs --dossier dist/apps/backoffice/browser --port 4200"
       }
     }
   }

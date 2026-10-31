@@ -84,16 +84,10 @@
     },
     "serve-static": {
       "continuous": true,
-      "readyWhen": {
-        "signal": true
-      },
       "dependsOn": ["build"],
-      "executor": "@nx/web:file-server",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "vie-scolaire:build",
-        "port": 4202,
-        "staticFilePath": "dist/apps/vie-scolaire/browser",
-        "spa": true
+        "command": "node tools/serveur-statique.mjs --dossier dist/apps/vie-scolaire/browser --port 4202"
       }
     }
   }
