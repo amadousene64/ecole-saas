@@ -74,7 +74,7 @@ import { ServiceStructure } from '../services/service-structure';
         class="grille"
         data-testid="form-serie"
       >
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Code</mat-label>
           <input
             matInput
@@ -82,7 +82,7 @@ import { ServiceStructure } from '../services/service-structure';
             data-testid="champ-serie-code"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Libellé</mat-label>
           <input
             matInput

@@ -1,3 +1,5 @@
+import { NomIcone } from './icones/icone';
+
 /** École proposée au choix. Indépendant du contrat d'API : la lib `ui` ne dépend pas d'`auth`. */
 export interface EcoleChoix {
   id: string;
@@ -8,4 +10,6 @@ export interface EcoleChoix {
 export interface LienNavigation {
   chemin: string;
   libelle: string;
+  /** Icône de la barre de navigation basse (app parent). */
+  icone?: NomIcone;
 }

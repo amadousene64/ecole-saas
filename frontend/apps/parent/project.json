@@ -19,6 +19,16 @@
           {
             "glob": "**/*",
             "input": "apps/parent/public"
+          },
+          {
+            "glob": "figtree-latin-{400,500,600,700}-normal.woff2",
+            "input": "node_modules/@fontsource/figtree/files",
+            "output": "fonts"
+          },
+          {
+            "glob": "ibm-plex-mono-latin-500-normal.woff2",
+            "input": "node_modules/@fontsource/ibm-plex-mono/files",
+            "output": "fonts"
           }
         ],
         "styles": ["apps/parent/src/styles.scss"]
@@ -75,16 +85,10 @@
     },
     "serve-static": {
       "continuous": true,
-      "readyWhen": {
-        "signal": true
-      },
       "dependsOn": ["build"],
-      "executor": "@nx/web:file-server",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "parent:build",
-        "port": 4201,
-        "staticFilePath": "dist/apps/parent/browser",
-        "spa": true
+        "command": "node tools/serveur-statique.mjs --dossier dist/apps/parent/browser --port 4201"
       }
     }
   }

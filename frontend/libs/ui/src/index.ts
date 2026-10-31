@@ -6,3 +6,6 @@ export * from './lib/selecteur-ecole/selecteur-ecole';
 export * from './lib/textes';
 export * from './lib/coquille/coquille-legere';
 export * from './lib/formats/fcfa';
+export * from './lib/icones/icone';
+export * from './lib/pastille/pastille';
+export * from './lib/carte-evenement/carte-evenement';

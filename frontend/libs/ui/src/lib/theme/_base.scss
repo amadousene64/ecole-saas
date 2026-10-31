@@ -1,0 +1,215 @@
+// Styles de base sans Angular Material (utilisables par l'app parent, au budget serré) : page,
+// échelle typographique, classes utilitaires, pastilles de statut, cartes, boutons natifs.
+
+@mixin base() {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ecole-fond);
+    color: var(--ecole-texte);
+    font-family: var(--ecole-police);
+    font-size: var(--ecole-corps-taille);
+    line-height: var(--ecole-corps-interligne);
+    font-weight: var(--ecole-corps-graisse);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  // Corps à 16 px sur mobile (lisibilité, et pas de zoom automatique d'iOS sur les champs).
+  @media (max-width: 599.98px) {
+    body {
+      font-size: var(--ecole-corps-mobile-taille);
+      line-height: var(--ecole-corps-mobile-interligne);
+    }
+  }
+
+  h1,
+  .titre-page {
+    margin: 0 0 16px;
+    font-size: var(--ecole-titre-page-taille);
+    line-height: var(--ecole-titre-page-interligne);
+    font-weight: var(--ecole-titre-page-graisse);
+    letter-spacing: -0.01em;
+  }
+
+  h2,
+  .titre-section {
+    margin: 24px 0 12px;
+    font-size: var(--ecole-titre-section-taille);
+    line-height: var(--ecole-titre-section-interligne);
+    font-weight: var(--ecole-titre-section-graisse);
+  }
+
+  .libelle {
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
+    font-weight: var(--ecole-libelle-graisse);
+  }
+
+  .texte-secondaire {
+    color: var(--ecole-texte-secondaire);
+  }
+
+  // Matricules, numéros de billet : chasse fixe, lisibles caractère par caractère.
+  .mono {
+    font-family: var(--ecole-police-mono);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  // Notes et montants : chiffres de même largeur, alignés en colonne.
+  .chiffres,
+  td.nombre,
+  th.nombre {
+    font-variant-numeric: tabular-nums;
+  }
+
+  td.nombre,
+  th.nombre {
+    text-align: right;
+  }
+
+  a {
+    color: var(--ecole-primaire);
+  }
+
+  a:hover {
+    color: var(--ecole-primaire-survol);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--ecole-primaire);
+    outline-offset: 2px;
+  }
+
+  .sr-only,
+  .visuellement-cache {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  // --- Carte : rayon 12, bordure 1 px, sans ombre ---
+  .carte {
+    background: var(--ecole-surface);
+    border: 1px solid var(--ecole-bordure);
+    border-radius: var(--ecole-rayon-carte);
+    padding: 16px;
+  }
+
+  // --- Pastille de statut : un point ET un texte, jamais la couleur seule ---
+  .pastille {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px 2px 8px;
+    border-radius: 999px;
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
+    font-weight: var(--ecole-libelle-graisse);
+    white-space: nowrap;
+    color: var(--ecole-texte-secondaire);
+    background: var(--ecole-fond);
+    border: 1px solid var(--ecole-bordure);
+
+    &::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex: none;
+    }
+
+    &.primaire {
+      color: var(--ecole-primaire);
+      background: var(--ecole-primaire-doux);
+      border-color: transparent;
+    }
+
+    &.safran {
+      color: var(--ecole-safran);
+      background: var(--ecole-safran-fond);
+      border-color: transparent;
+    }
+
+    &.bissap {
+      color: var(--ecole-bissap);
+      background: var(--ecole-bissap-fond);
+      border-color: transparent;
+    }
+
+    &.fleuve {
+      color: var(--ecole-fleuve);
+      background: var(--ecole-fleuve-fond);
+      border-color: transparent;
+    }
+  }
+
+  // --- Messages (bandeaux) : mêmes couples de signaux ---
+  .message {
+    padding: 10px 14px;
+    border-radius: var(--ecole-rayon-controle);
+    margin: 8px 0;
+
+    &.erreur {
+      background: var(--ecole-bissap-fond);
+      color: var(--ecole-bissap);
+    }
+
+    &.avertissement {
+      background: var(--ecole-safran-fond);
+      color: var(--ecole-safran);
+    }
+
+    &.info {
+      background: var(--ecole-fleuve-fond);
+      color: var(--ecole-fleuve);
+    }
+
+    &.ok {
+      background: var(--ecole-primaire-doux);
+      color: var(--ecole-primaire);
+    }
+  }
+
+  // --- Boutons natifs (app parent, sans Material) : 44 px, rayon 10 ---
+  .bouton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--ecole-hauteur-controle);
+    padding: 0 18px;
+    border-radius: var(--ecole-rayon-controle);
+    border: 1px solid transparent;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    background: var(--ecole-primaire);
+    color: var(--ecole-sur-primaire);
+
+    &:hover {
+      background: var(--ecole-primaire-survol);
+      color: var(--ecole-sur-primaire);
+    }
+
+    &.secondaire {
+      background: var(--ecole-surface);
+      color: var(--ecole-primaire);
+      border-color: var(--ecole-bordure-champ);
+
+      &:hover {
+        background: var(--ecole-primaire-doux);
+        color: var(--ecole-primaire-survol);
+      }
+    }
+  }
+}

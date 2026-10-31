@@ -78,11 +78,11 @@ import { ServiceClasses } from '../services/service-classes';
         class="grille"
         data-testid="form-salle"
       >
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Nom</mat-label>
           <input matInput formControlName="nom" data-testid="champ-salle-nom" />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Capacité</mat-label>
           <input
             matInput

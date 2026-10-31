@@ -9,7 +9,11 @@ import { LienNavigation } from '@ecole/ui';
     '<ecole-coquille-application-legere titre="Espace parent" [liens]="liens" />',
 })
 export class App {
+  /** Barre de navigation basse : quatre entrées. */
   protected readonly liens: LienNavigation[] = [
-    { chemin: '/', libelle: 'Accueil' },
+    { chemin: '/', libelle: 'Accueil', icone: 'accueil' },
+    { chemin: '/notes', libelle: 'Notes', icone: 'notes' },
+    { chemin: '/paiements', libelle: 'Paiements', icone: 'paiements' },
+    { chemin: '/messages', libelle: 'Messages', icone: 'messages' },
   ];
 }

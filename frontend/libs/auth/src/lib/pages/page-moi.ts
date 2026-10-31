@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Session } from '../session';
 
 const LIBELLES_ROLES: Record<string, string> = {
@@ -16,8 +16,12 @@ const LIBELLES_ROLES: Record<string, string> = {
 @Component({
   selector: 'ecole-page-moi',
   template: `
-    <h1>Mon profil</h1>
-    <dl class="profil" data-testid="moi">
+    @if (integre()) {
+      <h2>Mon profil</h2>
+    } @else {
+      <h1>Mon profil</h1>
+    }
+    <dl class="profil carte" data-testid="moi">
       <dt>Utilisateur</dt>
       <dd data-testid="moi-utilisateur">{{ session.utilisateur() }}</dd>
       <dt>École</dt>
@@ -39,7 +43,8 @@ const LIBELLES_ROLES: Record<string, string> = {
       gap: 8px 24px;
     }
     dt {
-      font-weight: 500;
+      color: var(--ecole-texte-secondaire);
+      font-weight: 600;
     }
     dd {
       margin: 0;
@@ -52,6 +57,8 @@ const LIBELLES_ROLES: Record<string, string> = {
 })
 export class PageMoi {
   protected readonly session = inject(Session);
+  /** Intégrée dans une autre page : titre de section (h2) au lieu de titre de page. */
+  readonly integre = input(false);
 
   protected readonly roles = computed(() =>
     this.session

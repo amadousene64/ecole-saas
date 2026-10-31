@@ -1,0 +1,89 @@
+// Identité visuelle : SOURCE UNIQUE des valeurs. Exposées en variables CSS (--ecole-*) pour les
+// trois applications ; le thème Angular Material est construit dessus (voir _theme.scss).
+// Les contrastes texte/fond sont vérifiés par jetons.spec.ts (4,5:1 minimum) et par l'e2e axe.
+
+// --- Couleurs ---
+$couleurs: (
+  // Marque
+  'primaire': #1f6b4f,
+  'primaire-survol': #16503b,
+  'primaire-doux': #e4f0ea,
+  'sur-primaire': #ffffff,
+  // Texte et surfaces
+  'texte': #16201c,
+  'texte-secondaire': #56635d,
+  'fond': #f5f6f3,
+  'surface': #ffffff,
+  'bordure': #dde3df,
+  // Contour des champs et boutons secondaires : 3:1 minimum (WCAG 1.4.11, non-texte).
+  'bordure-champ': #7e8a84,
+  // Signaux : texte sur fond
+  'safran': #8a4b05,
+  'safran-fond': #fbefd9,
+  'bissap': #b42318,
+  'bissap-fond': #fdecea,
+  'fleuve': #1d5fa8,
+  'fleuve-fond': #e7eef8
+);
+
+// --- Typographie ---
+$police:
+  'Figtree',
+  system-ui,
+  -apple-system,
+  'Segoe UI',
+  sans-serif;
+$police-mono:
+  'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+// taille / interligne / graisse
+$echelle: (
+  'titre-page': (
+    28px,
+    36px,
+    700,
+  ),
+  'titre-section': (
+    20px,
+    28px,
+    600,
+  ),
+  'corps': (
+    15px,
+    22px,
+    400,
+  ),
+  'corps-mobile': (
+    16px,
+    24px,
+    400,
+  ),
+  'libelle': (
+    13px,
+    18px,
+    600,
+  ),
+);
+
+// --- Formes ---
+$hauteur-controle: 44px;
+$rayon-controle: 10px;
+$rayon-carte: 12px;
+
+@mixin variables() {
+  :root {
+    @each $nom, $valeur in $couleurs {
+      --ecole-#{$nom}: #{$valeur};
+    }
+    --ecole-police: #{$police};
+    --ecole-police-mono: #{$police-mono};
+    @each $nom, $style in $echelle {
+      --ecole-#{$nom}-taille: #{nth($style, 1)};
+      --ecole-#{$nom}-interligne: #{nth($style, 2)};
+      --ecole-#{$nom}-graisse: #{nth($style, 3)};
+    }
+    --ecole-hauteur-controle: #{$hauteur-controle};
+    --ecole-rayon-controle: #{$rayon-controle};
+    --ecole-rayon-carte: #{$rayon-carte};
+  }
+}

@@ -50,11 +50,11 @@ import { ServiceStructure } from '../services/service-structure';
     >
       <h3>{{ nomCycle() }}</h3>
       <div class="champs">
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Libellé</mat-label>
           <input matInput formControlName="libelle" required />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Découpage de l'année</mat-label>
           <mat-select
             formControlName="typePeriode"
@@ -65,7 +65,7 @@ import { ServiceStructure } from '../services/service-structure';
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Mode de notation</mat-label>
           <mat-select
             formControlName="modeNotation"
@@ -76,7 +76,7 @@ import { ServiceStructure } from '../services/service-structure';
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Base de la moyenne</mat-label>
           <mat-select
             formControlName="baseMoyenne"
@@ -113,8 +113,9 @@ import { ServiceStructure } from '../services/service-structure';
   `,
   styles: `
     .cycle {
-      border: 1px solid var(--mat-sys-outline-variant, #ccc);
-      border-radius: 8px;
+      background: var(--ecole-surface);
+      border: 1px solid var(--ecole-bordure);
+      border-radius: var(--ecole-rayon-carte);
       padding: 8px 16px 12px;
       margin-bottom: 16px;
     }

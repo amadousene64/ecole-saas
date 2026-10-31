@@ -5,9 +5,10 @@ import { expect, Page, test } from '@playwright/test';
  * (`./mvnw spring-boot:run`) sur le port 8080. Comptes fictifs du realm de dev (infra/keycloak) :
  * le mot de passe vient de E2E_MOT_DE_PASSE (par défaut, celui, public, du realm de dev).
  */
-const MOT_DE_PASSE = process.env['E2E_MOT_DE_PASSE'] ?? 'Passer-2026-dev';
-const KEYCLOAK = process.env['E2E_KEYCLOAK'] ?? 'http://localhost:8180';
-const API = process.env['E2E_API'] ?? 'http://localhost:8080';
+// `||` et non `??` : en CI, un secret non défini arrive sous forme de chaîne VIDE, pas absente.
+const MOT_DE_PASSE = process.env['E2E_MOT_DE_PASSE'] || 'Passer-2026-dev';
+const KEYCLOAK = process.env['E2E_KEYCLOAK'] || 'http://localhost:8180';
+const API = process.env['E2E_API'] || 'http://localhost:8080';
 
 /** Échoue tout de suite, avec un message clair, si l'infra n'est pas démarrée. */
 export function exigerInfra(): void {
@@ -36,6 +37,23 @@ export async function seConnecter(
   await page.locator('#username').fill(utilisateur);
   await page.locator('#password').fill(MOT_DE_PASSE);
   await page.locator('#kc-login').click();
+  // Retour vers l'application, sinon échec explicite (mot de passe refusé…) plutôt qu'un
+  // « élément introuvable » plus loin dans le scénario.
+  await page
+    .waitForURL((url) => !url.pathname.startsWith('/realms/'), {
+      timeout: 15_000,
+    })
+    .catch(async () => {
+      const message = await page
+        .locator('#input-error, .kc-feedback-text, [class*="alert"]')
+        .first()
+        .textContent()
+        .catch(() => null);
+      throw new Error(
+        `Connexion Keycloak refusée pour « ${utilisateur} » : ${message?.trim() ?? 'aucun message'}` +
+          ' (vérifier E2E_MOT_DE_PASSE).',
+      );
+    });
 }
 
 export async function choisirEcole(page: Page, nom: string): Promise<void> {

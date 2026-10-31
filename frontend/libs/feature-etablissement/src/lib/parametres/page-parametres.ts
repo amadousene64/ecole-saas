@@ -58,7 +58,7 @@ import { CarteImage } from './carte-image';
       class="grille"
       data-testid="profil"
     >
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Nom</mat-label>
         <input
           matInput
@@ -70,7 +70,7 @@ import { CarteImage } from './carte-image';
           <mat-error>Le nom est obligatoire.</mat-error>
         }
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Code</mat-label>
         <input
           matInput
@@ -82,7 +82,7 @@ import { CarteImage } from './carte-image';
           <mat-error>Lettres, chiffres, points et tirets seulement.</mat-error>
         }
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Statut</mat-label>
         <mat-select formControlName="statut" data-testid="champ-statut">
           @for (s of statuts; track s.valeur) {
@@ -90,19 +90,19 @@ import { CarteImage } from './carte-image';
           }
         </mat-select>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Inspection d'académie (IA)</mat-label>
         <input matInput formControlName="ia" />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Inspection de l'éducation (IEF)</mat-label>
         <input matInput formControlName="ief" />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Adresse</mat-label>
         <input matInput formControlName="adresse" />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Téléphone</mat-label>
         <input
           matInput
@@ -114,18 +114,18 @@ import { CarteImage } from './carte-image';
           >Format international ; +221 par défaut pour 9 chiffres.</mat-hint
         >
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>E-mail</mat-label>
         <input matInput type="email" formControlName="email" />
         @if (formulaire.controls.email.hasError('email')) {
           <mat-error>Adresse e-mail invalide.</mat-error>
         }
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Fuseau horaire</mat-label>
         <input matInput formControlName="fuseau" />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Devise</mat-label>
         <input matInput formControlName="devise" maxlength="3" />
       </mat-form-field>

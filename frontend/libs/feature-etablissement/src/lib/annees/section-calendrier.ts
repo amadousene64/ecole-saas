@@ -88,7 +88,7 @@ import { ServiceAnnees } from '../services/service-annees';
         class="grille"
         data-testid="form-evenement"
       >
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Type</mat-label>
           <mat-select formControlName="type" data-testid="champ-evenement-type">
             @for (t of types; track t.valeur) {
@@ -96,7 +96,7 @@ import { ServiceAnnees } from '../services/service-annees';
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Libellé</mat-label>
           <input
             matInput
@@ -104,7 +104,7 @@ import { ServiceAnnees } from '../services/service-annees';
             data-testid="champ-evenement-libelle"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Du</mat-label>
           <input
             matInput
@@ -113,7 +113,7 @@ import { ServiceAnnees } from '../services/service-annees';
             data-testid="champ-evenement-debut"
           />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Au</mat-label>
           <input
             matInput

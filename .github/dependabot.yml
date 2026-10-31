@@ -27,6 +27,10 @@ updates:
         patterns: ["nx", "@nx/*"]
       playwright:
         patterns: ["@playwright/*", "playwright*"]
+      # vitest et @vitest/* sont publiés ensemble et exigent la même version (dépendances pairs) :
+      # les monter séparément casse npm ci.
+      vitest:
+        patterns: ["vitest", "@vitest/*"]
 
   - package-ecosystem: github-actions
     directory: /

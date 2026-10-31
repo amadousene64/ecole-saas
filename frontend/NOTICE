@@ -1,0 +1,20 @@
+Plateforme de gestion scolaire — frontend
+==========================================
+
+Ce frontend inclut des éléments de tiers, distribués sous leur propre licence.
+
+Material Symbols (icônes)
+-------------------------
+Tracés SVG de Material Symbols, variante Outlined, graisse 400 (paquet npm
+@material-symbols/svg-400, version 0.48.0), recopiés dans
+libs/ui/src/lib/icones/icone.ts : home, description, payments, chat, block,
+schedule, confirmation_number, info.
+Copyright Google LLC.
+Licence Apache License, Version 2.0 :
+https://www.apache.org/licenses/LICENSE-2.0
+
+Polices
+-------
+Figtree et IBM Plex Mono, distribuées par les paquets npm @fontsource/figtree et
+@fontsource/ibm-plex-mono (fichiers woff2 copiés au build dans /fonts/).
+Licence SIL Open Font License 1.1 : https://openfontlicense.org

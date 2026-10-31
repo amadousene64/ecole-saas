@@ -44,6 +44,7 @@
         class="lien"
         [routerLink]="lien.chemin"
         routerLinkActive="actif"
+        [routerLinkActiveOptions]="{ exact: lien.chemin === '/' }"
         ariaCurrentWhenActive="page"
         (click)="fermerSiTiroir()"
         >{{ lien.libelle }}</a

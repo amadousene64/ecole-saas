@@ -12,29 +12,36 @@
     top: 8px;
     z-index: 1000;
     padding: 8px 16px;
-    background: var(--mat-sys-surface);
+    background: var(--ecole-surface);
   }
 }
 
 header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: 12px;
   min-height: 56px;
   padding: 0 16px;
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface);
+  background: var(--ecole-surface);
+  border-bottom: 1px solid var(--ecole-bordure);
 }
 
 .titre {
-  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+  color: var(--ecole-primaire);
 }
 
 .ecole {
-  padding: 2px 12px;
-  border-radius: 12px;
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--ecole-primaire-doux);
+  color: var(--ecole-primaire-survol);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .espace {
@@ -45,12 +52,19 @@ header {
   position: relative;
 
   summary {
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--ecole-rayon-controle);
     list-style: none;
-    color: var(--mat-sys-primary);
-    font: var(--mat-sys-label-large);
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ecole-primaire);
+
+    &:hover {
+      background: var(--ecole-primaire-doux);
+    }
   }
 
   summary::-webkit-details-marker {
@@ -62,53 +76,79 @@ header {
   position: absolute;
   right: 0;
   z-index: 10;
-  min-width: 200px;
+  min-width: 220px;
   margin-top: 4px;
-  padding: 8px 0;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  border-radius: 8px;
-  background: var(--mat-sys-surface-container-high);
-  box-shadow: var(--mat-sys-level2);
+  border: 1px solid var(--ecole-bordure);
+  border-radius: var(--ecole-rayon-carte);
+  background: var(--ecole-surface);
 
   button {
-    padding: 12px 16px;
+    min-height: 44px;
+    padding: 0 12px;
     border: 0;
+    border-radius: var(--ecole-rayon-controle);
     background: none;
     color: inherit;
-    font: var(--mat-sys-body-large);
+    font: inherit;
     text-align: left;
     cursor: pointer;
 
     &:hover {
-      background: var(--mat-sys-surface-container-highest);
-    }
-  }
-}
-
-nav {
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-  overflow-x: auto;
-
-  a {
-    padding: 8px 16px;
-    border-radius: 20px;
-    color: var(--mat-sys-primary);
-    font: var(--mat-sys-label-large);
-    text-decoration: none;
-
-    &.actif {
-      background: var(--mat-sys-secondary-container);
-      color: var(--mat-sys-on-secondary-container);
+      background: var(--ecole-fond);
     }
   }
 }
 
 main {
   padding: 16px;
-  max-width: 1200px;
+  max-width: 720px;
   margin: 0 auto;
   outline: none;
+
+  // Place pour la barre basse (et la zone de geste des téléphones).
+  &.avec-barre {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+// Barre de navigation basse : 4 entrées, icône + texte, cible de 56 px de haut.
+.barre-basse {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  background: var(--ecole-surface);
+  border-top: 1px solid var(--ecole-bordure);
+
+  a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    border-radius: var(--ecole-rayon-controle);
+    color: var(--ecole-texte-secondaire);
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
+    font-weight: var(--ecole-libelle-graisse);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--ecole-primaire);
+    }
+
+    &.actif {
+      background: var(--ecole-primaire-doux);
+      color: var(--ecole-primaire);
+    }
+  }
 }

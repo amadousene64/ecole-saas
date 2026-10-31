@@ -1,4 +1,7 @@
-/** Styles partagés par les écrans : titres, formulaires en grille, tableaux, messages. */
+/**
+ * Styles partagés par les écrans : mise en page, formulaires en grille, tableaux. Titres, messages
+ * (.message.erreur/.ok…), pastilles et textes d'aide viennent du thème global (libs/ui/theme).
+ */
 export const STYLES_COMMUNS = `
   :host {
     display: block;
@@ -6,10 +9,6 @@ export const STYLES_COMMUNS = `
   }
   h1 {
     margin-top: 0;
-  }
-  h2 {
-    margin: 24px 0 8px;
-    font-size: 1.15rem;
   }
   .grille {
     display: grid;
@@ -25,41 +24,37 @@ export const STYLES_COMMUNS = `
   }
   table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-bottom: 16px;
+    background: var(--ecole-surface);
+    border: 1px solid var(--ecole-bordure);
+    border-radius: var(--ecole-rayon-carte);
+    overflow: hidden;
+  }
+  th {
+    color: var(--ecole-texte-secondaire);
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
+    font-weight: var(--ecole-libelle-graisse);
+    background: var(--ecole-fond);
   }
   th,
   td {
     text-align: left;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--mat-sys-outline-variant, #ccc);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--ecole-bordure);
     vertical-align: middle;
   }
-  .message {
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin: 8px 0;
+  tbody tr:last-child td {
+    border-bottom: 0;
   }
-  .message.erreur {
-    background: var(--mat-sys-error-container, #fdd);
-    color: var(--mat-sys-on-error-container, #410002);
-  }
-  .message.ok {
-    background: var(--mat-sys-secondary-container, #dfd);
-    color: var(--mat-sys-on-secondary-container, #002a00);
+  tr[aria-selected='true'] td {
+    background: var(--ecole-primaire-doux);
   }
   .aide {
-    color: var(--mat-sys-on-surface-variant, #555);
-    font-size: 0.9rem;
-  }
-  .pastille {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 12px;
-    background: var(--mat-sys-surface-container-high, #eee);
-    font-size: 0.85rem;
-  }
-  .pastille.en-cours {
-    background: var(--mat-sys-primary-container, #cde);
+    color: var(--ecole-texte-secondaire);
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
   }
 `;

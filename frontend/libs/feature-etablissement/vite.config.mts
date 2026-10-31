@@ -14,6 +14,11 @@ export default defineConfig(() => ({
   //  plugins: [],
   // },
   test: {
+    // Cache des modules transformés désactivé : le plugin Analog garde les styles en ligne des
+    // composants (JIT) dans une table en mémoire, remplie à la transformation. Un module repris
+    // du cache saute la transformation et son style devient introuvable au lancement suivant
+    // (« Cannot find module virtual:angular:jit:style:inline »). Activé par défaut depuis Vitest 5.
+    fsModuleCache: false,
     name: 'feature-etablissement',
     watch: false,
     globals: true,
