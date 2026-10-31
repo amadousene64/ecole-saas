@@ -26,10 +26,10 @@ const ADRESSES_API = [
 function enExpression(motif: string): RegExp {
   const source = motif
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '\u0000')
+    .replace(/\*\*/g, '@@TOUT@@')
     .replace(/\*/g, '[^/]*')
     .replace(/\?/g, '[^/]')
-    .replace(/\u0000/g, '.*');
+    .replace(/@@TOUT@@/g, '.*');
   return new RegExp(`^${source}$`);
 }
 
