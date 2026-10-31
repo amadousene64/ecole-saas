@@ -55,6 +55,9 @@ class DroitsInscriptionTest extends TestInscription {
   static final Set<String> SENSIBLE_LECTURE = Set.of(DIRECTEUR, CENSEUR);
   static final Set<String> SENSIBLE_ETAT = Set.of(DIRECTEUR, SECRETARIAT, CENSEUR);
 
+  /** Pièces : le censeur passe pour le certificat médical seul (détail dans PiecesApiTest). */
+  static final Set<String> PIECES_LECTURE = Set.of(DIRECTEUR, SECRETARIAT, CENSEUR);
+
   record Cas(String methode, String url, Object corps, Set<String> autorises) {
 
     @Override
@@ -132,8 +135,8 @@ class DroitsInscriptionTest extends TestInscription {
     cas.add(new Cas("POST", ELEVES + "/" + X + "/codes-activation", null, ECRITURE));
     cas.add(new Cas("GET", "/api/v1/moi/eleve", null, Set.of(ELEVE)));
     String pieces = ELEVES + "/" + X + "/pieces";
-    cas.add(new Cas("GET", pieces, null, ECRITURE));
-    cas.add(new Cas("GET", pieces + "/" + X + "/url", null, ECRITURE));
+    cas.add(new Cas("GET", pieces, null, PIECES_LECTURE));
+    cas.add(new Cas("GET", pieces + "/" + X + "/url", null, PIECES_LECTURE));
     cas.add(new Cas("DELETE", pieces + "/" + X, null, ECRITURE));
     return cas;
   }

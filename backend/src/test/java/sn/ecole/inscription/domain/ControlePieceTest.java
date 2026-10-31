@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import sn.ecole.ImagesFictives;
 import sn.ecole.shared.domain.ErreurMetier;
 
 class ControlePieceTest {
@@ -22,15 +23,27 @@ class ControlePieceTest {
             ControlePiece.controler("%PDF-1.7\n...".getBytes(StandardCharsets.US_ASCII))
                 .contentType())
         .isEqualTo("application/pdf");
-    assertThat(
-            ControlePiece.controler(
-                    new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0})
-                .contentType())
+    assertThat(ControlePiece.controler(ImagesFictives.pngAvecTexte("x")).contentType())
         .isEqualTo("image/png");
-    assertThat(
-            ControlePiece.controler(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00})
-                .contentType())
+    assertThat(ControlePiece.controler(ImagesFictives.jpegAvecGps(40, 30)).contentType())
         .isEqualTo("image/jpeg");
+  }
+
+  @Test
+  void uneFausseImageEstRefusee() {
+    // Octets magiques d'image, mais rien de décodable : l'image est vraiment décodée.
+    code(new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0}, "FICHIER_INVALIDE");
+    code(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00}, "FICHIER_INVALIDE");
+  }
+
+  @Test
+  void uneImageEstReencodeeEtSonEmpreinteEstCelleDuStocke() {
+    byte[] photo = ImagesFictives.jpegAvecGps(40, 30);
+    ControlePiece.PieceValidee v = ControlePiece.controler(photo);
+    assertThat(v.octets()).isNotEqualTo(photo);
+    assertThat(ImagesFictives.segmentsApp1(v.octets())).isZero();
+    assertThat(v.taille()).isEqualTo(v.octets().length);
+    assertThat(v.sha256()).isEqualTo(ControlePiece.sha256(v.octets()));
   }
 
   @Test
