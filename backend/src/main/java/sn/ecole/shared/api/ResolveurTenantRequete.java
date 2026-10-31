@@ -40,6 +40,16 @@ class ResolveurTenantRequete {
     if (proprietes.resolution() == TenantProperties.Resolution.ENTETE) {
       return parEntete;
     }
+    // Hôte commun déclaré (app parent) : l'école est désignée par l'en-tête, contrôlée ensuite par
+    // les appartenances. Tout autre hôte reste strict.
+    if (proprietes.estHoteCommun(requete.getServerName())) {
+      return parEntete;
+    }
+    // Hôte commun déclaré (app parent) : l'école est désignée par l'en-tête, contrôlée ensuite par
+    // les appartenances. Tout autre hôte reste strict.
+    if (proprietes.estHoteCommun(requete.getServerName())) {
+      return parEntete;
+    }
     Optional<UUID> parSousDomaine = lireSousDomaine(requete);
     if (parEntete.isPresent() && !parEntete.equals(parSousDomaine)) {
       throw new ErreurMetier(

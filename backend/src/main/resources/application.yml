@@ -77,6 +77,9 @@ ecole:
   tenant:
     resolution: sous-domaine
     domaine-racine: ${ECOLE_DOMAINE_RACINE:monapp.sn}
+    # Hôtes communs à toutes les écoles (app parent), séparés par des virgules : l'école y est
+    # désignée par X-Tenant-Id. Vide : sous-domaines stricts partout.
+    hotes-communs: ${ECOLE_HOTES_COMMUNS:}
   securite:
     cache-roles-ttl: 5m
     jeton:
