@@ -52,6 +52,16 @@ const COUPLES: [texte: string, fond: string][] = [
   ['texte', 'primaire-doux'],
 ];
 
+/**
+ * Contours de composants (non-texte) : 3:1 minimum (WCAG 1.4.11). Champs et boutons secondaires
+ * posés sur une surface ou le fond de l'app, et bouton secondaire au survol.
+ */
+const CONTOURS: [contour: string, fond: string][] = [
+  ['bordure-champ', 'surface'],
+  ['bordure-champ', 'fond'],
+  ['bordure-champ', 'primaire-doux'],
+];
+
 describe('jetons de couleur', () => {
   it('définit la charte complète', () => {
     expect(c).toMatchObject({
@@ -62,7 +72,7 @@ describe('jetons de couleur', () => {
       'texte-secondaire': '#56635d',
       fond: '#f5f6f3',
       bordure: '#dde3df',
-      'bordure-champ': '#c9d3cd',
+      'bordure-champ': '#7e8a84',
       surface: '#ffffff',
       safran: '#8a4b05',
       'safran-fond': '#fbefd9',
@@ -79,6 +89,15 @@ describe('jetons de couleur', () => {
       expect(c[texte], texte).toBeDefined();
       expect(c[fond], fond).toBeDefined();
       expect(contraste(c[texte], c[fond])).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it.each(CONTOURS)(
+    'contour %s sur %s atteint 3:1 (WCAG 1.4.11, non-texte)',
+    (contour, fond) => {
+      expect(c[contour], contour).toBeDefined();
+      expect(c[fond], fond).toBeDefined();
+      expect(contraste(c[contour], c[fond])).toBeGreaterThanOrEqual(3);
     },
   );
 

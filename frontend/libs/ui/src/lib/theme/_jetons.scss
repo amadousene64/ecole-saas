@@ -15,7 +15,8 @@ $couleurs: (
   'fond': #f5f6f3,
   'surface': #ffffff,
   'bordure': #dde3df,
-  'bordure-champ': #c9d3cd,
+  // Contour des champs et boutons secondaires : 3:1 minimum (WCAG 1.4.11, non-texte).
+  'bordure-champ': #7e8a84,
   // Signaux : texte sur fond
   'safran': #8a4b05,
   'safran-fond': #fbefd9,
