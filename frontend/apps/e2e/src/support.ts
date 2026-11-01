@@ -170,3 +170,71 @@ export function lienMenu(page: Page, nom: string, exact = true) {
     .getByRole('navigation', { name: 'Navigation principale' })
     .getByRole('link', { name: nom, exact });
 }
+
+/** Classe réservée au parcours d'inscription : toujours la même, créée si elle manque. */
+export const CLASSE_E2E_INSCRIPTION = 'E2E Inscription';
+
+/**
+ * Garantit l'existence, dans l'année en cours de l'école A, d'une classe dédiée à l'e2e (grande
+ * capacité). Le parcours d'inscription ne dépend ainsi ni des classes du jeu de données de dev, ni de
+ * leur remplissage (chaque exécution inscrit un élève de plus). Idempotent : une seule classe, jamais
+ * de doublon. Utilise le compte directeur.a avec le client de dev `dev-cli`.
+ */
+export async function garantirClasseE2E(
+  request: APIRequestContext,
+): Promise<string> {
+  const jeton = await request.post(
+    `${KEYCLOAK}/realms/ecole/protocol/openid-connect/token`,
+    {
+      form: {
+        grant_type: 'password',
+        client_id: 'dev-cli',
+        scope: 'openid',
+        username: 'directeur.a',
+        password: MOT_DE_PASSE,
+      },
+    },
+  );
+  expect(jeton.ok(), 'Jeton directeur.a (dev-cli)').toBe(true);
+  const { access_token: acces } = (await jeton.json()) as {
+    access_token: string;
+  };
+  const entetes = {
+    Authorization: `Bearer ${acces}`,
+    'X-Tenant-Id': ECOLE_A_ID,
+  };
+
+  const classes = await request.get(`${API}/api/v1/classes`, {
+    headers: entetes,
+  });
+  expect(classes.ok(), 'Liste des classes').toBe(true);
+  const existante = ((await classes.json()) as { nom: string }[]).find(
+    (c) => c.nom === CLASSE_E2E_INSCRIPTION,
+  );
+  if (existante) {
+    return CLASSE_E2E_INSCRIPTION;
+  }
+
+  const annee = await request.get(`${API}/api/v1/annees-scolaires/en-cours`, {
+    headers: entetes,
+  });
+  expect(annee.ok(), 'Année en cours').toBe(true);
+  const niveaux = await request.get(`${API}/api/v1/niveaux`, {
+    headers: entetes,
+  });
+  const cp = ((await niveaux.json()) as { id: string; code: string }[]).find(
+    (n) => n.code === 'CP',
+  );
+  expect(cp, 'Niveau CP (sans série)').toBeTruthy();
+  const creation = await request.post(`${API}/api/v1/classes`, {
+    headers: entetes,
+    data: {
+      anneeId: ((await annee.json()) as { id: string }).id,
+      niveauId: cp!.id,
+      nom: CLASSE_E2E_INSCRIPTION,
+      capacite: 500,
+    },
+  });
+  expect(creation.status(), 'Création de la classe e2e').toBe(201);
+  return CLASSE_E2E_INSCRIPTION;
+}

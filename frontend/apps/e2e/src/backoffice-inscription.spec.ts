@@ -10,6 +10,7 @@ import {
   creerUtilisateurSansEcole,
   ECOLE_A_ID,
   exigerInfra,
+  garantirClasseE2E,
   seConnecter,
   URL_API,
   lienMenu,
@@ -92,7 +93,10 @@ async function ouvrirFiche(page: Page): Promise<void> {
 
 test("le secrétariat inscrit un élève et génère un code d'activation", async ({
   page,
+  request: apiRequest,
 }) => {
+  // La classe d'accueil est créée au besoin : le test ne dépend d'aucune classe du jeu de données.
+  const classe = await garantirClasseE2E(apiRequest);
   surveillerUrls(page);
   await seConnecter(page, 'secretariat.a');
   await lienMenu(page, 'Élèves', false).click();
@@ -115,7 +119,7 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await page.getByRole('tab', { name: 'Scolarité' }).click();
   await page.getByTestId('action-inscrire').click();
   await page.getByTestId('champ-classe').click();
-  await page.getByRole('option').first().click();
+  await page.getByRole('option', { name: classe, exact: true }).click();
   await page.getByTestId('confirmer-inscription').click();
   await expect(page.getByText('Élève inscrit.')).toBeVisible();
   await expect(page.getByTestId('table-inscriptions')).toContainText('Inscrit');
