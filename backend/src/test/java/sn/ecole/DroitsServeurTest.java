@@ -36,7 +36,10 @@ class DroitsServeurTest {
   private static final Path FICHIER = Path.of("..", "docs", "api", "droits-serveur.json");
 
   private static final List<String> PAQUETS =
-      List.of("sn.ecole.etablissement.application", "sn.ecole.inscription.application");
+      List.of(
+          "sn.ecole.etablissement.application",
+          "sn.ecole.inscription.application",
+          "sn.ecole.statistique.application");
 
   private static final List<String> ORDRE_ROLES =
       List.of(

@@ -173,6 +173,25 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
   'ReferentielScolaireService.nomsClasses': { exception: INTERNE },
   'ReferentielScolaireService.parametresNotation': { exception: INTERNE },
   'ReferentielScolaireService.periodes': { exception: INTERNE },
+  'ReferentielScolaireService.niveaux': { exception: INTERNE },
+
+  // --- Tableau de bord de la direction (accueil du directeur) ---
+  'TableauDeBordService.direction': {
+    page: 'accueil-backoffice',
+    action: 'statistiques.voir',
+  },
+  'StatistiquesInscriptionService.effectifs': {
+    page: 'accueil-backoffice',
+    action: 'statistiques.voir',
+  },
+  'StatistiquesInscriptionService.suivi': {
+    page: 'accueil-backoffice',
+    action: 'statistiques.voir',
+  },
+  'StatistiquesInscriptionService.inscriptionsParSemaine': {
+    page: 'accueil-backoffice',
+    action: 'statistiques.voir',
+  },
 
   // --- Élèves et inscriptions ---
   'EleveService.rechercher': { page: 'eleves' },
