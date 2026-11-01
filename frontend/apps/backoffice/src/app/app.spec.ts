@@ -67,6 +67,9 @@ describe('App (back-office)', () => {
       'Élèves et inscriptions',
       'Import',
       'Classes et salles',
+      'Années, périodes et calendrier',
+      'Profil et logo',
+      'Niveaux et séries',
     ]);
   });
 

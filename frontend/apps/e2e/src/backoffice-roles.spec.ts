@@ -46,9 +46,21 @@ const PERSONNEL = [
   {
     utilisateur: 'secretariat.a',
     role: 'Secrétariat',
-    menu: ['Accueil', 'Élèves et inscriptions', 'Import', 'Classes et salles'],
+    menu: [
+      'Accueil',
+      'Élèves et inscriptions',
+      'Import',
+      'Classes et salles',
+      'Années, périodes et calendrier',
+      'Profil et logo',
+      'Niveaux et séries',
+    ],
   },
-  { utilisateur: 'censeur.a', role: 'Censeur', menu: ['Accueil', 'Élèves'] },
+  {
+    utilisateur: 'censeur.a',
+    role: 'Censeur',
+    menu: ['Accueil', 'Élèves', 'Classes'],
+  },
   {
     utilisateur: 'comptable.a',
     role: 'Comptable',
@@ -175,10 +187,10 @@ test('une page dont le module n’existe pas encore ramène à l’accueil', asy
   await aucunAccesRefuse(page);
 });
 
-test('le secrétariat n’a pas Paramètres : l’adresse tapée à la main le ramène à l’accueil', async ({
+test('le comptable n’a pas Paramètres : l’adresse tapée à la main le ramène à l’accueil', async ({
   page,
 }) => {
-  await seConnecter(page, 'secretariat.a');
+  await seConnecter(page, 'comptable.a');
   await page.goto('/etablissement/parametres');
   await expect(page).toHaveURL(/localhost:4200\/$/);
   await expect(page.getByTestId('notification-info')).toBeVisible();

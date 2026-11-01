@@ -85,8 +85,10 @@ export const PAGES: readonly PageDef[] = [
     app: 'backoffice',
     chemin: '/etablissement/classes',
     libelle: 'Classes et salles',
+    // Le censeur lit les classes et les salles (LECTURE_PERSONNEL) sans pouvoir les modifier.
+    libelles: { CENSEUR: 'Classes' },
     icone: 'classes',
-    roles: ['DIRECTEUR', 'SECRETARIAT'],
+    roles: ['DIRECTEUR', 'SECRETARIAT', 'CENSEUR'],
     groupes: { DIRECTEUR: 'Classes et années' },
     disponible: true,
   },
@@ -95,9 +97,15 @@ export const PAGES: readonly PageDef[] = [
     app: 'backoffice',
     chemin: '/etablissement/annees',
     libelle: 'Années et périodes',
+    // Le secrétariat gère années, périodes et calendrier ; l'ouverture et la clôture d'une année
+    // sont au directeur seul (boutons masqués par l'action etablissement.direction).
+    libelles: { SECRETARIAT: 'Années, périodes et calendrier' },
     icone: 'annees',
-    roles: ['DIRECTEUR'],
-    groupes: { DIRECTEUR: 'Classes et années' },
+    roles: ['DIRECTEUR', 'SECRETARIAT'],
+    groupes: {
+      DIRECTEUR: 'Classes et années',
+      SECRETARIAT: "Paramètres de l'école",
+    },
     disponible: true,
   },
   {
@@ -105,9 +113,11 @@ export const PAGES: readonly PageDef[] = [
     app: 'backoffice',
     chemin: '/etablissement/parametres',
     libelle: 'Établissement',
+    // Secrétariat : profil et logo seulement (cachet et signature : directeur seul).
+    libelles: { SECRETARIAT: 'Profil et logo' },
     icone: 'parametres',
-    roles: ['DIRECTEUR'],
-    groupes: { DIRECTEUR: 'Paramètres' },
+    roles: ['DIRECTEUR', 'SECRETARIAT'],
+    groupes: { DIRECTEUR: 'Paramètres', SECRETARIAT: "Paramètres de l'école" },
     disponible: true,
   },
   {
@@ -115,9 +125,11 @@ export const PAGES: readonly PageDef[] = [
     app: 'backoffice',
     chemin: '/etablissement/structure',
     libelle: 'Structure pédagogique',
+    // Secrétariat : niveaux et séries (les cycles et leurs paramètres de notation : directeur seul).
+    libelles: { SECRETARIAT: 'Niveaux et séries' },
     icone: 'tableau',
-    roles: ['DIRECTEUR'],
-    groupes: { DIRECTEUR: 'Paramètres' },
+    roles: ['DIRECTEUR', 'SECRETARIAT'],
+    groupes: { DIRECTEUR: 'Paramètres', SECRETARIAT: "Paramètres de l'école" },
     disponible: true,
   },
   // Modules pas encore construits : déclarés pour que la table décrive la cible, mais invisibles.
@@ -183,7 +195,8 @@ export const PAGES: readonly PageDef[] = [
     chemin: '/enfants',
     libelle: 'Mes enfants',
     icone: 'eleves',
-    roles: ['PARENT', 'ELEVE'],
+    // Le serveur ne répond qu'au parent (enfantsDuParentConnecte) : l'élève n'a pas cet écran.
+    roles: ['PARENT'],
     // Déjà sur l'accueil : pas d'entrée de menu en double.
     menu: [],
     disponible: true,
@@ -235,7 +248,9 @@ export const ACTIONS = {
   'eleves.acces-parent': ['DIRECTEUR'],
   'inscription.radier': ['DIRECTEUR'],
   // Établissement
+  // Profil, logo, années, périodes, calendrier, niveaux, séries, classes, salles.
   'etablissement.ecrire': ['DIRECTEUR', 'SECRETARIAT'],
+  // Cachet, signature, paramètres de notation des cycles, ouverture et clôture d'une année.
   'etablissement.direction': ['DIRECTEUR'],
 } as const satisfies Record<string, readonly RoleEcole[]>;
 

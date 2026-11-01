@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { PageMoi, Session } from '@ecole/auth';
+import { Acces, PageMoi, Session } from '@ecole/auth';
 import { EnTetePage } from '@ecole/ui';
 import { PageEnfants } from './enfants';
 
@@ -17,10 +17,13 @@ import { PageEnfants } from './enfants';
       titre="Accueil"
       [sousTitre]="session.ecoleActive()?.nom ?? null"
     />
-    <ecole-enfants />
+    @if (acces.pagePermise('enfants')) {
+      <ecole-enfants />
+    }
     <ecole-page-moi [integre]="true" />
   `,
 })
 export class AccueilParent {
   protected readonly session = inject(Session);
+  protected readonly acces = inject(Acces);
 }
