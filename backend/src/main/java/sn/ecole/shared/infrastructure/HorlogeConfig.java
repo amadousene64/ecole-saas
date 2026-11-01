@@ -1,4 +1,4 @@
-package sn.ecole.statistique.infrastructure;
+package sn.ecole.shared.infrastructure;
 
 import java.time.Clock;
 import java.time.ZoneId;

@@ -146,6 +146,7 @@ public class ReferentielScolaireService implements ReferentielScolaire {
     Map<UUID, Cycle> parCycle = new HashMap<>();
     cycles.findAll().forEach(c -> parCycle.put(c.getId(), c));
     return niveaux.findAllByOrderByOrdre().stream()
+        .filter(n -> parCycle.containsKey(n.getCycleId()))
         .map(
             n ->
                 new NiveauScolaire(
