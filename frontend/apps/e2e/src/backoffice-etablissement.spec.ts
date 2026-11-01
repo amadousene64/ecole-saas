@@ -1,12 +1,15 @@
-import { expect, Page, test } from '@playwright/test';
-import { exigerInfra, seConnecter, verifierProfil } from './support';
+import { expect as expectBase, Page, test } from '@playwright/test';
+import { exigerInfra, seConnecter, verifierProfil, lienMenu } from './support';
 
 // Back-office, module établissement : profil, classes, droits en lecture seule. Données de dev :
 // école A avec l'année 2026-2027 en cours (profil dev du backend).
 exigerInfra();
 
+// Premier chargement des écrans paresseux sur un serveur de développement : plus patient que 5 s.
+const expect = expectBase.configure({ timeout: 15_000 });
+
 async function allerA(page: Page, lien: string): Promise<void> {
-  await page.getByRole('link', { name: lien, exact: true }).click();
+  await lienMenu(page, lien).click();
 }
 
 test("le directeur modifie le profil de l'école et voit le cachet et la signature", async ({
@@ -67,50 +70,61 @@ test('le secrétariat crée puis supprime une classe sur un niveau sans série',
   await expect(page.getByTestId(`classe-${nom}`)).toHaveCount(0);
 });
 
-test('le secrétariat ne voit ni le cachet ni la signature, mais dépose le logo', async ({
+test('le secrétariat n’a pas la page Établissement : ni menu, ni adresse', async ({
   page,
 }) => {
   await seConnecter(page, 'secretariat.a');
-  await allerA(page, 'Établissement');
+  // Le menu est rendu avant de vérifier qu'une entrée n'y est pas (sinon l'assertion passe à vide
+  // et la navigation suivante interrompt la fin de la connexion).
+  await expect(lienMenu(page, 'Classes et salles')).toBeVisible();
+  await expect(lienMenu(page, 'Établissement')).toHaveCount(0);
 
-  await expect(page.getByTestId('image-LOGO')).toBeVisible();
-  await expect(page.getByTestId('fichier-LOGO')).toBeVisible();
-  await expect(page.getByTestId('image-CACHET')).toHaveCount(0);
-  await expect(page.getByTestId('image-SIGNATURE')).toHaveCount(0);
+  await page.goto('/etablissement/parametres');
+  await expect(page).toHaveURL('http://localhost:4200/');
+  await expect(page.getByTestId('notification-info')).toBeVisible();
+  await expect(page.getByTestId('champ-nom')).toHaveCount(0);
 });
 
-test('le censeur lit la structure sans pouvoir rien modifier', async ({
+test('le censeur n’a pas les pages d’administration : menu réduit, adresses ramenées à l’accueil', async ({
   page,
 }) => {
   await seConnecter(page, 'censeur.a');
   await verifierProfil(page, 'Lycée Exemple A', ['Censeur']);
+  const liens = page
+    .getByRole('navigation', { name: 'Navigation principale' })
+    .getByRole('link');
+  await expect(liens).toHaveText(['Accueil', 'Élèves']);
 
-  await allerA(page, 'Établissement');
-  await expect(page.getByTestId('lecture-seule')).toBeVisible();
-  await expect(page.getByTestId('champ-nom')).toBeDisabled();
-  await expect(page.getByTestId('enregistrer')).toHaveCount(0);
-  await expect(page.getByTestId('image-CACHET')).toHaveCount(0);
-
-  await allerA(page, 'Années et périodes');
-  await expect(page.getByTestId('table-annees')).toBeVisible();
-  await expect(page.getByTestId('annee-2026-2027')).toBeVisible();
-  await expect(page.getByTestId('form-annee')).toHaveCount(0);
-  await expect(page.getByTestId('ouvrir')).toHaveCount(0);
-  await expect(page.getByTestId('cloturer')).toHaveCount(0);
-
-  await allerA(page, 'Classes et salles');
-  await expect(page.getByTestId('table-classes')).toBeVisible();
-  await expect(page.getByTestId('form-classe')).toHaveCount(0);
+  for (const chemin of [
+    '/etablissement/parametres',
+    '/etablissement/structure',
+    '/etablissement/annees',
+    '/etablissement/classes',
+  ]) {
+    await page.goto(chemin);
+    await expect(page).toHaveURL('http://localhost:4200/');
+    await expect(page.getByTestId('moi-roles')).toBeVisible();
+  }
 });
 
-test("l'ouverture et la clôture d'une année sont réservées au directeur", async ({
+test('l’ouverture et la clôture d’une année sont proposées au directeur seul', async ({
   page,
 }) => {
+  // Le secrétariat n'a même pas la page « Années et périodes ».
   await seConnecter(page, 'secretariat.a');
-  await allerA(page, 'Années et périodes');
+  await expect(lienMenu(page, 'Classes et salles')).toBeVisible();
+  await expect(lienMenu(page, 'Années et périodes')).toHaveCount(0);
+  await page.goto('/etablissement/annees');
+  await expect(page).toHaveURL('http://localhost:4200/');
+  await expect(page.getByTestId('form-annee')).toHaveCount(0);
+});
 
+test('le directeur voit les années avec leur formulaire', async ({ page }) => {
+  await seConnecter(page, 'directeur.a');
+  await allerA(page, 'Années et périodes');
   await expect(page.getByTestId('annee-2026-2027')).toBeVisible();
   await expect(page.getByTestId('form-annee')).toBeVisible();
-  await expect(page.getByTestId('ouvrir')).toHaveCount(0);
-  await expect(page.getByTestId('cloturer')).toHaveCount(0);
+  await expect(
+    page.getByTestId('ouvrir').or(page.getByTestId('cloturer')).first(),
+  ).toBeVisible();
 });

@@ -67,14 +67,33 @@ describe('RedirectionApp', () => {
     window.history.replaceState(
       null,
       '',
-      '/?ecole=%3Cscript%3Ealert(1)%3C/script%3E&depuis=pirate',
+      '/?ecole=%3Cscript%3Ealert(1)%3C/script%3E&depuis=parent',
     );
     const r = service();
     r.accueillir();
+    // L'origine est valide : elle est retenue ; l'école, qui n'est pas un UUID, est ignorée.
+    expect(TestBed.inject(EcoleCourante).id()).toBeNull();
+    expect(r.origine()).toBe('parent');
+    expect(window.location.search).toBe('');
+  });
 
+  it("sans origine valide, ?ecole= n'est PAS un renvoi : rien n'est retenu ni retiré", () => {
+    // Lien d'activation remis par l'école, ou lien piégé : l'école courante ne change pas toute seule.
+    window.history.replaceState(
+      null,
+      '',
+      `/activer?ecole=${ECOLE}&depuis=pirate`,
+    );
+    const r = service();
+    r.accueillir();
     expect(TestBed.inject(EcoleCourante).id()).toBeNull();
     expect(r.origine()).toBeNull();
-    expect(window.location.search).toBe('');
+    expect(window.location.search).toBe(`?ecole=${ECOLE}&depuis=pirate`);
+
+    window.history.replaceState(null, '', `/activer?ecole=${ECOLE}`);
+    r.accueillir();
+    expect(TestBed.inject(EcoleCourante).id()).toBeNull();
+    expect(window.location.search).toBe(`?ecole=${ECOLE}`);
   });
 
   it("ne touche à rien quand l'adresse ne porte ni école ni origine", () => {

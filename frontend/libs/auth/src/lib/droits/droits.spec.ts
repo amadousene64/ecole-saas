@@ -239,6 +239,19 @@ describe("redirection vers l'application du rôle", () => {
     ]);
   });
 
+  it("un utilisateur qui a un rôle dans l'application où il se trouve y reste", () => {
+    // Directeur et parent dans la même école : il peut ouvrir l'espace parent.
+    expect(appAAtteindre(['DIRECTEUR', 'PARENT'], 'parent')).toBeNull();
+    expect(appAAtteindre(['DIRECTEUR', 'PARENT'], 'backoffice')).toBeNull();
+    // Mais pas la vie scolaire, où il n'a aucun rôle : il est renvoyé vers son application principale.
+    expect(appAAtteindre(['DIRECTEUR', 'PARENT'], 'vie-scolaire')).toBe(
+      'backoffice',
+    );
+    expect(
+      menuPour(['DIRECTEUR', 'PARENT'], 'parent').map((e) => e.libelle),
+    ).toEqual(['Accueil']);
+  });
+
   it('aucun rôle connu : aucune application', () => {
     expect(appPour([])).toBeNull();
     expect(appPour(['AUTRE'])).toBeNull();

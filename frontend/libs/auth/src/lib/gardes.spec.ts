@@ -64,6 +64,18 @@ describe('gardes de route', () => {
     redirection.origine.mockReturnValue(null);
   });
 
+  it("retire de l'adresse l'école et l'origine portées par un renvoi d'une autre application", async () => {
+    const session = preparer(true, 'pret', ['SURVEILLANT'], 'vie-scolaire');
+    const resultat = await executer(
+      gardePage('accueil-vie-scolaire'),
+      '/?ecole=01930000-0000-7000-8000-0000000000a1&depuis=backoffice&autre=1',
+    );
+    expect(adresse(resultat)).toBe('/?autre=1');
+    // Redirection propre avant toute autre décision : rien n'a encore été chargé.
+    expect(session.charger).not.toHaveBeenCalled();
+    expect(redirection.vers).not.toHaveBeenCalled();
+  });
+
   it("renvoie vers la connexion quand l'utilisateur n'est pas connecté, et mémorise la page", async () => {
     const session = preparer(false);
     expect(await executer(gardePage('eleves'), '/eleves')).toBe(false);

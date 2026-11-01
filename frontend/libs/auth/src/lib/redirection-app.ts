@@ -38,15 +38,16 @@ export class RedirectionApp {
     const url = new URL(window.location.href);
     const ecole = url.searchParams.get('ecole');
     const depuis = url.searchParams.get('depuis');
-    if (ecole === null && depuis === null) {
+    // Un renvoi d'une autre application porte TOUJOURS une origine valide. Sans elle, `?ecole=` n'est
+    // pas un renvoi (par exemple le lien d'activation remis par l'école) : on n'y touche pas, et un
+    // lien piégé ne peut pas changer l'école courante tout seul.
+    if (!estIdApp(depuis)) {
       return;
     }
     if (ecole && UUID.test(ecole)) {
       this.courante.choisir(ecole.toLowerCase());
     }
-    if (estIdApp(depuis)) {
-      ecrireDepuis(depuis);
-    }
+    ecrireDepuis(depuis);
     url.searchParams.delete('ecole');
     url.searchParams.delete('depuis');
     window.history.replaceState(null, '', url.pathname + url.search + url.hash);

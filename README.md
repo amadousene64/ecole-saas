@@ -43,10 +43,15 @@ Utilisateurs fictifs du realm (mot de passe `Passer-2026-dev`) :
 | `censeur.a` | CENSEUR | — |
 | `secretariat.a` | SECRETARIAT | — |
 | `eleve.b` | — | ELEVE |
+| `comptable.a` | COMPTABLE | — |
+| `surveillant.a` | SURVEILLANT | — |
+| `parent.demo` | PARENT (lié au responsable « Parent Démo » : voit deux élèves de démo) | — |
 
-L'import du realm ne se rejoue pas sur un Keycloak existant : pour récupérer de nouveaux utilisateurs,
-recréez le volume (`docker compose -f infra/docker-compose.yml down -v`) ou ajoutez-les par l'import
-partiel de la console d'administration.
+L'import du realm ne se rejoue pas sur un Keycloak existant. Pour récupérer `comptable.a`,
+`surveillant.a` et `parent.demo` sans recréer le volume : `bash infra/scripts/creer-comptes-dev.sh`
+(API d'administration, import partiel avec identifiants fixes, idempotent). Chacun arrive dans
+l'application de son rôle : DIRECTEUR, SECRETARIAT, CENSEUR, COMPTABLE → back-office (4200) ;
+SURVEILLANT, ENSEIGNANT → vie scolaire (4202) ; PARENT, ELEVE → espace parent (4201).
 
 ## Commandes backend
 

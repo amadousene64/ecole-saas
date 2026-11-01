@@ -2,6 +2,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import {
   Component,
   computed,
+  DestroyRef,
   inject,
   InjectionToken,
   signal,
@@ -186,6 +187,14 @@ export class RechercheGlobale {
     { titre: string; resultats: ResultatRecherche[] }[]
   >([]);
   private minuterie: ReturnType<typeof setTimeout> | undefined;
+
+  constructor() {
+    // Fermé de n'importe quelle façon (Échap, clic à côté, résultat choisi) : plus de requête.
+    inject(DestroyRef).onDestroy(() => {
+      clearTimeout(this.minuterie);
+      this.numero++;
+    });
+  }
   private numero = 0;
 
   /** Pages du menu de l'utilisateur dont le libellé contient le terme. */
@@ -253,6 +262,8 @@ export class RechercheGlobale {
   }
 
   protected fermer(): void {
+    clearTimeout(this.minuterie);
+    this.numero++;
     this.ref.close();
   }
 }

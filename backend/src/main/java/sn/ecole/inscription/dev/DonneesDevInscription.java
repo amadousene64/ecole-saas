@@ -20,6 +20,7 @@ import sn.ecole.inscription.application.InscriptionService;
 import sn.ecole.inscription.application.LienParentalService;
 import sn.ecole.inscription.application.ResponsableService;
 import sn.ecole.inscription.domain.LienParental;
+import sn.ecole.inscription.domain.ResponsableRepository;
 import sn.ecole.inscription.domain.Sexe;
 import sn.ecole.inscription.domain.StatutInscription;
 import sn.ecole.inscription.domain.TypeLien;
@@ -40,6 +41,14 @@ class DonneesDevInscription implements ApplicationRunner {
   /** Directeur fictif de l'école A (voir realm-ecole.json) : agit pour les contrôles de droits. */
   private static final String DIRECTEUR_DEV = "01930000-0000-7000-8000-000000000101";
 
+  /**
+   * Compte Keycloak de dev « parent.demo » (infra/scripts/creer-comptes-dev.sh), relié au
+   * responsable de démo.
+   */
+  private static final UUID PARENT_DEMO = UUID.fromString("01930000-0000-7000-8000-000000000113");
+
+  private static final String TELEPHONE_PARENT_DEMO = "+221700000001";
+
   private static final List<String> PRENOMS = List.of("Un", "Deux", "Trois", "Quatre");
 
   private final ExecutionPourTenant execution;
@@ -49,6 +58,7 @@ class DonneesDevInscription implements ApplicationRunner {
   private final ResponsableService responsables;
   private final LienParentalService liens;
   private final InscriptionService inscriptions;
+  private final ResponsableRepository responsablesDepot;
 
   DonneesDevInscription(
       ExecutionPourTenant execution,
@@ -57,7 +67,8 @@ class DonneesDevInscription implements ApplicationRunner {
       EleveService eleves,
       ResponsableService responsables,
       LienParentalService liens,
-      InscriptionService inscriptions) {
+      InscriptionService inscriptions,
+      ResponsableRepository responsablesDepot) {
     this.execution = execution;
     this.tenants = tenants;
     this.referentiel = referentiel;
@@ -65,13 +76,32 @@ class DonneesDevInscription implements ApplicationRunner {
     this.responsables = responsables;
     this.liens = liens;
     this.inscriptions = inscriptions;
+    this.responsablesDepot = responsablesDepot;
   }
 
   @Override
   public void run(ApplicationArguments args) {
     for (Tenant tenant : tenants.findByActifTrueOrderByCode()) {
       agirCommeDirecteur(() -> execution.executer(tenant.getId(), this::semer));
+      execution.executer(tenant.getId(), () -> relierParentDemo(tenant));
     }
+  }
+
+  /**
+   * Idempotent, y compris sur une base déjà amorcée : le parent de démo a un compte de connexion.
+   */
+  private void relierParentDemo(Tenant tenant) {
+    if (!"LYCEE-A".equals(tenant.getCode())) {
+      return;
+    }
+    responsablesDepot.findByTelephoneOrderByNomRecherche(TELEPHONE_PARENT_DEMO).stream()
+        .findFirst()
+        .filter(r -> r.getUtilisateurId() == null)
+        .ifPresent(
+            r -> {
+              r.relierCompte(PARENT_DEMO);
+              responsablesDepot.save(r);
+            });
   }
 
   private void semer() {

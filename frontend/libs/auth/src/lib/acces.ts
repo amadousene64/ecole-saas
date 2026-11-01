@@ -1,6 +1,11 @@
 import { computed, inject, Service } from '@angular/core';
 import { CONFIG_APPS } from './redirection-app';
-import { LIBELLES_ROLES, rolePrincipal } from './droits/roles';
+import {
+  APP_DU_ROLE,
+  LIBELLES_ROLES,
+  rolePrincipal,
+  rolesConnus,
+} from './droits/roles';
 import { EntreeMenu, menuPour, pagePermise, peut } from './droits/navigation';
 import { IdAction } from './droits/table';
 import { Session } from './session';
@@ -18,7 +23,15 @@ export class Acces {
 
   readonly roles = computed(() => this.session.roles());
 
-  readonly principal = computed(() => rolePrincipal(this.roles()));
+  /** Rôle le plus prioritaire DANS l'application courante (à défaut, le rôle principal). */
+  readonly principal = computed(() => {
+    const connus = rolesConnus(this.roles());
+    const courante = this.config?.courante;
+    return (
+      connus.find((r) => APP_DU_ROLE[r] === courante) ??
+      rolePrincipal(this.roles())
+    );
+  });
 
   readonly libelleRole = computed(() => {
     const role = this.principal();

@@ -59,7 +59,7 @@ export async function seConnecter(
 export async function choisirEcole(page: Page, nom: string): Promise<void> {
   await expect(
     page.getByRole('heading', { name: 'Choisissez votre école' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20_000 });
   await page.getByRole('button', { name: nom }).click();
 }
 
@@ -97,10 +97,22 @@ export async function verifierProfil(
   await expect(page.getByTestId('moi-roles').locator('li')).toHaveText(roles);
 }
 
-export async function verifierAccesRefuse(page: Page): Promise<void> {
-  await expect(
-    page.getByRole('heading', { name: 'Accès refusé' }),
-  ).toBeVisible();
+/** Adresses des trois applications en développement. */
+export const APPS = {
+  backoffice: /localhost:4200/,
+  'vie-scolaire': /localhost:4202/,
+  parent: /localhost:4201/,
+} as const;
+
+/** L'utilisateur est dans l'application de son rôle, et n'a vu aucune page « Accès refusé ». */
+export async function verifierDansApp(
+  page: Page,
+  app: keyof typeof APPS,
+): Promise<void> {
+  await expect(page).toHaveURL(APPS[app]);
+  await expect(page.getByRole('heading', { name: 'Accès refusé' })).toHaveCount(
+    0,
+  );
 }
 
 /** Identifiant de l'école A de dev (voir backend/src/main/resources/db/dev). */
@@ -150,4 +162,11 @@ export async function creerUtilisateurSansEcole(
     },
   });
   expect(creation.status(), 'Création du compte parent fictif').toBe(201);
+}
+
+/** Lien du menu principal (et non un raccourci de l'accueil qui porte le même intitulé). */
+export function lienMenu(page: Page, nom: string, exact = true) {
+  return page
+    .getByRole('navigation', { name: 'Navigation principale' })
+    .getByRole('link', { name: nom, exact });
 }

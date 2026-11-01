@@ -1,6 +1,6 @@
 import { expect as expectBase, test } from '@playwright/test';
 import { verifierAccessibilite } from './accessibilite';
-import { exigerInfra, seConnecter } from './support';
+import { exigerInfra, seConnecter, lienMenu } from './support';
 
 /**
  * Import d'élèves : rapport ligne par ligne avant toute écriture. Ce scénario n'importe rien (les
@@ -21,7 +21,7 @@ test('le rapport détaille chaque ligne, et un fichier en erreur ne peut pas êt
   page,
 }) => {
   await seConnecter(page, 'secretariat.a');
-  await page.getByRole('link', { name: 'Élèves', exact: true }).click();
+  await lienMenu(page, 'Élèves', false).click();
   await page.getByTestId('lien-import').click();
   await expect(
     page.getByRole('heading', { name: 'Importer des élèves' }),
@@ -56,7 +56,7 @@ test("le censeur lit la liste mais n'a ni création ni import", async ({
   page,
 }) => {
   await seConnecter(page, 'censeur.a');
-  await page.getByRole('link', { name: 'Élèves', exact: true }).click();
+  await lienMenu(page, 'Élèves', false).click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
   await expect(page.getByTestId('nouvel-eleve')).toHaveCount(0);
   await expect(page.getByTestId('lien-import')).toHaveCount(0);

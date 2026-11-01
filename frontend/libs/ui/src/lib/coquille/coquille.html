@@ -22,18 +22,19 @@
   <button
     type="button"
     class="recherche"
+    aria-label="Rechercher Ctrl K"
     (click)="rechercher.emit()"
     data-testid="ouvrir-recherche"
   >
     <ecole-icone nom="recherche" />
     <span class="texte-recherche">{{ textes.rechercher }}</span>
-    <kbd class="raccourci" aria-hidden="true">Ctrl K</kbd>
-    <span class="sr-only">(raccourci : Ctrl+K)</span>
+    <kbd class="raccourci" aria-hidden="true">{{ ' Ctrl K' }}</kbd>
   </button>
   } @if (utilisateur(); as nom) {
   <button
     type="button"
     class="compte"
+    [attr.aria-label]="nom + (role() ? ' ' + role() : '') + ' (menu du compte)'"
     [matMenuTriggerFor]="menuCompte"
     data-testid="menu-compte"
   >
@@ -41,7 +42,7 @@
     <span class="identite">
       <span class="nom">{{ nom }}</span>
       @if (role(); as libelleRole) {
-      <span class="role">{{ libelleRole }}</span>
+      <span class="role">{{ ' ' + libelleRole }}</span>
       }
     </span>
     <ecole-icone nom="bas" [taille]="18" />

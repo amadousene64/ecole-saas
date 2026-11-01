@@ -4,34 +4,42 @@ import {
   choisirEcole,
   exigerInfra,
   seConnecter,
-  verifierAccesRefuse,
+  verifierDansApp,
   verifierProfil,
 } from './support';
 
-// Vie scolaire : direction, censeur, enseignants, surveillants.
+// Vie scolaire : surveillants et enseignants. Les autres rôles sont renvoyés dans leur application.
 exigerInfra();
 
 test('un surveillant accède à la vie scolaire', async ({ page }) => {
   await seConnecter(page, 'surveillant.b');
+  await verifierDansApp(page, 'vie-scolaire');
   await verifierProfil(page, 'École Exemple B', ['Surveillant']);
 });
 
-test('le censeur et la direction y ont accès', async ({ page }) => {
+test('le censeur et la direction sont renvoyés vers le back-office', async ({
+  page,
+}) => {
   await seConnecter(page, 'censeur.a');
+  await verifierDansApp(page, 'backoffice');
   await verifierProfil(page, 'Lycée Exemple A', ['Censeur']);
 });
 
-test('enseignant en A (accès), parent en B (refus)', async ({ page }) => {
+test('enseignant en A (vie scolaire), parent en B (espace parent)', async ({
+  page,
+}) => {
   await seConnecter(page, 'enseignant.parent');
   await choisirEcole(page, 'Lycée Exemple A');
+  await verifierDansApp(page, 'vie-scolaire');
   await verifierProfil(page, 'Lycée Exemple A', ['Enseignant']);
 
   await changerEcole(page, 'enseignant.parent');
   await choisirEcole(page, 'École Exemple B');
-  await verifierAccesRefuse(page);
+  await verifierDansApp(page, 'parent');
+  await verifierProfil(page, 'École Exemple B', ['Parent']);
 });
 
-test('un élève n’a pas accès à la vie scolaire', async ({ page }) => {
+test('un élève est renvoyé vers l’espace parent', async ({ page }) => {
   await seConnecter(page, 'eleve.b');
-  await verifierAccesRefuse(page);
+  await verifierDansApp(page, 'parent');
 });

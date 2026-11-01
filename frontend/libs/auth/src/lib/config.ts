@@ -6,6 +6,7 @@ import {
 import {
   EnvironmentProviders,
   inject,
+  isDevMode,
   makeEnvironmentProviders,
   provideAppInitializer,
 } from '@angular/core';
@@ -15,7 +16,7 @@ import {
   provideAuth,
   withAppInitializerAuthCheck,
 } from 'angular-auth-oidc-client';
-import { estIdApp } from './droits/roles';
+import { estIdApp, IDS_APPS } from './droits/roles';
 import { intercepteurApi } from './intercepteur-api';
 import {
   CONFIG_APPS,
@@ -34,6 +35,38 @@ export interface ConfigAuth {
 }
 
 /**
+ * Adresses des trois applications. Hors développement elles doivent être déclarées toutes les trois
+ * (un oubli enverrait en silence les utilisateurs vers localhost), en https hors localhost : sinon
+ * l'application refuse de démarrer.
+ */
+export function validerAdressesApps(
+  apps: Partial<ConfigApps['urls']> | undefined,
+  developpement = isDevMode(),
+): ConfigApps['urls'] {
+  if (!developpement && !IDS_APPS.every((id) => apps?.[id])) {
+    throw new Error(
+      "Adresses des applications manquantes : renseigner `apps` (backoffice, vie-scolaire, parent) dans l'environnement.",
+    );
+  }
+  const urls = { ...URLS_DEV, ...apps };
+  for (const id of IDS_APPS) {
+    let url: URL;
+    try {
+      url = new URL(urls[id]);
+    } catch {
+      throw new Error(`Adresse invalide pour l'application ${id}.`);
+    }
+    const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    if (url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) {
+      throw new Error(
+        `L'adresse de l'application ${id} doit être en https (http : localhost seulement).`,
+      );
+    }
+  }
+  return urls;
+}
+
+/**
  * Connexion OIDC (code + PKCE), client HTTP avec l'intercepteur, et API en même origine (`/api` :
  * proxy de développement, ou Nginx sur le même domaine en production, donc sans CORS).
  */
@@ -44,7 +77,7 @@ export function provideEcoleAuth(config: ConfigAuth): EnvironmentProviders {
   }
   const apps: ConfigApps = {
     courante: config.clientId,
-    urls: { ...URLS_DEV, ...config.apps },
+    urls: validerAdressesApps(config.apps),
   };
   return makeEnvironmentProviders([
     { provide: CONFIG_APPS, useValue: apps },

@@ -250,6 +250,54 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000111",
+      "username": "comptable.a",
+      "email": "comptable.a@exemple.test",
+      "firstName": "Comptable",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000112",
+      "username": "surveillant.a",
+      "email": "surveillant.a@exemple.test",
+      "firstName": "Surveillant",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000113",
+      "username": "parent.demo",
+      "email": "parent.demo@exemple.test",
+      "firstName": "Parent",
+      "lastName": "Démo Fictif",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     }
   ],
   "components": {

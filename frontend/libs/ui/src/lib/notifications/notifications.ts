@@ -14,7 +14,7 @@ export interface Notification {
   ton: TonNotification;
 }
 
-const DUREE_MS = 5000;
+const DUREE_MS = 8000;
 
 /** Notifications courtes, affichées en bas de l'écran par {@link ZoneNotifications}. */
 @Service()

@@ -1,6 +1,6 @@
 import type { NomIcone } from '@ecole/ui';
 import { ACTIONS, IdAction, PAGES, PageDef } from './table';
-import { IdApp, RoleEcole, appPour, rolesConnus } from './roles';
+import { APP_DU_ROLE, IdApp, RoleEcole, appPour, rolesConnus } from './roles';
 
 /** Entrée de menu calculée pour un utilisateur. */
 export interface EntreeMenu {
@@ -63,13 +63,17 @@ export function menuPour(
 }
 
 /**
- * Application vers laquelle envoyer cet utilisateur s'il n'est pas dans la bonne ; null s'il y est,
- * ou s'il n'a aucun rôle connu.
+ * Application vers laquelle envoyer cet utilisateur ; null s'il a un rôle dans l'application où il
+ * se trouve (un directeur qui est aussi parent dans la même école peut rester dans l'espace
+ * parent), ou s'il n'a aucun rôle connu.
  */
 export function appAAtteindre(
   roles: readonly string[],
   appCourante: IdApp,
 ): IdApp | null {
-  const cible = appPour(roles);
-  return cible && cible !== appCourante ? cible : null;
+  const connus = rolesConnus(roles);
+  if (connus.some((r) => APP_DU_ROLE[r] === appCourante)) {
+    return null;
+  }
+  return appPour(roles);
 }

@@ -4,7 +4,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 import { Notifications } from '@ecole/ui';
 import { appAAtteindre, pagePermise } from './droits/navigation';
-import { appPour } from './droits/roles';
+import { appPour, estIdApp } from './droits/roles';
 import { CONFIG_APPS, RedirectionApp } from './redirection-app';
 import { Session } from './session';
 
@@ -41,6 +41,15 @@ export function gardePage(
     const config = inject(CONFIG_APPS);
     const redirection = inject(RedirectionApp);
     const notifications = inject(Notifications);
+
+    // Arrivée depuis une autre application : `?ecole=` et `?depuis=` ont déjà été retenus au
+    // démarrage (RedirectionApp.accueillir) ; on les retire de l'adresse par une redirection propre.
+    const arrivee = router.parseUrl(state.url);
+    if (estIdApp(arrivee.queryParams['depuis'] ?? null)) {
+      delete arrivee.queryParams['ecole'];
+      delete arrivee.queryParams['depuis'];
+      return arrivee;
+    }
 
     const resultat = await verifierConnexion(oidc, router, state.url);
     if (resultat !== null) {

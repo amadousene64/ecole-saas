@@ -17,7 +17,7 @@ describe('Notifications', () => {
       'Page non disponible pour votre rôle.',
     );
 
-    await vi.advanceTimersByTimeAsync(5100);
+    await vi.advanceTimersByTimeAsync(8100);
     fixture.detectChanges();
     expect(racine.textContent).not.toContain('Page non disponible');
   });
