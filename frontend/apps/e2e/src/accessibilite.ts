@@ -12,6 +12,20 @@ export async function verifierAccessibilite(
 ): Promise<void> {
   // Polices chargées : le rendu analysé est le rendu final.
   await page.evaluate(() => document.fonts.ready);
+  // Animations finies (ouverture d'un dialogue : fondu) : sinon axe mesure des couleurs à
+  // moitié transparentes et signale de faux défauts de contraste.
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => null)),
+      ),
+      // Une animation bloquée ne doit pas bloquer l'analyse.
+      new Promise((resolve) => setTimeout(resolve, 3000)),
+    ]),
+  );
   const resultat = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();

@@ -1,0 +1,677 @@
+{
+  "commentaire" : "Généré par DroitsServeurTest (./mvnw test -Dtest=DroitsServeurTest -Ddroits.maj=true). Ne pas modifier à la main.",
+  "methodes" : {
+    "ActivationService.activer" : {
+      "roles" : [ ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "isAuthenticated()"
+    },
+    "ActivationService.emettrePourEleve" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ActivationService.emettrePourResponsable" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "AnneeScolaireService.cloturer" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "AnneeScolaireService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "AnneeScolaireService.enCours" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "AnneeScolaireService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "AnneeScolaireService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "AnneeScolaireService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "AnneeScolaireService.ouvrir" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "AnneeScolaireService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "CalendrierService.ajouter" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "CalendrierService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "CalendrierService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "CalendrierService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ClasseService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ClasseService.definirOptions" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ClasseService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "ClasseService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "ClasseService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ClasseService.options" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "ClasseService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "CycleService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "CycleService.modifier" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "DossierSensibleService.etat" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR')"
+    },
+    "DossierSensibleService.lire" : {
+      "roles" : [ "DIRECTEUR", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR')"
+    },
+    "DossierSensibleService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "EleveService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "EleveService.deposerPhoto" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "EleveService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : true,
+      "perimetre" : true,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT','COMPTABLE') or hasPermission(#eleveId, 'Eleve', 'lire')"
+    },
+    "EleveService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "EleveService.moi" : {
+      "roles" : [ "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('ELEVE')"
+    },
+    "EleveService.rechercher" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT','COMPTABLE')"
+    },
+    "EleveService.supprimer" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "EleveService.supprimerPhoto" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "EtablissementService.deposerImage" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : true,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR') or (!#type.sensible() and hasRole('SECRETARIAT'))"
+    },
+    "EtablissementService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "EtablissementService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "EtablissementService.supprimerImage" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : true,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR') or (!#type.sensible() and hasRole('SECRETARIAT'))"
+    },
+    "ImportElevesService.analyser" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ImportElevesService.importer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "InscriptionService.elevesDeLaClasse" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT')"
+    },
+    "InscriptionService.historique" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : true,
+      "perimetre" : true,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT') or hasPermission(#eleveId, 'Eleve', 'lire')"
+    },
+    "InscriptionService.inscrire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "InscriptionService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT')"
+    },
+    "InscriptionService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "InscriptionService.sortir" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : true,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR') or (hasRole('SECRETARIAT') and #sortie != null && #sortie.name() != 'RADIE')"
+    },
+    "InscriptionService.valider" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "LienParentalService.ajouter" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "LienParentalService.definirAccesEspaceParent" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "LienParentalService.enfantsDuParentConnecte" : {
+      "roles" : [ "PARENT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('PARENT')"
+    },
+    "LienParentalService.fratrie" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "COMPTABLE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','COMPTABLE')"
+    },
+    "LienParentalService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "COMPTABLE", "PARENT" ],
+      "ecriture" : false,
+      "conditionnel" : true,
+      "perimetre" : true,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','COMPTABLE') or (hasRole('PARENT') and hasPermission(#eleveId, 'Eleve', 'lire'))"
+    },
+    "LienParentalService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "LienParentalService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "NiveauService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "NiveauService.definirSeries" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "NiveauService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "NiveauService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "NiveauService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "NiveauService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "OptionEnseignementService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "OptionEnseignementService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "OptionEnseignementService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "OptionEnseignementService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ParametresInscriptionService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ParametresInscriptionService.modifier" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "PeriodeService.generer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "PeriodeService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "PeriodeService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "PieceService.deposer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "PieceService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR')"
+    },
+    "PieceService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "PieceService.url" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR')"
+    },
+    "ReferentielScolaireService.annee" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "ReferentielScolaireService.anneeEnCours" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "ReferentielScolaireService.classe" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "ReferentielScolaireService.classes" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "ReferentielScolaireService.nomsClasses" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "ReferentielScolaireService.parametresNotation" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "ReferentielScolaireService.periodes" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT", "PARENT", "ELEVE" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
+    },
+    "ResponsableService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ResponsableService.delierCompte" : {
+      "roles" : [ "DIRECTEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasRole('DIRECTEUR')"
+    },
+    "ResponsableService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ResponsableService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ResponsableService.rechercher" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "SalleService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "SalleService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "SalleService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "SalleService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "SalleService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "SerieService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "SerieService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "SerieService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "SerieService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "SerieService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    }
+  }
+}

@@ -20,6 +20,7 @@ ecole:
     jeton:
       # La liste remplace celle par défaut : on y ajoute le client en ligne de commande.
       clients-autorises: [backoffice, parent, vie-scolaire, dev-cli]
+      clients-activation: [parent, dev-cli]
 
 springdoc:
   api-docs:

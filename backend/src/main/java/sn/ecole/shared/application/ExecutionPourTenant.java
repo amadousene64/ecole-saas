@@ -64,16 +64,10 @@ public class ExecutionPourTenant {
    * d'une école est journalisé et rapporté dans le bilan ; il n'empêche pas les suivantes.
    */
   public BilanExecution pourChaqueEcole(String tache, Consumer<UUID> action) {
-    if (ContexteTenant.courant().isPresent()) {
-      throw new IllegalStateException(
-          "pourChaqueEcole ne s'appelle pas depuis un contexte d'école (requête HTTP).");
-    }
-    List<UUID> ecoles =
-        lecture.execute(
-            statut -> tenants.findByActifTrueOrderByCode().stream().map(Tenant::getId).toList());
+    List<UUID> ecoles = ecolesActives();
     List<UUID> reussies = new ArrayList<>();
     List<UUID> echouees = new ArrayList<>();
-    for (UUID ecole : Objects.requireNonNull(ecoles)) {
+    for (UUID ecole : ecoles) {
       try {
         executer(ecole, () -> action.accept(ecole));
         reussies.add(ecole);
@@ -83,6 +77,17 @@ public class ExecutionPourTenant {
       }
     }
     return new BilanExecution(tache, reussies, echouees);
+  }
+
+  /** Écoles actives, par code ; hors de tout contexte d'école (tâches de fond seulement). */
+  public List<UUID> ecolesActives() {
+    if (ContexteTenant.courant().isPresent()) {
+      throw new IllegalStateException(
+          "La liste des écoles ne se lit pas depuis un contexte d'école (requête HTTP).");
+    }
+    return Objects.requireNonNull(
+        lecture.execute(
+            statut -> tenants.findByActifTrueOrderByCode().stream().map(Tenant::getId).toList()));
   }
 
   private <T> T dans(UUID tenantId, TransactionTemplate modele, Supplier<T> action) {

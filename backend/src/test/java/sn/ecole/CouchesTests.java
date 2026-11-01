@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
+import sn.ecole.shared.application.AppartenanceService;
 import sn.ecole.shared.domain.ContexteTenant;
 
 /** Règles de couches de CLAUDE.md (api → application → domain ← infrastructure). */
@@ -54,6 +55,25 @@ class CouchesTests {
         .should()
         .dependOnClassesThat()
         .resideInAPackage("sn.ecole..api..")
+        .check(CLASSES);
+  }
+
+  /**
+   * Le rattachement d'un compte comme parent ou élève sans directeur n'est permis qu'après
+   * vérification d'un code d'activation : un seul appelant possible.
+   */
+  @Test
+  void seuleLActivationParCodeRattacheUnCompteSansDirecteur() {
+    noClasses()
+        .that()
+        .doNotHaveFullyQualifiedName("sn.ecole.inscription.application.ActivationService")
+        .should()
+        .callMethodWhere(
+            DescribedPredicate.describe(
+                "AppartenanceService.rattacherParActivation",
+                appel ->
+                    appel.getTarget().getOwner().isEquivalentTo(AppartenanceService.class)
+                        && appel.getTarget().getName().equals("rattacherParActivation")))
         .check(CLASSES);
   }
 

@@ -1,15 +1,24 @@
 # Valeurs par défaut prudentes (production) ; le profil « dev » les assouplit pour le poste local.
 server:
   port: 8080
+  # Adresse IP réelle du client derrière le répartiteur de charge (limites de débit par IP) : la
+  # valve Tomcat ne croit X-Forwarded-For que si la requête vient d'un proxy de confiance
+  # (boucle locale par défaut). Derrière un répartiteur, ECOLE_PROXYS_INTERNES donne SON adresse
+  # exacte, jamais tout un réseau privé : un conteneur voisin annoncerait l'IP de son choix.
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      internal-proxies: ${ECOLE_PROXYS_INTERNES:127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0:0:0:0:0:0:0:1|::1}
 
 spring:
   application:
     name: ecole-backend
   servlet:
     multipart:
-      # Images officielles : 1 Mo au plus (voir TypeImage). Au-delà, refus avant tout traitement.
-      max-file-size: 1MB
-      max-request-size: 1MB
+      # Plafond global : pièces du dossier (5 Mo, voir ControlePiece). Chaque usage applique ensuite
+      # sa propre limite (images officielles et photos : 1 Mo ; import : 2 Mo).
+      max-file-size: 5MB
+      max-request-size: 6MB
   threads:
     virtual:
       enabled: true
@@ -50,14 +59,38 @@ spring:
       timeout: 1s
 
 ecole:
+  cles:
+    # Base64 de 32 octets chacune, DISTINCTES, fournies par l'environnement (jamais dans le dépôt).
+    # Générer : openssl rand -base64 32. Absentes : l'application refuse de démarrer.
+    chiffrement: ${ECOLE_CLE_CHIFFREMENT:}
+    id-chiffrement: ${ECOLE_CLE_CHIFFREMENT_ID:k1}
+    hmac-codes: ${ECOLE_CLE_HMAC_CODES:}
+  outbox:
+    relais:
+      actif: true
+      delai: 5s
+  clamav:
+    # clamd (protocole INSTREAM) : analyse des pièces déposées avant mise à disposition.
+    hote: ${ECOLE_CLAMAV_HOTE:localhost}
+    port: ${ECOLE_CLAMAV_PORT:3310}
+    delai: 60s
   tenant:
     resolution: sous-domaine
     domaine-racine: ${ECOLE_DOMAINE_RACINE:monapp.sn}
+    # Hôtes communs à toutes les écoles (app parent), séparés par des virgules : l'école y est
+    # désignée par X-Tenant-Id. Vide : sous-domaines stricts partout.
+    hotes-communs: ${ECOLE_HOTES_COMMUNS:}
   securite:
     cache-roles-ttl: 5m
     jeton:
       # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
       clients-autorises: [backoffice, parent, vie-scolaire]
+      # Seuls ces clients activent un code d'école (rattachement parent/élève).
+      clients-activation: [parent]
+
+  statistique:
+    # Durée de vie du tableau de bord de la direction dans Redis (par école, année, période, cycle).
+    cache-ttl: 5m
 
   stockage:
     # MinIO (API S3). Les clés d'accès viennent de l'environnement ; bucket privé.

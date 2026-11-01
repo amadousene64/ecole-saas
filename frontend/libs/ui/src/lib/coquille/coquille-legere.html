@@ -7,7 +7,12 @@
   <span class="espace"></span>
   @if (utilisateur(); as nom) {
   <details class="menu" #menu>
-    <summary>{{ nom }}</summary>
+    <summary>
+      <span class="nom">{{ nom }}</span>
+      @if (role(); as libelleRole) {
+      <span class="role">{{ libelleRole }}</span>
+      }
+    </summary>
     <div class="panneau">
       @if (plusieursEcoles()) {
       <button type="button" (click)="menu.open = false; changerEcole.emit()">
@@ -21,10 +26,10 @@
   </details>
   }
 </header>
-<main id="contenu" tabindex="-1" [class.avec-barre]="liens().length > 0">
+<main id="contenu" tabindex="-1" [class.avec-barre]="avecBarre()">
   <ng-content />
 </main>
-@if (liens().length > 0) {
+@if (avecBarre()) {
 <nav class="barre-basse" [attr.aria-label]="textes.navigationPrincipale">
   @for (lien of liens(); track lien.chemin) {
   <a
@@ -41,3 +46,4 @@
   }
 </nav>
 }
+<ecole-zone-notifications />

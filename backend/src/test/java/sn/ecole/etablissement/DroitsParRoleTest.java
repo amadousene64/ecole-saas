@@ -140,6 +140,15 @@ class DroitsParRoleTest extends TestEtablissement {
     cas.add(new Cas("POST", "/api/v1/salles", salle, ECRITURE));
     cas.add(new Cas("PUT", "/api/v1/salles/" + X, salle, ECRITURE));
     cas.add(new Cas("DELETE", "/api/v1/salles/" + X, null, ECRITURE));
+    Object option = corps("code", "ESP", "libelle", "Espagnol", "groupe", "LV2");
+    cas.add(new Cas("GET", "/api/v1/options-enseignement", null, PERSONNEL));
+    cas.add(new Cas("POST", "/api/v1/options-enseignement", option, ECRITURE));
+    cas.add(new Cas("PUT", "/api/v1/options-enseignement/" + X, option, ECRITURE));
+    cas.add(new Cas("DELETE", "/api/v1/options-enseignement/" + X, null, ECRITURE));
+    cas.add(new Cas("GET", "/api/v1/classes/" + X + "/options", null, PERSONNEL));
+    cas.add(
+        new Cas(
+            "PUT", "/api/v1/classes/" + X + "/options", corps("optionIds", List.of()), ECRITURE));
     return cas;
   }
 

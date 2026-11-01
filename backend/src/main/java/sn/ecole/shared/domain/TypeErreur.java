@@ -7,5 +7,7 @@ public enum TypeErreur {
   INTERDIT,
   INTROUVABLE,
   CONFLIT,
-  REGLE_METIER
+  REGLE_METIER,
+  /** Trop de tentatives (limitation de débit) : 429. */
+  TROP_DE_TENTATIVES
 }

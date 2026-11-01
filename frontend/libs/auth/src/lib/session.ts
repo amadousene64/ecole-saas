@@ -3,6 +3,7 @@ import { Api, mesEcoles, moi, MoiDto } from '@ecole/api-client';
 import { EcoleChoix } from '@ecole/ui';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { EcoleCourante } from './ecole-courante';
+import { viderCachesServiceWorker, viderStockages } from './etat-local';
 
 /**
  * - `inconnu` : rien n'a encore été chargé ;
@@ -89,12 +90,26 @@ export class Session {
     return requis.length === 0 || requis.some((r) => this.roles().includes(r));
   }
 
-  deconnecter(): void {
+  /**
+   * Vide l'état en mémoire, les caches du service worker, puis déconnecte (la bibliothèque OIDC
+   * retire le jeton et redirige vers le fournisseur) ; les stockages du navigateur sont vidés dès
+   * la déconnexion lancée, et au plus tard au départ de la page.
+   */
+  deconnecter(): Promise<void> {
     this.courante.oublier();
     this.profil.set(null);
     this.ecoles.set([]);
     this.etat.set('inconnu');
-    this.oidc.logoff().subscribe();
+    return this.fermer();
+  }
+
+  private async fermer(): Promise<void> {
+    await viderCachesServiceWorker();
+    window.addEventListener('pagehide', viderStockages, { once: true });
+    this.oidc.logoff().subscribe({
+      next: viderStockages,
+      error: viderStockages,
+    });
   }
 
   private async demarrer(): Promise<void> {

@@ -10,17 +10,18 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.ecole.etablissement.StatutEtablissement;
-import sn.ecole.etablissement.domain.ControleImage;
-import sn.ecole.etablissement.domain.ControleImage.ImageValidee;
 import sn.ecole.etablissement.domain.Etablissement;
 import sn.ecole.etablissement.domain.EtablissementRepository;
 import sn.ecole.etablissement.domain.ImageEtablissement;
 import sn.ecole.etablissement.domain.ImageEtablissementRepository;
-import sn.ecole.etablissement.domain.StockageFichiers;
 import sn.ecole.etablissement.domain.TypeImage;
+import sn.ecole.shared.application.ApresTransaction;
 import sn.ecole.shared.application.JournalAudit;
 import sn.ecole.shared.domain.ContexteTenant;
+import sn.ecole.shared.domain.ControleImage;
+import sn.ecole.shared.domain.ControleImage.ImageValidee;
 import sn.ecole.shared.domain.Identifiants;
+import sn.ecole.shared.domain.StockageFichiers;
 
 /** Profil de l'école et ses images officielles (logo, cachet, signature). */
 @Service
@@ -102,7 +103,7 @@ public class EtablissementService {
   @PreAuthorize("hasRole('DIRECTEUR') or (!#type.sensible() and hasRole('SECRETARIAT'))")
   public VueEtablissement deposerImage(TypeImage type, byte[] octets) {
     Etablissement e = charger();
-    ImageValidee image = ControleImage.controler(octets, type);
+    ImageValidee image = ControleImage.controler(octets, type.tailleMax());
     String cle =
         ContexteTenant.exiger()
             + "/etablissement/"
