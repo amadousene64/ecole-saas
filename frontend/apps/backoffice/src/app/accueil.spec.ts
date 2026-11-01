@@ -44,12 +44,16 @@ describe('AccueilBackoffice', () => {
     fixture.detectChanges();
     if (roles.includes('DIRECTEUR')) {
       // Le tableau de bord arrive par un import() dynamique, hors de la file d'Angular.
-      await vi.waitFor(() => {
-        fixture.detectChanges();
-        expect(
-          fixture.nativeElement.querySelector('ecole-tableau-de-bord'),
-        ).not.toBeNull();
-      });
+      // Premier chargement de la lib sous Vite : plus d'une seconde sur un poste ou une CI lente.
+      await vi.waitFor(
+        () => {
+          fixture.detectChanges();
+          expect(
+            fixture.nativeElement.querySelector('ecole-tableau-de-bord'),
+          ).not.toBeNull();
+        },
+        { timeout: 15_000 },
+      );
     }
     await fixture.whenStable();
     fixture.detectChanges();
