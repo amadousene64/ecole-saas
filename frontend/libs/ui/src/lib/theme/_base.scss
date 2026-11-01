@@ -212,4 +212,66 @@
       }
     }
   }
+  // --- Tableaux en cartes sous 600 px (classe `cartes` + `data-label` sur chaque cellule) ---
+  // L'en-tête du tableau reste dans l'arbre d'accessibilité (masqué visuellement seulement) et
+  // chaque cellule répète son intitulé.
+  @media (max-width: 599.98px) {
+    table.cartes {
+      display: block;
+      background: transparent;
+      border: 0;
+
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+
+      tbody {
+        display: block;
+      }
+
+      tr {
+        display: block;
+        margin: 0 0 12px;
+        padding: 6px 14px;
+        background: var(--ecole-surface);
+        border: 1px solid var(--ecole-bordure);
+        border-radius: var(--ecole-rayon-carte);
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--ecole-bordure);
+        text-align: right;
+
+        &:last-child {
+          border-bottom: 0;
+        }
+
+        &::before {
+          content: attr(data-label);
+          flex: 0 0 38%;
+          text-align: left;
+          font-weight: 600;
+          color: var(--ecole-texte-secondaire);
+        }
+
+        &[colspan] {
+          display: block;
+          text-align: left;
+        }
+
+        &[colspan]::before {
+          content: none;
+        }
+      }
+    }
+  }
 }

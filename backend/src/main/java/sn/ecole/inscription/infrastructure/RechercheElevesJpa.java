@@ -27,7 +27,13 @@ class RechercheElevesJpa implements RechercheEleves {
 
   @Override
   public List<Eleve> rechercher(
-      String terme, UUID classeId, String apresNom, UUID apresId, int limite) {
+      String terme,
+      String matricule,
+      UUID classeId,
+      StatutInscription statut,
+      String apresNom,
+      UUID apresId,
+      int limite) {
     StringBuilder jpql = new StringBuilder("select e from Eleve e where 1 = 1");
     Map<String, Object> parametres = new LinkedHashMap<>();
     if (terme != null && !terme.isBlank()) {
@@ -35,12 +41,24 @@ class RechercheElevesJpa implements RechercheEleves {
       parametres.put("motif", "%" + echapper(terme) + "%");
       parametres.put("matricule", terme.strip().toUpperCase(Locale.ROOT));
     }
+    if (matricule != null && !matricule.isBlank()) {
+      jpql.append(" and e.matricule = :matriculeExact");
+      parametres.put("matriculeExact", matricule.strip().toUpperCase(Locale.ROOT));
+    }
     if (classeId != null) {
       jpql.append(
           " and exists (select 1 from Inscription i where i.eleveId = e.id"
               + " and i.classeId = :classe and i.statut in :actifs)");
       parametres.put("classe", classeId);
       parametres.put("actifs", StatutInscription.ACTIFS);
+    }
+    if (statut != null) {
+      // Statut de l'inscription la plus récente (date d'entrée) : celle qui décrit la situation.
+      jpql.append(
+          " and exists (select 1 from Inscription i where i.eleveId = e.id and i.statut = :statut"
+              + " and i.dateEntree = (select max(j.dateEntree) from Inscription j"
+              + " where j.eleveId = e.id))");
+      parametres.put("statut", statut);
     }
     if (apresNom != null && apresId != null) {
       jpql.append(

@@ -1,4 +1,4 @@
-import { Pastille, TonStatut } from '@ecole/ui';
+import { Pastille, TonStatut, EnTetePage } from '@ecole/ui';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import {
@@ -32,6 +32,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
 @Component({
   selector: 'ecole-page-annees',
   imports: [
+    EnTetePage,
     DatePipe,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -42,7 +43,10 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
     Pastille,
   ],
   template: `
-    <h1>Années scolaires et périodes</h1>
+    <ecole-en-tete-page
+      titre="Années scolaires et périodes"
+      sousTitre="Années, périodes et calendrier"
+    />
     @if (erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur-annees">
         {{ message }}
@@ -54,7 +58,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
       </p>
     }
 
-    <table data-testid="table-annees">
+    <table data-testid="table-annees" class="cartes">
       <thead>
         <tr>
           <th>Année</th>
@@ -70,7 +74,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
             [attr.data-testid]="'annee-' + a.libelle"
             [attr.aria-selected]="a.id === selectionId()"
           >
-            <td>
+            <td data-label="Année">
               <button
                 matButton
                 type="button"
@@ -80,14 +84,14 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
                 {{ a.libelle }}
               </button>
             </td>
-            <td>{{ a.dateDebut | date: 'dd/MM/yyyy' }}</td>
-            <td>{{ a.dateFin | date: 'dd/MM/yyyy' }}</td>
-            <td>
+            <td data-label="Début">{{ a.dateDebut | date: 'dd/MM/yyyy' }}</td>
+            <td data-label="Fin">{{ a.dateFin | date: 'dd/MM/yyyy' }}</td>
+            <td data-label="Statut">
               <ecole-pastille [ton]="tonStatut(a.statut)">
                 {{ libelleStatut(a.statut) }}
               </ecole-pastille>
             </td>
-            <td>
+            <td data-label="Actions">
               @if (droits.estDirecteur() && a.statut === 'PREPARATION') {
                 <button
                   matButton

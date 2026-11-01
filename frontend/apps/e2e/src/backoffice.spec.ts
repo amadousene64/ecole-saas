@@ -1,15 +1,14 @@
 import { expect, test } from '@playwright/test';
 import {
-  changerEcole,
-  choisirEcole,
   exigerInfra,
   seConnecter,
   seDeconnecter,
-  verifierAccesRefuse,
+  verifierDansApp,
   verifierProfil,
 } from './support';
 
-// Back-office : direction, censeur, secrétariat, enseignants, comptabilité.
+// Back-office : direction, secrétariat, censeur, comptable. Le détail rôle par rôle (menus,
+// renvois vers les autres applications) est dans backoffice-roles.spec.ts.
 exigerInfra();
 
 test('une seule école : connexion directe et affichage de /moi', async ({
@@ -20,6 +19,7 @@ test('une seule école : connexion directe et affichage de /moi', async ({
   await verifierProfil(page, 'Lycée Exemple A', ['Directeur']);
   await expect(page.getByTestId('moi-utilisateur')).toHaveText('directeur.a');
   await expect(page).toHaveURL('/');
+  await verifierDansApp(page, 'backoffice');
 });
 
 test('le censeur a accès au back-office', async ({ page }) => {
@@ -27,40 +27,16 @@ test('le censeur a accès au back-office', async ({ page }) => {
   await verifierProfil(page, 'Lycée Exemple A', ['Censeur']);
 });
 
-test('plusieurs écoles : choix, rôles propres à chaque école, changement', async ({
-  page,
-}) => {
-  await seConnecter(page, 'enseignant.parent');
-  await choisirEcole(page, 'Lycée Exemple A');
-
-  // Dans A il est enseignant : le back-office lui est ouvert.
-  await verifierProfil(page, 'Lycée Exemple A', ['Enseignant']);
-
-  // Dans B il n'est que parent : le back-office lui est fermé.
-  await changerEcole(page, 'enseignant.parent');
-  await choisirEcole(page, 'École Exemple B');
-  await verifierAccesRefuse(page);
-
-  // Retour dans A : l'accès revient.
-  await changerEcole(page, 'enseignant.parent');
-  await choisirEcole(page, 'Lycée Exemple A');
-  await verifierProfil(page, 'Lycée Exemple A', ['Enseignant']);
-});
-
-test('un surveillant n’a pas accès au back-office', async ({ page }) => {
-  await seConnecter(page, 'surveillant.b');
-  await verifierAccesRefuse(page);
-});
-
 test('la déconnexion renvoie vers la connexion', async ({ page }) => {
   await seConnecter(page, 'directeur.a');
   await expect(page.getByTestId('moi-ecole')).toBeVisible();
 
   await seDeconnecter(page, 'directeur.a');
-  await page.waitForURL(
-    /\/realms\/ecole\/protocol\/openid-connect\/(auth|logout)|localhost:4200/,
-  );
+  // La session Keycloak est fermée : on retombe sur la page de connexion.
+  await expect(page.locator('#username')).toBeVisible({ timeout: 20_000 });
 
-  await page.goto('/');
-  await expect(page.locator('#username')).toBeVisible();
+  // Rouvrir l'application ne reconnecte pas. Elle renvoie aussitôt vers Keycloak : la navigation
+  // initiale peut être interrompue.
+  await page.goto('/').catch(() => undefined);
+  await expect(page.locator('#username')).toBeVisible({ timeout: 20_000 });
 });

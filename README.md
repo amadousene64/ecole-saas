@@ -43,10 +43,15 @@ Utilisateurs fictifs du realm (mot de passe `Passer-2026-dev`) :
 | `censeur.a` | CENSEUR | — |
 | `secretariat.a` | SECRETARIAT | — |
 | `eleve.b` | — | ELEVE |
+| `comptable.a` | COMPTABLE | — |
+| `surveillant.a` | SURVEILLANT | — |
+| `parent.demo` | PARENT (lié au responsable « Parent Démo » : voit deux élèves de démo) | — |
 
-L'import du realm ne se rejoue pas sur un Keycloak existant : pour récupérer de nouveaux utilisateurs,
-recréez le volume (`docker compose -f infra/docker-compose.yml down -v`) ou ajoutez-les par l'import
-partiel de la console d'administration.
+L'import du realm ne se rejoue pas sur un Keycloak existant. Pour récupérer `comptable.a`,
+`surveillant.a` et `parent.demo` sans recréer le volume : `bash infra/scripts/creer-comptes-dev.sh`
+(API d'administration, import partiel avec identifiants fixes, idempotent). Chacun arrive dans
+l'application de son rôle : DIRECTEUR, SECRETARIAT, CENSEUR, COMPTABLE → back-office (4200) ;
+SURVEILLANT, ENSEIGNANT → vie scolaire (4202) ; PARENT, ELEVE → espace parent (4201).
 
 ## Commandes backend
 
@@ -93,6 +98,10 @@ Ces valeurs ne servent qu'à la création du volume PostgreSQL : après un chang
 Backend (production, sans profil) : `ECOLE_DB_URL`, `ECOLE_DB_APP_USER`, `ECOLE_DB_APP_PASSWORD`,
 `ECOLE_DB_OWNER_USER`, `ECOLE_DB_OWNER_PASSWORD`, `ECOLE_OIDC_ISSUER`, `ECOLE_REDIS_HOST`,
 `ECOLE_REDIS_PORT`, `ECOLE_REDIS_PASSWORD`, `ECOLE_DOMAINE_RACINE`.
+`ECOLE_HOTES_COMMUNS` (facultatif) : hôtes communs à toutes les écoles, séparés par des virgules
+(ex. `parent.monapp.sn`, l'app parent). Sur ces hôtes seulement, l'école est celle de `X-Tenant-Id`,
+toujours contrôlée par les appartenances ; sur un sous-domaine d'école, le mode reste strict. Voir
+[docs/resolution-ecole.md](docs/resolution-ecole.md).
 `ECOLE_PROXYS_INTERNES` (facultatif) : expression régulière des adresses des proxys de confiance dont
 on accepte `X-Forwarded-For` ; par défaut la boucle locale seulement. En production derrière un
 répartiteur de charge, y mettre son adresse exacte, jamais tout un réseau privé (sinon un client de
@@ -106,6 +115,10 @@ ce réseau choisirait l'IP annoncée et contournerait la limite d'activations pa
 - **Rôles par école** dans la table `appartenance` (source de vérité), mis en cache dans Redis (5 min).
   Pour chaque appel `/api/**`, `FiltreTenant` vérifie que l'utilisateur est membre de l'école
   demandée et ne charge que ses rôles dans CETTE école.
+- **Résolution de l'école** : sous-domaine en production (strict), `X-Tenant-Id` en dev et sur les
+  hôtes communs déclarés (`ECOLE_HOTES_COMMUNS`) ; jamais sans contrôle d'appartenance. Détails :
+  [docs/resolution-ecole.md](docs/resolution-ecole.md).
+- **Pas de nom d'élève dans une URL** : la recherche par nom est un `POST /api/v1/eleves/recherche`.
 - **Double barrière** : filtre Hibernate `@TenantId` + RLS PostgreSQL. L'application se connecte
   avec `ecole_app`, qui n'est pas propriétaire des tables et ne peut pas contourner la RLS.
 - `app.tenant_id` est positionné au début de chaque transaction (`set_config(..., true)`) ; sans

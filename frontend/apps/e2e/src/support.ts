@@ -1,4 +1,4 @@
-import { expect, Page, test } from '@playwright/test';
+import { APIRequestContext, expect, Page, test } from '@playwright/test';
 
 /**
  * Prérequis : `docker compose -f infra/docker-compose.yml up -d` puis le backend en profil dev
@@ -59,7 +59,7 @@ export async function seConnecter(
 export async function choisirEcole(page: Page, nom: string): Promise<void> {
   await expect(
     page.getByRole('heading', { name: 'Choisissez votre école' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20_000 });
   await page.getByRole('button', { name: nom }).click();
 }
 
@@ -97,8 +97,76 @@ export async function verifierProfil(
   await expect(page.getByTestId('moi-roles').locator('li')).toHaveText(roles);
 }
 
-export async function verifierAccesRefuse(page: Page): Promise<void> {
-  await expect(
-    page.getByRole('heading', { name: 'Accès refusé' }),
-  ).toBeVisible();
+/** Adresses des trois applications en développement. */
+export const APPS = {
+  backoffice: /localhost:4200/,
+  'vie-scolaire': /localhost:4202/,
+  parent: /localhost:4201/,
+} as const;
+
+/** L'utilisateur est dans l'application de son rôle, et n'a vu aucune page « Accès refusé ». */
+export async function verifierDansApp(
+  page: Page,
+  app: keyof typeof APPS,
+): Promise<void> {
+  await expect(page).toHaveURL(APPS[app]);
+  await expect(page.getByRole('heading', { name: 'Accès refusé' })).toHaveCount(
+    0,
+  );
+}
+
+/** Identifiant de l'école A de dev (voir backend/src/main/resources/db/dev). */
+export const ECOLE_A_ID = '01930000-0000-7000-8000-0000000000a1';
+
+export const URL_API = API;
+
+const ADMIN_KC = process.env['E2E_KEYCLOAK_ADMIN'] || 'admin';
+const ADMIN_KC_MOT_DE_PASSE =
+  process.env['E2E_KEYCLOAK_ADMIN_MOT_DE_PASSE'] || 'admin-dev';
+
+/**
+ * Crée dans le realm de dev un compte tout neuf, sans aucune appartenance : celui d'un parent qui
+ * n'a pas encore activé son compte. Un nom unique par exécution rend le scénario rejouable.
+ */
+export async function creerUtilisateurSansEcole(
+  request: APIRequestContext,
+  utilisateur: string,
+): Promise<void> {
+  const jeton = await request.post(
+    `${KEYCLOAK}/realms/master/protocol/openid-connect/token`,
+    {
+      form: {
+        grant_type: 'password',
+        client_id: 'admin-cli',
+        username: ADMIN_KC,
+        password: ADMIN_KC_MOT_DE_PASSE,
+      },
+    },
+  );
+  expect(jeton.ok(), 'Jeton administrateur Keycloak (dev)').toBe(true);
+  const { access_token: acces } = (await jeton.json()) as {
+    access_token: string;
+  };
+  const creation = await request.post(`${KEYCLOAK}/admin/realms/ecole/users`, {
+    headers: { Authorization: `Bearer ${acces}` },
+    data: {
+      username: utilisateur,
+      email: `${utilisateur}@exemple.test`,
+      firstName: 'Parent',
+      lastName: 'Fictif E2E',
+      enabled: true,
+      emailVerified: true,
+      credentials: [
+        { type: 'password', value: MOT_DE_PASSE, temporary: false },
+      ],
+    },
+  });
+  expect(creation.status(), 'Création du compte parent fictif').toBe(201);
+}
+
+/** Lien du menu principal (et non un raccourci de l'accueil qui porte le même intitulé). */
+export function lienMenu(page: Page, nom: string, exact = true) {
+  return page
+    .getByRole('navigation', { name: 'Navigation principale' })
+    .getByRole('link', { name: nom, exact });
 }

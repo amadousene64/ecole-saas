@@ -1079,21 +1079,29 @@
     },
     "/api/v1/eleves" : {
       "get" : {
-        "operationId" : "eleve_rechercher",
+        "operationId" : "eleve_lister",
         "parameters" : [ {
-          "in" : "query",
-          "name" : "recherche",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
           "in" : "query",
           "name" : "classe",
           "required" : false,
           "schema" : {
             "type" : "string",
             "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "statut",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "matricule",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
           }
         }, {
           "in" : "query",
@@ -1125,14 +1133,14 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PageDtoEleveResumeDto"
+                  "$ref" : "#/components/schemas/PageDtoEleveListeDto"
                 }
               }
             },
             "description" : "OK"
           }
         },
-        "summary" : "Recherche des élèves (nom, prénoms ou matricule ; filtre par classe), paginée par curseur",
+        "summary" : "Liste des élèves, filtres non nominatifs (classe, statut, matricule), avec le statut et l'état du dossier, paginée par curseur. La recherche par nom est en POST /api/v1/eleves/recherche.",
         "tags" : [ "eleve-controller" ]
       },
       "post" : {
@@ -1170,6 +1178,45 @@
           }
         },
         "summary" : "Crée un élève ; le matricule est attribué selon le format de l'école",
+        "tags" : [ "eleve-controller" ]
+      }
+    },
+    "/api/v1/eleves/recherche" : {
+      "post" : {
+        "operationId" : "eleve_rechercher",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RechercheElevesRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageDtoEleveListeDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recherche d'élèves par nom, prénoms ou matricule (le terme est dans le corps, pas dans l'URL), avec les mêmes filtres et la même pagination que la liste",
         "tags" : [ "eleve-controller" ]
       }
     },
@@ -3704,6 +3751,53 @@
         "summary" : "Modifie une série (If-Match : version lue)",
         "tags" : [ "serie-controller" ]
       }
+    },
+    "/api/v1/statistiques/direction" : {
+      "get" : {
+        "description" : "Effectifs par cycle et par niveau, inscriptions par statut, dossiers complets, familles connectées et courbe des inscriptions par semaine. Directeur seulement. Valeurs calculées au plus 5 minutes auparavant (champ calculeLe). Filtres : période de la courbe et cycle (tous par défaut).",
+        "operationId" : "statistique_direction",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "periode",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "ANNEE",
+            "enum" : [ "JOURS_30", "JOURS_90", "ANNEE" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cycle",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TableauDeBordDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Tableau de bord de la direction (année en cours)",
+        "tags" : [ "statistique-controller" ]
+      }
     }
   },
   "components" : {
@@ -3989,6 +4083,26 @@
           }
         }
       },
+      "DossierDto" : {
+        "type" : "object",
+        "properties" : {
+          "enAnalyse" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "manquantes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ACTE_NAISSANCE", "CERTIFICAT_SCOLARITE", "CERTIFICAT_MEDICAL", "PHOTO_IDENTITE" ]
+            }
+          },
+          "refusees" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "EcoleDto" : {
         "type" : "object",
         "properties" : {
@@ -4000,6 +4114,57 @@
             "format" : "uuid"
           },
           "nom" : {
+            "type" : "string"
+          }
+        }
+      },
+      "EffectifCycleDto" : {
+        "type" : "object",
+        "properties" : {
+          "cycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "EffectifNiveauDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "cycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "niveauId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "EffectifStatutDto" : {
+        "type" : "object",
+        "properties" : {
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "statut" : {
             "type" : "string"
           }
         }
@@ -4046,6 +4211,42 @@
           "version" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "EleveListeDto" : {
+        "type" : "object",
+        "properties" : {
+          "classe" : {
+            "type" : "string"
+          },
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "dossier" : {
+            "$ref" : "#/components/schemas/DossierDto"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "matricule" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
           }
         }
       },
@@ -4666,7 +4867,7 @@
         },
         "required" : [ "code", "groupe", "libelle" ]
       },
-      "PageDtoEleveResumeDto" : {
+      "PageDtoEleveListeDto" : {
         "type" : "object",
         "properties" : {
           "curseurSuivant" : {
@@ -4675,7 +4876,7 @@
           "elements" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/EleveResumeDto"
+              "$ref" : "#/components/schemas/EleveListeDto"
             }
           }
         }
@@ -4709,6 +4910,23 @@
           }
         },
         "required" : [ "formatMatricule", "politiqueCapacite" ]
+      },
+      "PartDto" : {
+        "type" : "object",
+        "properties" : {
+          "dont" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pourcentage" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
       },
       "PeriodeDto" : {
         "type" : "object",
@@ -4808,6 +5026,33 @@
             "type" : "boolean"
           },
           "lignes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "RechercheElevesRequete" : {
+        "type" : "object",
+        "properties" : {
+          "classe" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "curseur" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "recherche" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          },
+          "taille" : {
             "type" : "integer",
             "format" : "int32"
           }
@@ -4936,6 +5181,19 @@
         },
         "required" : [ "capacite", "nom" ]
       },
+      "SemaineDto" : {
+        "type" : "object",
+        "properties" : {
+          "lundi" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
       "SerieDto" : {
         "type" : "object",
         "properties" : {
@@ -4995,6 +5253,64 @@
           }
         },
         "required" : [ "date", "statut" ]
+      },
+      "TableauDeBordDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "anneeLibelle" : {
+            "type" : "string"
+          },
+          "calculeLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "courbe" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SemaineDto"
+            }
+          },
+          "cycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "dossiers" : {
+            "$ref" : "#/components/schemas/PartDto"
+          },
+          "familles" : {
+            "$ref" : "#/components/schemas/PartDto"
+          },
+          "inscrits" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parCycle" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EffectifCycleDto"
+            }
+          },
+          "parNiveau" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EffectifNiveauDto"
+            }
+          },
+          "parStatut" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EffectifStatutDto"
+            }
+          },
+          "periode" : {
+            "type" : "string",
+            "enum" : [ "JOURS_30", "JOURS_90", "ANNEE" ]
+          }
+        }
       },
       "UrlDto" : {
         "type" : "object",

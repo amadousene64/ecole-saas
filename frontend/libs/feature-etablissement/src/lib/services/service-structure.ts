@@ -32,7 +32,10 @@ export class ServiceStructure {
     return this.api.invoke(cycleLister, {});
   }
 
-  modifierCycle(cycle: CycleDto, corps: ModifierCycleRequete): Promise<CycleDto> {
+  modifierCycle(
+    cycle: CycleDto,
+    corps: ModifierCycleRequete,
+  ): Promise<CycleDto> {
     return this.api.invoke(cycleModifier, {
       id: requis(cycle.id),
       'If-Match': ifMatch(cycle.version),
@@ -48,7 +51,10 @@ export class ServiceStructure {
     return this.api.invoke(niveauCreer, { body: corps });
   }
 
-  modifierNiveau(niveau: NiveauDto, corps: ModifierNiveauRequete): Promise<NiveauDto> {
+  modifierNiveau(
+    niveau: NiveauDto,
+    corps: ModifierNiveauRequete,
+  ): Promise<NiveauDto> {
     return this.api.invoke(niveauModifier, {
       id: requis(niveau.id),
       'If-Match': ifMatch(niveau.version),
