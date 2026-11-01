@@ -18,6 +18,7 @@
       "@ecole/api-client": ["./libs/api-client/src/index.ts"],
       "@ecole/ui": ["./libs/ui/src/index.ts"],
       "@ecole/feature-inscription": ["./libs/feature-inscription/src/index.ts"],
+      "@ecole/feature-statistique": ["./libs/feature-statistique/src/index.ts"],
       "@ecole/feature-etablissement": [
         "./libs/feature-etablissement/src/index.ts"
       ]

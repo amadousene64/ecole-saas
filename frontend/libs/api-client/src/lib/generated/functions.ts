@@ -183,3 +183,5 @@ export type { SerieModifier$Params as SerieModifier$Params } from './fn/serie-co
 export { serieModifier as serieModifier } from './fn/serie-controller/serie-modifier';
 export type { SerieSupprimer$Params as SerieSupprimer$Params } from './fn/serie-controller/serie-supprimer';
 export { serieSupprimer as serieSupprimer } from './fn/serie-controller/serie-supprimer';
+export type { StatistiqueDirection$Params as StatistiqueDirection$Params } from './fn/statistique-controller/statistique-direction';
+export { statistiqueDirection as statistiqueDirection } from './fn/statistique-controller/statistique-direction';

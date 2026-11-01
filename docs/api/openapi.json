@@ -3751,6 +3751,53 @@
         "summary" : "Modifie une série (If-Match : version lue)",
         "tags" : [ "serie-controller" ]
       }
+    },
+    "/api/v1/statistiques/direction" : {
+      "get" : {
+        "description" : "Effectifs par cycle et par niveau, inscriptions par statut, dossiers complets, familles connectées et courbe des inscriptions par semaine. Directeur seulement. Valeurs calculées au plus 5 minutes auparavant (champ calculeLe). Filtres : période de la courbe et cycle (tous par défaut).",
+        "operationId" : "statistique_direction",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "periode",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "ANNEE",
+            "enum" : [ "JOURS_30", "JOURS_90", "ANNEE" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cycle",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TableauDeBordDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Tableau de bord de la direction (année en cours)",
+        "tags" : [ "statistique-controller" ]
+      }
     }
   },
   "components" : {
@@ -4067,6 +4114,57 @@
             "format" : "uuid"
           },
           "nom" : {
+            "type" : "string"
+          }
+        }
+      },
+      "EffectifCycleDto" : {
+        "type" : "object",
+        "properties" : {
+          "cycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "EffectifNiveauDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "cycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "niveauId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "EffectifStatutDto" : {
+        "type" : "object",
+        "properties" : {
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "statut" : {
             "type" : "string"
           }
         }
@@ -4813,6 +4911,23 @@
         },
         "required" : [ "formatMatricule", "politiqueCapacite" ]
       },
+      "PartDto" : {
+        "type" : "object",
+        "properties" : {
+          "dont" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pourcentage" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
       "PeriodeDto" : {
         "type" : "object",
         "properties" : {
@@ -5066,6 +5181,19 @@
         },
         "required" : [ "capacite", "nom" ]
       },
+      "SemaineDto" : {
+        "type" : "object",
+        "properties" : {
+          "lundi" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "nombre" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
       "SerieDto" : {
         "type" : "object",
         "properties" : {
@@ -5125,6 +5253,64 @@
           }
         },
         "required" : [ "date", "statut" ]
+      },
+      "TableauDeBordDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "anneeLibelle" : {
+            "type" : "string"
+          },
+          "calculeLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "courbe" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SemaineDto"
+            }
+          },
+          "cycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "dossiers" : {
+            "$ref" : "#/components/schemas/PartDto"
+          },
+          "familles" : {
+            "$ref" : "#/components/schemas/PartDto"
+          },
+          "inscrits" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parCycle" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EffectifCycleDto"
+            }
+          },
+          "parNiveau" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EffectifNiveauDto"
+            }
+          },
+          "parStatut" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EffectifStatutDto"
+            }
+          },
+          "periode" : {
+            "type" : "string",
+            "enum" : [ "JOURS_30", "JOURS_90", "ANNEE" ]
+          }
+        }
       },
       "UrlDto" : {
         "type" : "object",

@@ -23,6 +23,9 @@ export type { DonneesSensiblesDto } from './models/donnees-sensibles-dto';
 export type { DonneesSensiblesRequete } from './models/donnees-sensibles-requete';
 export type { DossierDto } from './models/dossier-dto';
 export type { EcoleDto } from './models/ecole-dto';
+export type { EffectifCycleDto } from './models/effectif-cycle-dto';
+export type { EffectifNiveauDto } from './models/effectif-niveau-dto';
+export type { EffectifStatutDto } from './models/effectif-statut-dto';
 export type { EleveDto } from './models/eleve-dto';
 export type { EleveListeDto } from './models/eleve-liste-dto';
 export type { EleveRequete } from './models/eleve-requete';
@@ -48,6 +51,7 @@ export type { OptionEnseignementRequete } from './models/option-enseignement-req
 export type { PageDtoEleveListeDto } from './models/page-dto-eleve-liste-dto';
 export type { ParametresInscriptionDto } from './models/parametres-inscription-dto';
 export type { ParametresInscriptionRequete } from './models/parametres-inscription-requete';
+export type { PartDto } from './models/part-dto';
 export type { PeriodeDto } from './models/periode-dto';
 export type { PieceDto } from './models/piece-dto';
 export type { RapportImportDto } from './models/rapport-import-dto';
@@ -57,9 +61,11 @@ export type { ResponsableRequete } from './models/responsable-requete';
 export type { ResultatImportDto } from './models/resultat-import-dto';
 export type { SalleDto } from './models/salle-dto';
 export type { SalleRequete } from './models/salle-requete';
+export type { SemaineDto } from './models/semaine-dto';
 export type { SerieDto } from './models/serie-dto';
 export type { SerieRequete } from './models/serie-requete';
 export type { SortieRequete } from './models/sortie-requete';
+export type { TableauDeBordDto } from './models/tableau-de-bord-dto';
 export type { UrlDto } from './models/url-dto';
 
 export type { ActivationActiver$Params as ActivationActiver$Params } from './fn/activation-controller/activation-activer';
@@ -244,3 +250,5 @@ export type { SerieModifier$Params as SerieModifier$Params } from './fn/serie-co
 export { serieModifier as serieModifier } from './fn/serie-controller/serie-modifier';
 export type { SerieSupprimer$Params as SerieSupprimer$Params } from './fn/serie-controller/serie-supprimer';
 export { serieSupprimer as serieSupprimer } from './fn/serie-controller/serie-supprimer';
+export type { StatistiqueDirection$Params as StatistiqueDirection$Params } from './fn/statistique-controller/statistique-direction';
+export { statistiqueDirection as statistiqueDirection } from './fn/statistique-controller/statistique-direction';

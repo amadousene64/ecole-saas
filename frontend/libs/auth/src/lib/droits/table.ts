@@ -237,6 +237,8 @@ export const ACTIONS = {
   // Établissement
   'etablissement.ecrire': ['DIRECTEUR', 'SECRETARIAT'],
   'etablissement.direction': ['DIRECTEUR'],
+  // Tableau de bord de la direction (accueil du directeur) : effectifs, dossiers, familles.
+  'statistiques.voir': ['DIRECTEUR'],
 } as const satisfies Record<string, readonly RoleEcole[]>;
 
 export type IdAction = keyof typeof ACTIONS;
