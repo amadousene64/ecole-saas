@@ -106,11 +106,29 @@ describe('menus par rôle', () => {
       'Élèves et inscriptions',
       'Import',
       'Classes et salles',
+      'Années, périodes et calendrier',
+      'Profil et logo',
+      'Niveaux et séries',
+    ]);
+    expect(
+      menuPour(['SECRETARIAT'], 'backoffice').map((e) => e.groupe),
+    ).toEqual([
+      null,
+      null,
+      null,
+      null,
+      "Paramètres de l'école",
+      "Paramètres de l'école",
+      "Paramètres de l'école",
     ]);
   });
 
   it('censeur', () => {
-    expect(libelles('CENSEUR', 'backoffice')).toEqual(['Accueil', 'Élèves']);
+    expect(libelles('CENSEUR', 'backoffice')).toEqual([
+      'Accueil',
+      'Élèves',
+      'Classes',
+    ]);
   });
 
   it('comptable', () => {

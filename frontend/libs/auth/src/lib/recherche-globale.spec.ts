@@ -160,7 +160,11 @@ describe('Acces', () => {
       ],
     });
     const acces = TestBed.inject(Acces);
-    expect(acces.menu().map((e) => e.libelle)).toEqual(['Accueil', 'Élèves']);
+    expect(acces.menu().map((e) => e.libelle)).toEqual([
+      'Accueil',
+      'Élèves',
+      'Classes',
+    ]);
     expect(acces.libelleRole()).toBe('Censeur');
     expect(acces.peut('eleves.sensible.lire')).toBe(true);
     expect(acces.peut('eleves.ecrire')).toBe(false);
