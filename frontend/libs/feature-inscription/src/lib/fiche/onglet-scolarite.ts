@@ -1,4 +1,12 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -142,6 +150,23 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
         class="grille"
         data-testid="form-inscrire"
       >
+        @if (erreurClasses(); as message) {
+          <div class="message erreur" role="alert" data-testid="erreur-classes">
+            {{ message }}
+            <button
+              matButton
+              type="button"
+              (click)="chargerClasses()"
+              data-testid="reessayer-classes"
+            >
+              Réessayer
+            </button>
+          </div>
+        } @else if (chargementClasses()) {
+          <p role="status" data-testid="chargement-classes">
+            Chargement des classes…
+          </p>
+        }
         <mat-form-field appearance="outline">
           <mat-label>Classe</mat-label>
           <mat-select formControlName="classeId" data-testid="champ-classe">
@@ -263,6 +288,11 @@ export class OngletScolarite {
 
   protected readonly historique = signal<InscriptionDto[]>([]);
   protected readonly classes = signal<ClasseDto[]>([]);
+  /** Les classes proposées au formulaire : chargées dès que l'on peut écrire, et à la demande. */
+  protected readonly classesChargees = signal(false);
+  protected readonly chargementClasses = signal(false);
+  /** Reste affichée tant que les classes manquent : une liste vide ne s'ouvre pas, sans dire pourquoi. */
+  protected readonly erreurClasses = signal<string | null>(null);
   protected readonly action = signal<Action>(null);
   protected readonly erreur = signal<string | null>(null);
   protected readonly avertissements = signal<string[]>([]);
@@ -293,24 +323,45 @@ export class OngletScolarite {
 
   constructor() {
     queueMicrotask(() => void this.charger());
+    // Les droits arrivent avec la session : on ne les lit pas une fois pour toutes à la création.
+    effect(() => {
+      if (this.droits.peutEcrire()) {
+        untracked(() => void this.chargerClasses());
+      }
+    });
   }
 
   private async charger(): Promise<void> {
     try {
-      const [historique, classes] = await Promise.all([
-        this.service.historique(this.eleveId()),
-        this.droits.peutEcrire() ? this.service.classes() : Promise.resolve([]),
-      ]);
-      this.historique.set(historique);
-      this.classes.set(classes);
+      this.historique.set(await this.service.historique(this.eleveId()));
     } catch (e) {
       this.erreur.set(messageErreur(e));
+    }
+  }
+
+  protected async chargerClasses(): Promise<void> {
+    if (this.chargementClasses() || this.classesChargees()) {
+      return;
+    }
+    this.chargementClasses.set(true);
+    this.erreurClasses.set(null);
+    try {
+      this.classes.set(await this.service.classes());
+      this.classesChargees.set(true);
+    } catch (e) {
+      this.erreurClasses.set(
+        `Les classes n'ont pas pu être chargées. ${messageErreur(e)}`,
+      );
+    } finally {
+      this.chargementClasses.set(false);
     }
   }
 
   protected ouvrir(action: Action): void {
     this.action.set(action);
     this.erreur.set(null);
+    // Rouvrir le formulaire retente le chargement des classes s'il avait échoué.
+    void this.chargerClasses();
     this.formulaire.reset({
       classeId: '',
       statut: 'INSCRIT',

@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
   InscriptionDto,
@@ -7,6 +8,8 @@ import {
   inscriptionSortir,
   inscriptionValider,
 } from '@ecole/api-client';
+import { Api } from '@ecole/api-client';
+import { Session } from '@ecole/auth';
 import { fournisseursDeTest, stabiliser } from '../test-utilitaires';
 import { OngletScolarite } from './onglet-scolarite';
 
@@ -118,5 +121,95 @@ describe('OngletScolarite', () => {
 
     const directeur = await options('DIRECTEUR');
     expect(directeur).toContain('Radié');
+  });
+
+  describe('chargement des classes', () => {
+    /** Écran monté avec une session et un « serveur » dont on garde la main. */
+    async function monter(roles: string[], classes: () => unknown) {
+      const rolesSession = signal(roles);
+      const invoke = vi.fn(async (fn: unknown) => {
+        if (fn === inscriptionHistorique) {
+          return [];
+        }
+        if (fn === classeLister) {
+          return classes();
+        }
+        throw new Error('appel inattendu');
+      });
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: Api, useValue: { invoke } },
+          { provide: Session, useValue: { roles: rolesSession } },
+        ],
+      });
+      const fixture = TestBed.createComponent(OngletScolarite);
+      fixture.componentRef.setInput('eleveId', 'e1');
+      await stabiliser(fixture);
+      await stabiliser(fixture);
+      const racine = fixture.nativeElement as HTMLElement;
+      const nombre = () =>
+        invoke.mock.calls.filter(([f]) => f === classeLister).length;
+      return { fixture, racine, rolesSession, nombre };
+    }
+
+    it('charge les classes quand le droit d’écrire arrive après la création de l’écran', async () => {
+      const { fixture, racine, rolesSession, nombre } = await monter([], () => [
+        { id: 'k1', nom: '6E A' },
+      ]);
+      expect(nombre()).toBe(0);
+
+      rolesSession.set(['SECRETARIAT']);
+      await stabiliser(fixture);
+      await stabiliser(fixture);
+      expect(nombre()).toBe(1);
+
+      clic(racine, 'action-inscrire');
+      await stabiliser(fixture);
+      racine
+        .querySelector<HTMLElement>('[data-testid="champ-classe"]')!
+        .click();
+      await stabiliser(fixture);
+      expect(document.body.textContent).toContain('6E A');
+    });
+
+    it('dit pourquoi la liste est vide quand les classes ne se chargent pas, et permet de réessayer', async () => {
+      let echec = true;
+      const { fixture, racine, nombre } = await monter(['SECRETARIAT'], () => {
+        if (echec) {
+          throw new Error('coupé');
+        }
+        return [{ id: 'k1', nom: '6E A' }];
+      });
+      expect(nombre()).toBe(1);
+
+      clic(racine, 'action-inscrire');
+      await stabiliser(fixture);
+      // Rouvrir le formulaire retente le chargement ; il échoue encore : le message reste affiché.
+      expect(nombre()).toBe(2);
+      const alerte = racine.querySelector('[data-testid="erreur-classes"]');
+      expect(alerte?.getAttribute('role')).toBe('alert');
+      expect(alerte?.textContent).toContain(
+        "Les classes n'ont pas pu être chargées",
+      );
+
+      echec = false;
+      clic(racine, 'reessayer-classes');
+      await stabiliser(fixture);
+      expect(racine.querySelector('[data-testid="erreur-classes"]')).toBeNull();
+      racine
+        .querySelector<HTMLElement>('[data-testid="champ-classe"]')!
+        .click();
+      await stabiliser(fixture);
+      expect(document.body.textContent).toContain('6E A');
+    });
+
+    it('ne recharge pas les classes déjà chargées', async () => {
+      const { fixture, racine, nombre } = await monter(['SECRETARIAT'], () => [
+        { id: 'k1', nom: '6E A' },
+      ]);
+      clic(racine, 'action-inscrire');
+      await stabiliser(fixture);
+      expect(nombre()).toBe(1);
+    });
   });
 });
