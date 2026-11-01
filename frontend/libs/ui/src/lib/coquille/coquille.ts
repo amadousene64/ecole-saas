@@ -1,14 +1,17 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import {
+  afterNextRender,
   Component,
   computed,
+  ElementRef,
   inject,
+  Injector,
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import {
   NavigationEnd,
@@ -40,9 +43,13 @@ interface Section {
  */
 @Component({
   selector: 'ecole-coquille',
+  host: {
+    '(document:keydown)': 'clavierMenuCompte($event)',
+    '(document:focusin)': 'interactionHorsMenu($event)',
+    '(document:click)': 'interactionHorsMenu($event)',
+  },
   imports: [
     MatSidenavModule,
-    MatMenuModule,
     RouterLink,
     RouterLinkActive,
     Icone,
@@ -86,6 +93,14 @@ export class Coquille {
   });
 
   protected readonly menuOuvert = signal(false);
+  protected readonly menuCompteOuvert = signal(false);
+
+  private readonly boutonCompte =
+    viewChild<ElementRef<HTMLButtonElement>>('boutonCompte');
+  private readonly conteneurCompte =
+    viewChild<ElementRef<HTMLElement>>('conteneurCompte');
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injecteur = inject(Injector);
 
   /** Entrées regroupées par section, dans l'ordre d'apparition. */
   protected readonly sections = computed<Section[]>(() => {
@@ -106,10 +121,97 @@ export class Coquille {
     // Le tiroir se referme à chaque navigation.
     inject(Router)
       .events.pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe(() => this.menuOuvert.set(false));
+      .subscribe(() => {
+        this.menuOuvert.set(false);
+        this.menuCompteOuvert.set(false);
+      });
   }
 
   protected basculerMenu(): void {
     this.menuOuvert.update((ouvert) => !ouvert);
+  }
+
+  /**
+   * Menu du compte : un menu simple (disclosure) sans la couche de superposition de Material, que le
+   * premier écran n'a pas à charger. Ouvert, le focus va sur le premier élément ; Échap le referme et
+   * rend le focus au bouton ; Tab, un clic ailleurs ou un changement de page le ferment aussi ;
+   * flèches, Début et Fin parcourent les éléments.
+   */
+  protected basculerMenuCompte(): void {
+    if (this.menuCompteOuvert()) {
+      this.fermerMenuCompte(false);
+      return;
+    }
+    this.menuCompteOuvert.set(true);
+    afterNextRender(() => this.elementsMenu()[0]?.focus(), {
+      injector: this.injecteur,
+    });
+  }
+
+  protected choisirDansMenu(choix: 'ecole' | 'deconnexion'): void {
+    this.fermerMenuCompte(false);
+    if (choix === 'ecole') {
+      this.changerEcole.emit();
+    } else {
+      this.deconnexion.emit();
+    }
+  }
+
+  protected clavierMenuCompte(evenement: KeyboardEvent): void {
+    if (!this.menuCompteOuvert()) {
+      return;
+    }
+    if (evenement.key === 'Escape') {
+      evenement.preventDefault();
+      this.fermerMenuCompte(true);
+      return;
+    }
+    const elements = this.elementsMenu();
+    const courant = elements.indexOf(document.activeElement as HTMLElement);
+    let cible: number | null = null;
+    switch (evenement.key) {
+      case 'ArrowDown':
+        cible = (courant + 1) % elements.length;
+        break;
+      case 'ArrowUp':
+        cible = (courant - 1 + elements.length) % elements.length;
+        break;
+      case 'Home':
+        cible = 0;
+        break;
+      case 'End':
+        cible = elements.length - 1;
+        break;
+    }
+    if (cible !== null && elements.length > 0) {
+      evenement.preventDefault();
+      elements[cible].focus();
+    }
+  }
+
+  /** Focus ou clic hors du menu (Tab, clic ailleurs) : il se referme sans voler le focus. */
+  protected interactionHorsMenu(evenement: Event): void {
+    if (!this.menuCompteOuvert()) {
+      return;
+    }
+    const conteneur = this.conteneurCompte()?.nativeElement;
+    if (!conteneur?.contains(evenement.target as Node)) {
+      this.fermerMenuCompte(false);
+    }
+  }
+
+  private fermerMenuCompte(rendreLeFocus: boolean): void {
+    this.menuCompteOuvert.set(false);
+    if (rendreLeFocus) {
+      this.boutonCompte()?.nativeElement.focus();
+    }
+  }
+
+  private elementsMenu(): HTMLElement[] {
+    return Array.from(
+      this.hote.nativeElement.querySelectorAll<HTMLElement>(
+        '#menu-compte [role="menuitem"]',
+      ),
+    );
   }
 }

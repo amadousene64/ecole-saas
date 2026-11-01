@@ -1,9 +1,7 @@
-import { Component, computed, inject, input } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { Component, computed, inject, Injector, input } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Coquille, LienNavigation, TEXTES } from '@ecole/ui';
 import { Acces } from './acces';
-import { RechercheGlobale } from './recherche-globale';
 import { Session } from './session';
 
 /**
@@ -36,7 +34,8 @@ export class CoquilleApplication {
   protected readonly session = inject(Session);
   protected readonly acces = inject(Acces);
   private readonly router = inject(Router);
-  private readonly dialogue = inject(MatDialog);
+  private readonly injecteur = inject(Injector);
+  private rechercheOuverte = false;
 
   readonly titre = input<string>(TEXTES.nomPlateforme);
 
@@ -60,19 +59,40 @@ export class CoquilleApplication {
       evenement.key.toLowerCase() === 'k'
     ) {
       evenement.preventDefault();
-      this.ouvrirRecherche();
+      void this.ouvrirRecherche();
     }
   }
 
-  protected ouvrirRecherche(): void {
-    if (this.dialogue.openDialogs.length > 0 || this.liens().length === 0) {
+  /**
+   * La boîte de dialogue de Material et l'écran de recherche ne sont téléchargés qu'à la première
+   * ouverture : ils restent hors du lot initial, que le premier écran n'utilise pas.
+   */
+  protected async ouvrirRecherche(): Promise<void> {
+    if (this.rechercheOuverte || this.liens().length === 0) {
       return;
     }
-    this.dialogue.open(RechercheGlobale, {
-      position: { top: '12vh' },
-      autoFocus: 'first-tabbable',
-      ariaLabel: 'Recherche globale',
-      panelClass: 'panneau-recherche-globale',
-    });
+    this.rechercheOuverte = true;
+    try {
+      const [{ MatDialog }, { RechercheGlobale }] = await Promise.all([
+        import('@angular/material/dialog'),
+        import('./recherche-globale'),
+      ]);
+      const dialogue = this.injecteur.get(MatDialog);
+      if (dialogue.openDialogs.length === 0) {
+        dialogue
+          .open(RechercheGlobale, {
+            position: { top: '12vh' },
+            autoFocus: 'first-tabbable',
+            ariaLabel: 'Recherche globale',
+            panelClass: 'panneau-recherche-globale',
+          })
+          .afterClosed()
+          .subscribe(() => (this.rechercheOuverte = false));
+        return;
+      }
+    } catch {
+      // Réseau coupé ou nouvelle version : la recherche reste disponible au prochain essai.
+    }
+    this.rechercheOuverte = false;
   }
 }

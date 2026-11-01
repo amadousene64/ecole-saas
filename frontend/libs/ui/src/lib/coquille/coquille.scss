@@ -113,6 +113,41 @@
   color: var(--ecole-texte-secondaire);
 }
 
+.compte-conteneur {
+  position: relative;
+}
+
+.menu-compte {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  padding: 4px 0;
+  background: var(--ecole-surface);
+  border: 1px solid var(--ecole-bordure);
+  border-radius: var(--ecole-rayon-carte);
+  box-shadow: 0 4px 16px rgb(22 32 28 / 14%);
+}
+
+.element-menu {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--ecole-texte);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--ecole-primaire-doux);
+  }
+}
+
 .entete-menu-compte {
   display: flex;
   flex-direction: column;

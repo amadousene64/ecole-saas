@@ -13,5 +13,5 @@ export * from './lib/droits/table';
 export * from './lib/droits/navigation';
 export * from './lib/acces';
 export * from './lib/redirection-app';
-export * from './lib/recherche-globale';
+export * from './lib/recherche-sources';
 export * from './lib/pages/page-accueil';

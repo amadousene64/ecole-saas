@@ -231,3 +231,30 @@ test('recherche globale (Ctrl+K) : pages et élèves selon le rôle', async ({
   await page.getByText('Fictif Un Élève Démo').first().click();
   await expect(page).toHaveURL(/\/eleves\/[0-9a-f-]{36}$/);
 });
+
+test('menu du compte : ouvert au clavier, focus sur le premier élément, Échap le referme', async ({
+  page,
+}) => {
+  await seConnecter(page, 'directeur.a');
+  // Le menu se referme à chaque navigation : on attend la fin des redirections de connexion.
+  await expect(page.getByTestId('moi-roles')).toBeVisible();
+  const compte = page.getByTestId('menu-compte');
+  await expect(compte).toBeVisible();
+  await compte.focus();
+  await page.keyboard.press('Enter');
+
+  await expect(compte).toHaveAttribute('aria-expanded', 'true');
+  const sortie = page.getByRole('menuitem', { name: 'Se déconnecter' });
+  await expect(sortie).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(compte).toBeFocused();
+  await expect(compte).toHaveAttribute('aria-expanded', 'false');
+
+  // Un clic ailleurs referme aussi le menu.
+  await compte.click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.getByRole('heading', { level: 1 }).click();
+  await expect(page.getByRole('menu')).toHaveCount(0);
+});
