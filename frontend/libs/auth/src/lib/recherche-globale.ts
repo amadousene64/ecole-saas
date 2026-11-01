@@ -1,40 +1,9 @@
 import { MatDialogRef } from '@angular/material/dialog';
-import {
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  InjectionToken,
-  signal,
-} from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Icone } from '@ecole/ui';
 import { Acces } from './acces';
-
-/** Un résultat de la recherche globale. */
-export interface ResultatRecherche {
-  id: string;
-  libelle: string;
-  detail?: string;
-  /** Chemin interne vers lequel aller. */
-  chemin: string;
-}
-
-/**
- * Source de résultats ajoutée par une application (par exemple les élèves). Le terme est envoyé à
- * la source dans le CORPS d'une requête, jamais dans une URL.
- */
-export interface SourceRecherche {
-  id: string;
-  titre: string;
-  /** Vrai si l'utilisateur a le droit de chercher dans cette source. */
-  disponible(): boolean;
-  rechercher(terme: string): Promise<ResultatRecherche[]>;
-}
-
-export const SOURCES_RECHERCHE = new InjectionToken<SourceRecherche[]>(
-  'SOURCES_RECHERCHE',
-);
+import { ResultatRecherche, SOURCES_RECHERCHE } from './recherche-sources';
 
 const DELAI_MS = 250;
 const MIN_CARACTERES = 2;

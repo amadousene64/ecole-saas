@@ -141,3 +141,118 @@ describe('CoquilleLegere : barre du bas', () => {
     expect(racine.querySelector('main')?.classList).toContain('avec-barre');
   });
 });
+
+describe('Coquille : menu du compte', () => {
+  const bouton = (racine: HTMLElement) =>
+    racine.querySelector<HTMLButtonElement>('[data-testid="menu-compte"]')!;
+  const elements = (racine: HTMLElement) =>
+    Array.from(racine.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
+
+  async function ouvert(plusieursEcoles = true) {
+    const { fixture, racine } = await coquille(1440);
+    fixture.componentRef.setInput('plusieursEcoles', plusieursEcoles);
+    fixture.detectChanges();
+    document.body.appendChild(racine);
+    bouton(racine).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return { fixture, racine };
+  }
+
+  afterEach(() => document.body.replaceChildren());
+
+  it('est fermé au départ, puis annoncé ouvert avec ses éléments', async () => {
+    const { fixture, racine } = await coquille(1440);
+    expect(bouton(racine).getAttribute('aria-expanded')).toBe('false');
+    expect(bouton(racine).getAttribute('aria-haspopup')).toBe('menu');
+    expect(racine.querySelector('[role="menu"]')).toBeNull();
+
+    bouton(racine).click();
+    fixture.detectChanges();
+    expect(bouton(racine).getAttribute('aria-expanded')).toBe('true');
+    expect(racine.querySelector('[role="menu"]')).not.toBeNull();
+    expect(elements(racine).map((e) => e.textContent?.trim())).toEqual([
+      'Se déconnecter',
+    ]);
+  });
+
+  it('place le focus sur le premier élément et sait changer d’école', async () => {
+    const { racine } = await ouvert();
+    expect(elements(racine).map((e) => e.textContent?.trim())).toEqual([
+      "Changer d'école",
+      'Se déconnecter',
+    ]);
+    expect(document.activeElement).toBe(elements(racine)[0]);
+  });
+
+  it('Échap ferme le menu et rend le focus au bouton', async () => {
+    const { fixture, racine } = await ouvert();
+    elements(racine)[0].dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    );
+    fixture.detectChanges();
+    expect(racine.querySelector('[role="menu"]')).toBeNull();
+    expect(bouton(racine).getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(bouton(racine));
+  });
+
+  it('les flèches, Début et Fin parcourent les éléments en boucle', async () => {
+    const { racine } = await ouvert();
+    const [ecole, sortie] = elements(racine);
+    const touche = (key: string) =>
+      (document.activeElement as HTMLElement).dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true }),
+      );
+    touche('ArrowDown');
+    expect(document.activeElement).toBe(sortie);
+    touche('ArrowDown');
+    expect(document.activeElement).toBe(ecole);
+    touche('ArrowUp');
+    expect(document.activeElement).toBe(sortie);
+    touche('Home');
+    expect(document.activeElement).toBe(ecole);
+    touche('End');
+    expect(document.activeElement).toBe(sortie);
+  });
+
+  it('un choix émet l’événement et ferme le menu', async () => {
+    const { fixture, racine } = await ouvert();
+    const demandes: string[] = [];
+    fixture.componentInstance.changerEcole.subscribe(() =>
+      demandes.push('ecole'),
+    );
+    fixture.componentInstance.deconnexion.subscribe(() =>
+      demandes.push('deconnexion'),
+    );
+
+    elements(racine)[1].click();
+    fixture.detectChanges();
+    expect(demandes).toEqual(['deconnexion']);
+    expect(racine.querySelector('[role="menu"]')).toBeNull();
+  });
+
+  it('« Changer d’école » n’apparaît que pour plusieurs écoles', async () => {
+    const { racine } = await ouvert(false);
+    expect(elements(racine).map((e) => e.textContent?.trim())).toEqual([
+      'Se déconnecter',
+    ]);
+  });
+
+  it('se ferme quand le focus sort du menu ou qu’on clique ailleurs', async () => {
+    const { fixture, racine } = await ouvert();
+    const dehors = document.createElement('button');
+    document.body.appendChild(dehors);
+    dehors.focus();
+    fixture.detectChanges();
+    expect(racine.querySelector('[role="menu"]')).toBeNull();
+
+    // Un clic ailleurs referme aussi.
+    bouton(racine).click();
+    fixture.detectChanges();
+    expect(racine.querySelector('[role="menu"]')).not.toBeNull();
+    document.body.click();
+    fixture.detectChanges();
+    expect(racine.querySelector('[role="menu"]')).toBeNull();
+  });
+});

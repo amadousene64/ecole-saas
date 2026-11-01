@@ -8,6 +8,7 @@ export const TEXTES = {
   ecoleCourante: 'École',
   changerEcole: "Changer d'école",
   deconnexion: 'Se déconnecter',
+  menuCompte: 'Menu du compte',
   allerAuContenu: 'Aller au contenu',
   choisirEcoleTitre: 'Choisissez votre école',
   choisirEcoleAide: 'Votre compte est rattaché à plusieurs écoles.',
