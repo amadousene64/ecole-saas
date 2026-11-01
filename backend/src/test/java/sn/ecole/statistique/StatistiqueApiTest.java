@@ -210,7 +210,7 @@ class StatistiqueApiTest extends TestInscription {
     deposerPiece(infecte, "ACTE_NAISSANCE", "SAIN");
     deposerPiece(infecte, "PHOTO_IDENTITE", "INFECTE");
     deposerPiece(incomplet, "ACTE_NAISSANCE", "SAIN");
-    deposerPiece(incomplet, "CERTIFICAT", "SAIN"); // n'est pas une pièce exigée
+    deposerPiece(incomplet, "CERTIFICAT_SCOLARITE", "SAIN"); // n'est pas une pièce exigée
 
     JsonNode dossiers = direction("").path("dossiers");
 
