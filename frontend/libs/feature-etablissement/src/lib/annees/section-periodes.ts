@@ -28,9 +28,18 @@ import { LignePeriode } from './ligne-periode';
     }
     @for (groupe of groupes(); track groupe.cycle.id) {
       <h4>{{ groupe.nom }}</h4>
-      <div class="periodes" role="group" [attr.aria-label]="'Périodes : ' + groupe.nom" [attr.data-testid]="'periodes-' + groupe.cycle.code">
+      <div
+        class="periodes"
+        role="group"
+        [attr.aria-label]="'Périodes : ' + groupe.nom"
+        [attr.data-testid]="'periodes-' + groupe.cycle.code"
+      >
         @for (p of groupe.periodes; track p.id) {
-          <ecole-ligne-periode [periode]="p" [modifiable]="modifiable()" (modifiee)="remplacer($event)" />
+          <ecole-ligne-periode
+            [periode]="p"
+            [modifiable]="modifiable()"
+            (modifiee)="remplacer($event)"
+          />
         }
       </div>
     }
@@ -111,7 +120,9 @@ export class SectionPeriodes {
   protected async regenerer(): Promise<void> {
     this.erreur.set(null);
     try {
-      this.periodes.set(await this.service.genererPeriodes(requis(this.annee().id)));
+      this.periodes.set(
+        await this.service.genererPeriodes(requis(this.annee().id)),
+      );
     } catch (e) {
       this.erreur.set(messageErreur(e));
     }

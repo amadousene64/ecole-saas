@@ -1,19 +1,18 @@
 import { Route } from '@angular/router';
-import { gardeAuthentifie, ROUTES_SESSION } from '@ecole/auth';
+import { gardeAuthentifie, gardePage, ROUTES_SESSION } from '@ecole/auth';
 import { PageActivation } from './activation';
-import { PageEnfants } from './enfants';
-import { gardeParent } from './garde-parent';
 import { AccueilParent } from './accueil';
-import { PageBientot } from './bientot';
+import { PageEnfants } from './enfants';
 
-const garde = gardeParent;
+/** Un compte rattaché à aucune école va activer son compte avec le code remis par l'école. */
+const OPTIONS = { sansEcole: '/activer' };
 
 export const appRoutes: Route[] = [
   ...ROUTES_SESSION,
   {
     path: '',
     pathMatch: 'full',
-    canActivate: [garde],
+    canActivate: [gardePage('accueil-parent', OPTIONS)],
     component: AccueilParent,
     title: 'Accueil · Espace parent',
   },
@@ -26,30 +25,9 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'enfants',
-    canActivate: [garde],
+    canActivate: [gardePage('enfants', OPTIONS)],
     component: PageEnfants,
     title: 'Mes enfants · Espace parent',
-  },
-  {
-    path: 'notes',
-    canActivate: [garde],
-    component: PageBientot,
-    data: { titre: 'Notes' },
-    title: 'Notes · Espace parent',
-  },
-  {
-    path: 'paiements',
-    canActivate: [garde],
-    component: PageBientot,
-    data: { titre: 'Paiements' },
-    title: 'Paiements · Espace parent',
-  },
-  {
-    path: 'messages',
-    canActivate: [garde],
-    component: PageBientot,
-    data: { titre: 'Messages' },
-    title: 'Messages · Espace parent',
   },
   { path: '**', redirectTo: '' },
 ];

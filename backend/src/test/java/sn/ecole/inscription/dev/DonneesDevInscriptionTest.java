@@ -5,6 +5,7 @@ import static sn.ecole.Fixtures.DIRECTEUR_A;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import sn.ecole.etablissement.ReferentielScolaire;
@@ -13,6 +14,7 @@ import sn.ecole.inscription.application.EleveService;
 import sn.ecole.inscription.application.InscriptionService;
 import sn.ecole.inscription.application.LienParentalService;
 import sn.ecole.inscription.application.ResponsableService;
+import sn.ecole.inscription.domain.ResponsableRepository;
 import sn.ecole.shared.application.ExecutionPourTenant;
 import sn.ecole.shared.domain.TenantRepository;
 import tools.jackson.databind.JsonNode;
@@ -27,10 +29,18 @@ class DonneesDevInscriptionTest extends TestInscription {
   @Autowired ResponsableService responsables;
   @Autowired LienParentalService liens;
   @Autowired InscriptionService inscriptions;
+  @Autowired ResponsableRepository responsablesDepot;
 
   private DonneesDevInscription donnees() {
     return new DonneesDevInscription(
-        execution, tenants, referentiel, eleves, responsables, liens, inscriptions);
+        execution,
+        tenants,
+        referentiel,
+        eleves,
+        responsables,
+        liens,
+        inscriptions,
+        responsablesDepot);
   }
 
   private List<String> noms() throws Exception {
@@ -71,5 +81,43 @@ class DonneesDevInscriptionTest extends TestInscription {
                     Integer.class,
                     A))
         .isEqualTo(2);
+  }
+
+  @Test
+  void leParentDeDemoEstRelieAuCompteDeConnexionDeDevSeulementDansLEcoleA() throws Exception {
+    var annee = creerEtOuvrirAnnee(DIRECTEUR_A, A);
+    post(
+        DIRECTEUR_A,
+        A,
+        "/api/v1/classes",
+        corps(
+            "anneeId",
+            annee,
+            "niveauId",
+            niveau(DIRECTEUR_A, A, "CM2"),
+            "nom",
+            "CM2B",
+            "capacite",
+            40));
+
+    donnees().run(null);
+    donnees().run(null);
+
+    assertThat(
+            superUtilisateur()
+                .queryForList(
+                    "SELECT utilisateur_id FROM ecole.responsable"
+                        + " WHERE tenant_id = ? AND telephone = '+221700000001'",
+                    UUID.class,
+                    A))
+        .containsExactly(UUID.fromString("01930000-0000-7000-8000-000000000113"));
+    assertThat(
+            superUtilisateur()
+                .queryForObject(
+                    "SELECT count(*) FROM ecole.responsable"
+                        + " WHERE tenant_id = ? AND utilisateur_id IS NOT NULL",
+                    Integer.class,
+                    B))
+        .isZero();
   }
 }

@@ -4,13 +4,23 @@ import { STYLES_COMMUNS } from '../commun/styles';
 import { SectionCycles } from './section-cycles';
 import { SectionNiveaux } from './section-niveaux';
 import { SectionSeries } from './section-series';
+import { EnTetePage } from '@ecole/ui';
 
 /** Structure pédagogique : cycles, niveaux et séries de l'école. */
 @Component({
   selector: 'ecole-page-structure',
-  imports: [MatTabsModule, SectionCycles, SectionNiveaux, SectionSeries],
+  imports: [
+    EnTetePage,
+    MatTabsModule,
+    SectionCycles,
+    SectionNiveaux,
+    SectionSeries,
+  ],
   template: `
-    <h1>Structure pédagogique</h1>
+    <ecole-en-tete-page
+      titre="Structure pédagogique"
+      sousTitre="Cycles, niveaux et séries"
+    />
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Cycles">
         <ng-template matTabContent><ecole-section-cycles /></ng-template>

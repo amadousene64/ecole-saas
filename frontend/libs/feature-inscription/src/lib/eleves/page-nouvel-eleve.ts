@@ -1,3 +1,4 @@
+import { EnTetePage } from '@ecole/ui';
 import { Component, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -17,6 +18,7 @@ import { ServiceEleves } from '../services/service-eleves';
 @Component({
   selector: 'ecole-page-nouvel-eleve',
   imports: [
+    EnTetePage,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
@@ -26,7 +28,10 @@ import { ServiceEleves } from '../services/service-eleves';
   ],
   template: `
     <p><a routerLink="/eleves">← Retour à la liste</a></p>
-    <h1>Nouvel élève</h1>
+    <ecole-en-tete-page
+      titre="Nouvel élève"
+      sousTitre="Le matricule est attribué à la création"
+    />
     @if (erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur-creation">
         {{ message }}

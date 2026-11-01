@@ -3,13 +3,17 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { STYLES_COMMUNS } from '../commun/styles';
 import { SectionClasses } from './section-classes';
 import { SectionSalles } from './section-salles';
+import { EnTetePage } from '@ecole/ui';
 
 /** Classes d'une année et salles de l'école. */
 @Component({
   selector: 'ecole-page-classes',
-  imports: [MatTabsModule, SectionClasses, SectionSalles],
+  imports: [EnTetePage, MatTabsModule, SectionClasses, SectionSalles],
   template: `
-    <h1>Classes et salles</h1>
+    <ecole-en-tete-page
+      titre="Classes et salles"
+      sousTitre="Classes d'une année et salles de l'école"
+    />
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Classes">
         <ng-template matTabContent><ecole-section-classes /></ng-template>

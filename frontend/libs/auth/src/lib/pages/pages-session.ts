@@ -64,22 +64,23 @@ export class PageChoixEcole implements OnInit {
   }
 }
 
+/** Rôle sans aucun espace ouvert (ou adresse d'application non configurée) : cas limite. */
 @Component({
-  selector: 'ecole-page-acces-refuse',
+  selector: 'ecole-page-aucun-espace',
   imports: [EtatPage],
   template: `<ecole-etat-page
-    [titre]="textes.accesRefuseTitre"
-    [detail]="textes.accesRefuseDetail"
-    [action]="textes.retourAccueil"
-    (actionDemandee)="accueil()"
+    [titre]="textes.aucunEspaceTitre"
+    [detail]="textes.aucunEspaceDetail"
+    [action]="textes.deconnexion"
+    (actionDemandee)="deconnecter()"
   />`,
 })
-export class PageAccesRefuse {
+export class PageAucunEspace {
   protected readonly textes = TEXTES;
-  private readonly router = inject(Router);
+  private readonly session = inject(Session);
 
-  protected accueil(): void {
-    void this.router.navigateByUrl('/');
+  protected deconnecter(): void {
+    void this.session.deconnecter();
   }
 }
 

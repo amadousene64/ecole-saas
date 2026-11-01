@@ -42,7 +42,7 @@ import { ServiceAnnees } from '../services/service-annees';
         {{ message }}
       </p>
     }
-    <table data-testid="table-calendrier">
+    <table data-testid="table-calendrier" class="cartes">
       <thead>
         <tr>
           <th>Type</th>
@@ -57,12 +57,14 @@ import { ServiceAnnees } from '../services/service-annees';
       <tbody>
         @for (e of evenements(); track e.id) {
           <tr>
-            <td>{{ e.type === 'FERIE' ? 'Jour férié' : 'Vacances' }}</td>
-            <td>{{ e.libelle }}</td>
-            <td>{{ e.dateDebut | date: 'dd/MM/yyyy' }}</td>
-            <td>{{ e.dateFin | date: 'dd/MM/yyyy' }}</td>
+            <td data-label="Type">
+              {{ e.type === 'FERIE' ? 'Jour férié' : 'Vacances' }}
+            </td>
+            <td data-label="Libellé">{{ e.libelle }}</td>
+            <td data-label="Du">{{ e.dateDebut | date: 'dd/MM/yyyy' }}</td>
+            <td data-label="Au">{{ e.dateFin | date: 'dd/MM/yyyy' }}</td>
             @if (modifiable()) {
-              <td>
+              <td data-label="Actions">
                 <button matButton type="button" (click)="modifier(e)">
                   Modifier
                 </button>

@@ -12,6 +12,7 @@ import {
   exigerInfra,
   seConnecter,
   URL_API,
+  lienMenu,
 } from './support';
 
 /**
@@ -75,7 +76,7 @@ function verifierAucunNomDansLesUrls(): void {
 }
 
 async function ouvrirFiche(page: Page): Promise<void> {
-  await page.getByRole('link', { name: 'Élèves', exact: true }).click();
+  await lienMenu(page, 'Élèves', false).click();
   await page.getByTestId('filtre-recherche').fill(PRENOM_ELEVE);
   await expect(
     page.getByRole('link', { name: new RegExp(PRENOM_ELEVE) }),
@@ -94,7 +95,7 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
 }) => {
   surveillerUrls(page);
   await seConnecter(page, 'secretariat.a');
-  await page.getByRole('link', { name: 'Élèves', exact: true }).click();
+  await lienMenu(page, 'Élèves', false).click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
   await verifierAccessibilite(page, 'Liste des élèves');
 
