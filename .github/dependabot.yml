@@ -27,6 +27,11 @@ updates:
         patterns: ["nx", "@nx/*"]
       playwright:
         patterns: ["@playwright/*", "playwright*"]
+      # eslint, ses configurations et typescript-eslint se montent ensemble (dépendances pairs : une
+      # majeure d'eslint exige @eslint/js de même majeure). Les plugins angular-eslint restent dans
+      # le groupe angular, @nx/eslint* dans nx.
+      eslint:
+        patterns: ["eslint", "@eslint/*", "typescript-eslint", "@typescript-eslint/*"]
       # vitest et @vitest/* sont publiés ensemble et exigent la même version (dépendances pairs) :
       # les monter séparément casse npm ci.
       vitest:
