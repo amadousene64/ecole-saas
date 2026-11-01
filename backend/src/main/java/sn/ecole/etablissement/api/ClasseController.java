@@ -30,10 +30,13 @@ class ClasseController {
 
   private final ClasseService service;
   private final ClasseMapper mapper;
+  private final OptionEnseignementMapper optionMapper;
 
-  ClasseController(ClasseService service, ClasseMapper mapper) {
+  ClasseController(
+      ClasseService service, ClasseMapper mapper, OptionEnseignementMapper optionMapper) {
     this.service = service;
     this.mapper = mapper;
+    this.optionMapper = optionMapper;
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -83,6 +86,22 @@ class ClasseController {
   @Operation(summary = "Supprime (logiquement) une classe")
   void supprimer(@PathVariable UUID id) {
     service.supprimer(id);
+  }
+
+  @GetMapping(path = "/{id}/options", produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Options d'enseignement proposées par la classe")
+  List<OptionEnseignementDto> options(@PathVariable UUID id) {
+    return optionMapper.versDtos(service.options(id));
+  }
+
+  @PutMapping(
+      path = "/{id}/options",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Remplace les options proposées par la classe")
+  List<OptionEnseignementDto> definirOptions(
+      @PathVariable UUID id, @Valid @RequestBody ClasseOptionsRequete requete) {
+    return optionMapper.versDtos(service.definirOptions(id, requete.optionIds()));
   }
 
   private static Saisie saisie(ClasseRequete requete) {

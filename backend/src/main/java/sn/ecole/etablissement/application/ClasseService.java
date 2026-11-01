@@ -9,14 +9,18 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.ecole.etablissement.VerificateurUtilisationClasse;
 import sn.ecole.etablissement.domain.AnneeScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaireRepository;
 import sn.ecole.etablissement.domain.Classe;
+import sn.ecole.etablissement.domain.ClasseOption;
+import sn.ecole.etablissement.domain.ClasseOptionRepository;
 import sn.ecole.etablissement.domain.ClasseRepository;
 import sn.ecole.etablissement.domain.Niveau;
 import sn.ecole.etablissement.domain.NiveauRepository;
 import sn.ecole.etablissement.domain.NiveauSerie;
 import sn.ecole.etablissement.domain.NiveauSerieRepository;
+import sn.ecole.etablissement.domain.OptionEnseignement;
 import sn.ecole.etablissement.domain.ReglesClasse;
 import sn.ecole.etablissement.domain.SalleRepository;
 import sn.ecole.etablissement.domain.StatutAnnee;
@@ -36,17 +40,28 @@ public class ClasseService {
   private final NiveauRepository niveaux;
   private final NiveauSerieRepository liens;
   private final SalleRepository salles;
+  private final ClasseOptionRepository classesOptions;
+  private final OptionEnseignementService options;
+
+  /** Modules qui rattachent des données aux classes (inscription…) : voir issue #3. */
+  private final List<VerificateurUtilisationClasse> verificateurs;
 
   public ClasseService(
       ClasseRepository classes,
       AnneeScolaireRepository annees,
       NiveauRepository niveaux,
       NiveauSerieRepository liens,
-      SalleRepository salles) {
+      SalleRepository salles,
+      ClasseOptionRepository classesOptions,
+      OptionEnseignementService options,
+      List<VerificateurUtilisationClasse> verificateurs) {
     this.classes = classes;
     this.annees = annees;
     this.niveaux = niveaux;
     this.liens = liens;
+    this.classesOptions = classesOptions;
+    this.options = options;
+    this.verificateurs = List.copyOf(verificateurs);
     this.salles = salles;
   }
 
@@ -113,6 +128,14 @@ public class ClasseService {
       throw Erreurs.conflit(
           "SERIE_CLASSE_FIGEE", "La série d'une classe ne change plus une fois l'année en cours.");
     }
+    if ((!saisie.niveauId().equals(classe.getNiveauId())
+            || !Objects.equals(saisie.serieId(), classe.getSerieId()))
+        && estUtilisee(id)) {
+      // Même en préparation : des élèves y sont déjà (pré-)inscrits pour ce niveau.
+      throw Erreurs.conflit(
+          "CLASSE_UTILISEE",
+          "Des élèves sont inscrits dans cette classe : son niveau et sa série ne changent plus.");
+    }
     valider(saisie);
     // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
     verifierNomLibre(classe.getAnneeId(), saisie.nom(), id);
@@ -121,13 +144,70 @@ public class ClasseService {
     return classes.save(classe);
   }
 
+  /**
+   * Une classe utilisée (inscriptions, quel que soit leur statut) n'est jamais supprimée : on ne
+   * peut donc pas non plus la recréer sous le même nom sur un autre niveau (issue #3).
+   */
   @PreAuthorize(Droits.ECRITURE)
   public void supprimer(UUID id) {
     Classe classe = charger(id);
     chargerAnnee(classe.getAnneeId()).verifierModifiable();
-    // À bloquer quand des élèves y seront inscrits (module inscription).
+    if (estUtilisee(id)) {
+      throw Erreurs.conflit(
+          "CLASSE_UTILISEE",
+          "Des élèves sont inscrits dans cette classe : elle ne peut pas être supprimée.");
+    }
     classe.supprimer(Instant.now());
     classes.save(classe);
+  }
+
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  @Transactional(readOnly = true)
+  public List<OptionEnseignement> options(UUID classeId) {
+    charger(classeId);
+    Set<UUID> ids =
+        classesOptions.findByClasseId(classeId).stream()
+            .map(ClasseOption::getOptionId)
+            .collect(Collectors.toSet());
+    return options.lister().stream().filter(o -> ids.contains(o.getId())).toList();
+  }
+
+  /**
+   * Remplace les options proposées par la classe. Une option déjà choisie par un élève de la classe
+   * ne peut pas être retirée ; une option ajoutée doit être active.
+   */
+  @PreAuthorize(Droits.ECRITURE)
+  public List<OptionEnseignement> definirOptions(UUID classeId, Set<UUID> optionIds) {
+    Classe classe = charger(classeId);
+    chargerAnnee(classe.getAnneeId()).verifierModifiable();
+    List<ClasseOption> actuelles = classesOptions.findByClasseId(classeId);
+    Set<UUID> dejaProposees =
+        actuelles.stream().map(ClasseOption::getOptionId).collect(Collectors.toSet());
+    for (UUID optionId : optionIds) {
+      if (!dejaProposees.contains(optionId) && !options.charger(optionId).isActif()) {
+        throw Erreurs.regle("OPTION_INACTIVE", "Cette option n'est plus proposée.");
+      }
+    }
+    for (ClasseOption lien : actuelles) {
+      if (!optionIds.contains(lien.getOptionId())) {
+        if (verificateurs.stream().anyMatch(v -> v.optionUtilisee(classeId, lien.getOptionId()))) {
+          throw Erreurs.conflit(
+              "OPTION_UTILISEE", "Des élèves de cette classe ont choisi cette option.");
+        }
+        lien.retirer(Instant.now());
+        classesOptions.save(lien);
+      }
+    }
+    for (UUID optionId : optionIds) {
+      if (!dejaProposees.contains(optionId)) {
+        classesOptions.save(ClasseOption.proposer(classeId, optionId));
+      }
+    }
+    return options(classeId);
+  }
+
+  private boolean estUtilisee(UUID classeId) {
+    return verificateurs.stream().anyMatch(v -> v.classeUtilisee(classeId));
   }
 
   private void valider(Saisie saisie) {

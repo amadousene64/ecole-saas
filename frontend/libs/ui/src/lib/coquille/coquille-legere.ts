@@ -1,18 +1,20 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Icone } from '../icones/icone';
 import { LienNavigation } from '../modeles';
+import { ZoneNotifications } from '../notifications/notifications';
 import { TEXTES } from '../textes';
 
 /**
  * Coquille sans aucun composant Material (HTML natif + variables du thème) pour l'application
  * parent : le budget du premier chargement y est de 500 Ko, que la coquille Material (sidenav,
  * menu, overlay, boutons : environ 160 Ko) ferait dépasser. Mêmes entrées et sorties que {@link
- * Coquille}.
+ * Coquille}, sans recherche globale. La barre du bas n'apparaît qu'à partir de deux entrées : une
+ * seule n'a pas de sens.
  */
 @Component({
   selector: 'ecole-coquille-legere',
-  imports: [RouterLink, RouterLinkActive, Icone],
+  imports: [RouterLink, RouterLinkActive, Icone, ZoneNotifications],
   templateUrl: './coquille-legere.html',
   styleUrl: './coquille-legere.scss',
 })
@@ -23,8 +25,11 @@ export class CoquilleLegere {
   readonly liens = input<LienNavigation[]>([]);
   readonly ecole = input<string | null>(null);
   readonly utilisateur = input<string | null>(null);
+  readonly role = input<string | null>(null);
   readonly plusieursEcoles = input(false);
 
   readonly changerEcole = output<void>();
   readonly deconnexion = output<void>();
+
+  protected readonly avecBarre = computed(() => this.liens().length >= 2);
 }

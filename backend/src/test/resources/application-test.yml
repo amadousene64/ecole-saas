@@ -12,6 +12,10 @@ spring:
 ecole:
   tenant:
     resolution: entete
+  outbox:
+    relais:
+      # Les tests déclenchent le relais eux-mêmes (RelaisOutbox.traiterTout).
+      actif: false
 springdoc:
   api-docs:
     enabled: true

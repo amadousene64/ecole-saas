@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -40,14 +41,39 @@ class FiltreTenant extends OncePerRequestFilter {
   private final ResolveurTenantRequete resolveur;
   private final AppartenanceService appartenances;
   private final Problemes problemes;
+
+  /**
+   * Faux seulement pour l'activation d'un compte (chaîne dédiée, un seul chemin) : l'utilisateur
+   * n'est pas encore membre de l'école. Il n'y reçoit aucun rôle, mais l'école doit être active.
+   */
+  private final boolean exigerAppartenance;
+
+  private final Predicate<UUID> ecoleActive;
   private final SecurityContextHolderStrategy contextes =
       SecurityContextHolder.getContextHolderStrategy();
 
   FiltreTenant(
       ResolveurTenantRequete resolveur, AppartenanceService appartenances, Problemes problemes) {
+    this(resolveur, Objects.requireNonNull(appartenances), problemes, true, ecole -> false);
+  }
+
+  private FiltreTenant(
+      ResolveurTenantRequete resolveur,
+      AppartenanceService appartenances,
+      Problemes problemes,
+      boolean exigerAppartenance,
+      Predicate<UUID> ecoleActive) {
     this.resolveur = resolveur;
     this.appartenances = appartenances;
     this.problemes = problemes;
+    this.exigerAppartenance = exigerAppartenance;
+    this.ecoleActive = ecoleActive;
+  }
+
+  /** Variante sans appartenance ni rôle : réservée à la chaîne d'activation de compte. */
+  static FiltreTenant sansAppartenance(
+      ResolveurTenantRequete resolveur, Problemes problemes, Predicate<UUID> ecoleActive) {
+    return new FiltreTenant(resolveur, null, problemes, false, ecoleActive);
   }
 
   // Pas de shouldNotFilter : le filtre n'est enregistré que dans la chaîne /api/**, et un test
@@ -91,6 +117,14 @@ class FiltreTenant extends OncePerRequestFilter {
                 new ErreurMetier(
                     "TENANT_ABSENT", TypeErreur.INVALIDE, "Aucune école n'est désignée."));
     UUID utilisateurId = identifiant(jeton);
+    if (!exigerAppartenance) {
+      if (!ecoleActive.test(tenantId)) {
+        throw new ErreurMetier(
+            "TENANT_NON_AUTORISE", TypeErreur.INTERDIT, "Vous n'avez pas accès à cette école.");
+      }
+      remplacerAutorites(jeton, List.of());
+      return tenantId;
+    }
     Set<RoleEcole> roles = appartenances.rolesPour(tenantId, utilisateurId);
     if (roles.isEmpty()) {
       throw new ErreurMetier(
@@ -101,13 +135,17 @@ class FiltreTenant extends OncePerRequestFilter {
             .map(RoleEcole::autorite)
             .<GrantedAuthority>map(SimpleGrantedAuthority::new)
             .toList();
+    remplacerAutorites(jeton, autorites);
+    return tenantId;
+  }
+
+  private void remplacerAutorites(JwtAuthenticationToken jeton, List<GrantedAuthority> autorites) {
     JwtAuthenticationToken avecRoles =
         new JwtAuthenticationToken(jeton.getToken(), autorites, jeton.getName());
     avecRoles.setDetails(jeton.getDetails());
     SecurityContext contexte = contextes.createEmptyContext();
     contexte.setAuthentication(avecRoles);
     contextes.setContext(contexte);
-    return tenantId;
   }
 
   private static UUID identifiant(JwtAuthenticationToken jeton) {

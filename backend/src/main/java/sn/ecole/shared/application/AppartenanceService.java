@@ -13,7 +13,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -101,6 +103,31 @@ public class AppartenanceService {
     }
     appartenances.save(Appartenance.attribuer(utilisateurId, role));
     journal.consigner(ROLE_ATTRIBUE, CIBLE_UTILISATEUR, utilisateurId, Map.of("role", role));
+    changerGenerationAuCommit(utilisateurId);
+  }
+
+  /**
+   * Donne à l'utilisateur CONNECTÉ le rôle PARENT ou ELEVE dans l'école courante, après
+   * vérification par l'appelant d'un code d'activation remis par l'école. Aucun autre rôle n'est
+   * possible et l'utilisateur ne peut jamais être un autre que soi : même mal appelée, la méthode
+   * ne permet pas d'élever des droits de personnel. Seul le cas d'usage d'activation du module
+   * inscription l'appelle (règle ArchUnit), dans sa transaction.
+   */
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(propagation = Propagation.MANDATORY)
+  public void rattacherParActivation(RoleEcole role) {
+    if (role != RoleEcole.PARENT && role != RoleEcole.ELEVE) {
+      throw new IllegalArgumentException("Activation : rôle PARENT ou ELEVE seulement.");
+    }
+    ContexteTenant.exiger();
+    UUID utilisateurId =
+        UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+    if (appartenances.findByUtilisateurIdAndRole(utilisateurId, role).isPresent()) {
+      return;
+    }
+    appartenances.save(Appartenance.attribuer(utilisateurId, role));
+    journal.consigner(
+        ROLE_ATTRIBUE, CIBLE_UTILISATEUR, utilisateurId, Map.of("role", role, "par", "ACTIVATION"));
     changerGenerationAuCommit(utilisateurId);
   }
 

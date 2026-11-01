@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideEcoleAuth } from '@ecole/auth';
+import { provideRechercheEleves } from '@ecole/feature-inscription';
 import { appRoutes } from './app.routes';
 import { environnement } from './environnement';
 
@@ -18,5 +19,6 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'fr' },
     provideRouter(appRoutes),
     provideEcoleAuth(environnement),
+    provideRechercheEleves(),
   ],
 };
