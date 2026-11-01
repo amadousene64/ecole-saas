@@ -34,6 +34,21 @@ public class JournalAudit {
             acteurCourant(), action, typeCible, idCible, json.writeValueAsString(details)));
   }
 
+  /**
+   * Action d'une tâche de fond (relais de l'outbox…), sans utilisateur : l'acteur est {@link
+   * #ACTEUR_SYSTEME}.
+   */
+  @Transactional(propagation = Propagation.MANDATORY)
+  public EntreeJournalAudit consignerSysteme(
+      String action, String typeCible, UUID idCible, Map<String, ?> details) {
+    return journal.save(
+        new EntreeJournalAudit(
+            ACTEUR_SYSTEME, action, typeCible, idCible, json.writeValueAsString(details)));
+  }
+
+  /** Acteur des actions automatiques : ne correspond à aucun compte Keycloak. */
+  public static final UUID ACTEUR_SYSTEME = new UUID(0L, 0L);
+
   private static UUID acteurCourant() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth == null || !auth.isAuthenticated()) {

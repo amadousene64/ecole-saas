@@ -3,7 +3,9 @@
   "displayName": "Gestion scolaire (dev)",
   "enabled": true,
   "sslRequired": "external",
-  "registrationAllowed": false,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "verifyEmail": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
@@ -15,7 +17,9 @@
   "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 0,
   "internationalizationEnabled": true,
-  "supportedLocales": ["fr"],
+  "supportedLocales": [
+    "fr"
+  ],
   "defaultLocale": "fr",
   "passwordPolicy": "length(10) and notUsername",
   "clients": [
@@ -40,15 +44,27 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:4200/*"],
-      "webOrigins": ["http://localhost:4200"],
-      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:4200/*" },
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*",
+        "login_theme": "ecole-personnel"
+      },
       "protocolMappers": [
         {
           "name": "audience-ecole-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
-          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+          "config": {
+            "included.client.audience": "ecole-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
         }
       ]
     },
@@ -60,15 +76,26 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:4201/*"],
-      "webOrigins": ["http://localhost:4201"],
-      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:4201/*" },
+      "redirectUris": [
+        "http://localhost:4201/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4201"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4201/*"
+      },
       "protocolMappers": [
         {
           "name": "audience-ecole-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
-          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+          "config": {
+            "included.client.audience": "ecole-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
         }
       ]
     },
@@ -80,15 +107,27 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:4202/*"],
-      "webOrigins": ["http://localhost:4202"],
-      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:4202/*" },
+      "redirectUris": [
+        "http://localhost:4202/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4202"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4202/*",
+        "login_theme": "ecole-personnel"
+      },
       "protocolMappers": [
         {
           "name": "audience-ecole-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
-          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+          "config": {
+            "included.client.audience": "ecole-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
         }
       ]
     },
@@ -106,7 +145,11 @@
           "name": "audience-ecole-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
-          "config": { "included.client.audience": "ecole-api", "access.token.claim": "true", "id.token.claim": "false" }
+          "config": {
+            "included.client.audience": "ecole-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
         }
       ]
     }
@@ -120,7 +163,13 @@
       "lastName": "Fictif A",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     },
     {
       "id": "01930000-0000-7000-8000-000000000102",
@@ -130,7 +179,13 @@
       "lastName": "Parent Fictif",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     },
     {
       "id": "01930000-0000-7000-8000-000000000103",
@@ -140,7 +195,13 @@
       "lastName": "Fictif B",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     },
     {
       "id": "01930000-0000-7000-8000-000000000105",
@@ -150,7 +211,13 @@
       "lastName": "Fictif A",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     },
     {
       "id": "01930000-0000-7000-8000-000000000106",
@@ -160,7 +227,13 @@
       "lastName": "Fictif B",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     },
     {
       "id": "01930000-0000-7000-8000-000000000107",
@@ -170,7 +243,74 @@
       "lastName": "Fictif A",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "Passer-2026-dev", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000111",
+      "username": "comptable.a",
+      "email": "comptable.a@exemple.test",
+      "firstName": "Comptable",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000112",
+      "username": "surveillant.a",
+      "email": "surveillant.a@exemple.test",
+      "firstName": "Surveillant",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000113",
+      "username": "parent.demo",
+      "email": "parent.demo@exemple.test",
+      "firstName": "Parent",
+      "lastName": "Démo Fictif",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     }
-  ]
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{},\"pattern\":{\"pattern\":\"^([+][1-9][0-9]{7,14}|[a-z0-9][a-z0-9._-]{2,59})$\",\"error-message\":\"Identifiant : numéro de téléphone au format international (+221…) ou lettres minuscules, chiffres, « . », « _ », « - ».\"}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+          ]
+        }
+      }
+    ]
+  }
 }

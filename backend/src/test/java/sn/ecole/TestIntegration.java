@@ -45,6 +45,20 @@ public abstract class TestIntegration {
     registre.add("spring.flyway.password", () -> "owner-test");
     registre.add("spring.data.redis.host", REDIS::getHost);
     registre.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
+    // Clés tirées au hasard à chaque exécution : aucune clé dans le dépôt, même de test.
+    registre.add("ecole.cles.chiffrement", () -> CLE_CHIFFREMENT);
+    registre.add("ecole.cles.hmac-codes", () -> CLE_HMAC);
+  }
+
+  /** Clé AES de cette exécution : les tests de chiffrement s'en servent pour vérifier la base. */
+  protected static final String CLE_CHIFFREMENT = cleAleatoire();
+
+  private static final String CLE_HMAC = cleAleatoire();
+
+  private static String cleAleatoire() {
+    byte[] cle = new byte[32];
+    new java.security.SecureRandom().nextBytes(cle);
+    return java.util.Base64.getEncoder().encodeToString(cle);
   }
 
   @Autowired protected StringRedisTemplate redis;

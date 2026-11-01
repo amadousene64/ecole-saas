@@ -30,7 +30,7 @@ import { ServiceClasses } from '../services/service-classes';
         {{ message }}
       </p>
     }
-    <table data-testid="table-salles">
+    <table data-testid="table-salles" class="cartes">
       <thead>
         <tr>
           <th>Salle</th>
@@ -44,11 +44,11 @@ import { ServiceClasses } from '../services/service-classes';
       <tbody>
         @for (s of salles(); track s.id) {
           <tr [attr.data-testid]="'salle-' + s.nom">
-            <td>{{ s.nom }}</td>
-            <td>{{ s.capacite }}</td>
-            <td>{{ s.actif ? 'Oui' : 'Non' }}</td>
+            <td data-label="Salle">{{ s.nom }}</td>
+            <td data-label="Capacité">{{ s.capacite }}</td>
+            <td data-label="Active">{{ s.actif ? 'Oui' : 'Non' }}</td>
             @if (droits.peutEcrire()) {
-              <td>
+              <td data-label="Actions">
                 <button matButton type="button" (click)="modifier(s)">
                   Modifier
                 </button>

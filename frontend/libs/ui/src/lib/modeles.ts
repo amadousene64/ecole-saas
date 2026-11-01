@@ -10,6 +10,8 @@ export interface EcoleChoix {
 export interface LienNavigation {
   chemin: string;
   libelle: string;
-  /** Icône de la barre de navigation basse (app parent). */
+  /** Icône de l'entrée (barre latérale, barre de navigation basse de l'app parent). */
   icone?: NomIcone;
+  /** Intitulé de section sous lequel l'entrée est rangée dans la barre latérale. */
+  groupe?: string | null;
 }

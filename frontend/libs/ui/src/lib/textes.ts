@@ -3,6 +3,7 @@ export const TEXTES = {
   nomPlateforme: 'Gestion scolaire',
   navigationPrincipale: 'Navigation principale',
   ouvrirMenu: 'Menu',
+  rechercher: 'Rechercher',
   menuUtilisateur: "Menu de l'utilisateur",
   ecoleCourante: 'École',
   changerEcole: "Changer d'école",
@@ -14,9 +15,9 @@ export const TEXTES = {
   reessayer: 'Réessayer',
   erreurTitre: 'Une erreur est survenue',
   erreurDetailDefaut: 'Veuillez réessayer dans un instant.',
-  accesRefuseTitre: 'Accès refusé',
-  accesRefuseDetail:
-    "Vous n'avez pas les droits nécessaires pour consulter cette page.",
+  aucunEspaceTitre: 'Aucun espace disponible',
+  aucunEspaceDetail:
+    "Votre rôle dans cette école n'a pas encore d'espace ouvert. Contactez l'établissement, ou changez d'école.",
   retourAccueil: "Retour à l'accueil",
   aucuneEcoleTitre: 'Aucune école',
   aucuneEcoleDetail:

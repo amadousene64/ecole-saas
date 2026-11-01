@@ -35,7 +35,7 @@ import { ServiceStructure } from '../services/service-structure';
         {{ message }}
       </p>
     }
-    <table data-testid="table-niveaux">
+    <table data-testid="table-niveaux" class="cartes">
       <thead>
         <tr>
           <th>Code</th>
@@ -52,19 +52,19 @@ import { ServiceStructure } from '../services/service-structure';
       <tbody>
         @for (n of niveaux(); track n.id) {
           <tr [attr.data-testid]="'niveau-' + n.code">
-            <td>{{ n.code }}</td>
-            <td>{{ n.libelle }}</td>
-            <td>{{ nomCycle(n.cycleId) }}</td>
-            <td>
+            <td data-label="Code">{{ n.code }}</td>
+            <td data-label="Libellé">{{ n.libelle }}</td>
+            <td data-label="Cycle">{{ nomCycle(n.cycleId) }}</td>
+            <td data-label="Base de la moyenne">
               Sur {{ n.baseMoyenneEffective }}
               @if (n.baseMoyenne) {
                 <ecole-pastille ton="fleuve">propre au niveau</ecole-pastille>
               }
             </td>
-            <td>{{ codesSeries(n) }}</td>
-            <td>{{ n.actif ? 'Oui' : 'Non' }}</td>
+            <td data-label="Séries">{{ codesSeries(n) }}</td>
+            <td data-label="Actif">{{ n.actif ? 'Oui' : 'Non' }}</td>
             @if (droits.peutEcrire()) {
-              <td>
+              <td data-label="Actions">
                 <button matButton type="button" (click)="modifier(n)">
                   Modifier
                 </button>

@@ -30,6 +30,7 @@ public class Problemes {
       case INTROUVABLE -> HttpStatus.NOT_FOUND;
       case CONFLIT -> HttpStatus.CONFLICT;
       case REGLE_METIER -> HttpStatus.UNPROCESSABLE_CONTENT;
+      case TROP_DE_TENTATIVES -> HttpStatus.TOO_MANY_REQUESTS;
     };
   }
 

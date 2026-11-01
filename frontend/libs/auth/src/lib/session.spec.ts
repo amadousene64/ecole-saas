@@ -130,9 +130,80 @@ describe('Session', () => {
     TestBed.inject(EcoleCourante).choisir('a');
     await session().charger();
     expect(session().utilisateur()).toBe('enseignant.parent');
-    session().deconnecter();
+    await session().deconnecter();
     expect(oidc.logoff).toHaveBeenCalled();
     expect(TestBed.inject(EcoleCourante).id()).toBeNull();
     expect(session().profil()).toBeNull();
+  });
+
+  describe('à la déconnexion', () => {
+    let supprimes: string[];
+
+    beforeEach(() => {
+      supprimes = [];
+      const caches = {
+        keys: vi.fn(async () => [
+          'ngsw:/:db:control',
+          'ngsw:/:1:data:dynamic:api:cache',
+        ]),
+        delete: vi.fn(async (nom: string) => {
+          supprimes.push(nom);
+          return true;
+        }),
+      };
+      vi.stubGlobal('caches', caches);
+    });
+
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("vide l'état local : stockages du navigateur et caches du service worker", async () => {
+      TestBed.inject(EcoleCourante).choisir('a');
+      sessionStorage.setItem('ecole.retour', '/enfants');
+      sessionStorage.setItem('autre', 'x');
+      localStorage.setItem('brouillon', 'données fictives');
+      await session().charger();
+
+      await session().deconnecter();
+
+      expect(sessionStorage.length).toBe(0);
+      expect(localStorage.length).toBe(0);
+      expect(supprimes).toEqual([
+        'ngsw:/:db:control',
+        'ngsw:/:1:data:dynamic:api:cache',
+      ]);
+      expect(oidc.logoff).toHaveBeenCalledOnce();
+      expect(session().ecoles()).toEqual([]);
+      expect(session().profil()).toBeNull();
+    });
+
+    it('vide les caches avant de lancer la déconnexion, les stockages dès qu’elle est lancée', async () => {
+      const ordre: string[] = [];
+      vi.stubGlobal('caches', {
+        keys: async () => ['c'],
+        delete: async () => {
+          ordre.push('cache');
+          return true;
+        },
+      });
+      oidc.logoff.mockImplementationOnce(() => {
+        ordre.push('logoff');
+        sessionStorage.setItem('jeton', 'fictif');
+        return of(null);
+      });
+      await session().deconnecter();
+      expect(ordre).toEqual(['cache', 'logoff']);
+      // Le jeton posé pendant la déconnexion est lui aussi retiré une fois celle-ci terminée.
+      expect(sessionStorage.getItem('jeton')).toBeNull();
+    });
+
+    it('se déconnecte quand même si le stockage ou les caches sont inaccessibles', async () => {
+      vi.stubGlobal('caches', {
+        keys: async () => {
+          throw new Error('indisponible');
+        },
+      });
+      await session().deconnecter();
+      expect(oidc.logoff).toHaveBeenCalledOnce();
+    });
   });
 });

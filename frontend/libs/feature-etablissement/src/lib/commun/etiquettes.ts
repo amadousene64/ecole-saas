@@ -6,7 +6,10 @@ export type ModeNotation = 'BAREME' | 'COEFFICIENT';
 export type StatutAnnee = 'PREPARATION' | 'EN_COURS' | 'CLOTUREE';
 export type TypeEvenement = 'FERIE' | 'VACANCES';
 
-export const STATUTS_ETABLISSEMENT: { valeur: StatutEtablissement; libelle: string }[] = [
+export const STATUTS_ETABLISSEMENT: {
+  valeur: StatutEtablissement;
+  libelle: string;
+}[] = [
   { valeur: 'PUBLIC', libelle: 'Public' },
   { valeur: 'PRIVE_LAIQUE', libelle: 'Privé laïc' },
   { valeur: 'PRIVE_CONFESSIONNEL', libelle: 'Privé confessionnel' },
@@ -40,6 +43,9 @@ export const TYPES_EVENEMENT: { valeur: TypeEvenement; libelle: string }[] = [
 ];
 
 /** Règle du modèle : la base 10 n'existe qu'avec les barèmes (les coefficients sont sur 20). */
-export function baseCompatible(mode: ModeNotation, base: number | null): boolean {
+export function baseCompatible(
+  mode: ModeNotation,
+  base: number | null,
+): boolean {
   return !(mode === 'COEFFICIENT' && base === 10);
 }

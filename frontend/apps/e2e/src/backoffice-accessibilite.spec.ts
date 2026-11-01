@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { verifierAccessibilite } from './accessibilite';
-import { exigerInfra, seConnecter, verifierProfil } from './support';
+import { exigerInfra, seConnecter, verifierProfil, lienMenu } from './support';
 
 // Accessibilité du back-office (axe, WCAG 2.1 AA, dont les contrastes) : coquille et écrans du
 // module établissement, sur ordinateur et sur téléphone.
@@ -19,7 +19,7 @@ test('les écrans du back-office respectent WCAG 2.1 AA', async ({ page }) => {
   await verifierAccessibilite(page, 'Accueil');
 
   for (const lien of PAGES) {
-    await page.getByRole('link', { name: lien, exact: true }).click();
+    await lienMenu(page, lien).click();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await verifierAccessibilite(page, lien);
   }
