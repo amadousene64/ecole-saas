@@ -140,6 +140,24 @@ public class ReferentielScolaireService implements ReferentielScolaire {
     return noms;
   }
 
+  @Override
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  public List<NiveauScolaire> niveaux() {
+    Map<UUID, Cycle> parCycle = new HashMap<>();
+    cycles.findAll().forEach(c -> parCycle.put(c.getId(), c));
+    return niveaux.findAllByOrderByOrdre().stream()
+        .filter(n -> parCycle.containsKey(n.getCycleId()))
+        .map(
+            n ->
+                new NiveauScolaire(
+                    n.getId(),
+                    n.getCode(),
+                    n.getLibelle(),
+                    n.getOrdre(),
+                    parCycle.get(n.getCycleId()).getCode()))
+        .toList();
+  }
+
   private List<ClasseScolaire> versClasseScolaire(List<Classe> liste) {
     if (liste.isEmpty()) {
       return List.of();

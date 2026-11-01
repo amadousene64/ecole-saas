@@ -88,6 +88,10 @@ ecole:
       # Seuls ces clients activent un code d'école (rattachement parent/élève).
       clients-activation: [parent]
 
+  statistique:
+    # Durée de vie du tableau de bord de la direction dans Redis (par école, année, période, cycle).
+    cache-ttl: 5m
+
   stockage:
     # MinIO (API S3). Les clés d'accès viennent de l'environnement ; bucket privé.
     endpoint: ${ECOLE_STOCKAGE_ENDPOINT:http://localhost:9000}
