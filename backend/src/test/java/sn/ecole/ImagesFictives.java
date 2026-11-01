@@ -38,6 +38,54 @@ public final class ImagesFictives {
     return sortie.toByteArray();
   }
 
+  /**
+   * JPEG 60 x 40 : un carré rouge dans le coin haut-gauche, le reste blanc, avec l'orientation EXIF
+   * donnée.
+   */
+  public static byte[] jpegAvecOrientation(int valeur) {
+    return jpegAvecExif(tiffOrientation(valeur));
+  }
+
+  /** Même image que {@link #jpegAvecOrientation}, avec ce TIFF brut dans un segment APP1 EXIF. */
+  public static byte[] jpegAvecExif(byte[] tiff) {
+    BufferedImage image = new BufferedImage(60, 40, BufferedImage.TYPE_INT_RGB);
+    Graphics2D g = image.createGraphics();
+    try {
+      g.setPaint(Color.WHITE);
+      g.fillRect(0, 0, 60, 40);
+      g.setPaint(Color.RED);
+      g.fillRect(0, 0, 14, 14);
+    } finally {
+      g.dispose();
+    }
+    byte[] jpeg = encoder(image, "jpeg");
+    ByteArrayOutputStream exif = new ByteArrayOutputStream();
+    exif.writeBytes("Exif\0\0".getBytes(StandardCharsets.US_ASCII));
+    exif.writeBytes(tiff);
+    int longueur = 2 + exif.size();
+    int finApp0 = 4 + (((jpeg[4] & 0xFF) << 8) | (jpeg[5] & 0xFF));
+    ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+    sortie.write(jpeg, 0, finApp0);
+    sortie.write(0xFF);
+    sortie.write(0xE1);
+    sortie.write(longueur >> 8);
+    sortie.write(longueur & 0xFF);
+    sortie.writeBytes(exif.toByteArray());
+    sortie.write(jpeg, finApp0, jpeg.length - finApp0);
+    return sortie.toByteArray();
+  }
+
+  /** TIFF petit-boutiste : IFD0 d'une seule entrée, Orientation (0x0112) = {@code valeur}. */
+  public static byte[] tiffOrientation(int valeur) {
+    ByteBuffer tiff = ByteBuffer.allocate(26).order(ByteOrder.LITTLE_ENDIAN);
+    tiff.put((byte) 'I').put((byte) 'I').putShort((short) 42).putInt(8);
+    tiff.putShort((short) 1);
+    tiff.putShort((short) 0x0112).putShort((short) 3).putInt(1);
+    tiff.putShort((short) valeur).putShort((short) 0);
+    tiff.putInt(0);
+    return tiff.array();
+  }
+
   /** PNG avec un bloc tEXt (commentaire) inséré après l'en-tête. */
   public static byte[] pngAvecTexte(String texte) {
     byte[] png = encoder(dessin(300, 200, BufferedImage.TYPE_INT_ARGB), "png");

@@ -55,6 +55,14 @@ public interface ReferentielScolaire {
    */
   Map<UUID, String> nomsClasses(Collection<UUID> classeIds);
 
+  /**
+   * Niveaux de l'école, par ordre, avec leur cycle. Réservé au personnel (libellés d'affichage des
+   * statistiques et des listes).
+   */
+  List<NiveauScolaire> niveaux();
+
+  record NiveauScolaire(UUID id, String code, String libelle, int ordre, CodeCycle codeCycle) {}
+
   record ClasseScolaire(
       UUID id,
       UUID anneeId,

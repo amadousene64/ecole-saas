@@ -171,6 +171,47 @@ public class PieceService implements UtilisationEleve {
     journal.consigner("PIECE_SUPPRIMEE", "Eleve", eleveId, Map.of("piece", pieceId));
   }
 
+  /**
+   * État du dossier de chaque élève au regard des pièces exigées. Sans contrôle de droits :
+   * l'appelant ({@code EleveService}) ne le demande qu'à qui peut lire les pièces.
+   */
+  Map<UUID, DossierPieces> dossiers(java.util.Collection<UUID> eleveIds) {
+    if (eleveIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<UUID, List<PieceDossier>> parEleve =
+        pieces.findByEleveIdIn(eleveIds).stream()
+            .filter(p -> PieceDossier.EXIGEES.contains(p.getType()))
+            .collect(java.util.stream.Collectors.groupingBy(PieceDossier::getEleveId));
+    Map<UUID, DossierPieces> resultat = new java.util.HashMap<>();
+    for (UUID id : eleveIds) {
+      List<PieceDossier> deposees = parEleve.getOrDefault(id, List.of());
+      List<PieceDossier.Type> manquantes =
+          PieceDossier.EXIGEES.stream()
+              .filter(
+                  type ->
+                      deposees.stream()
+                          .noneMatch(
+                              p ->
+                                  p.getType() == type
+                                      && p.getStatut() != PieceDossier.Statut.INFECTE))
+              .toList();
+      resultat.put(
+          id,
+          new DossierPieces(
+              manquantes,
+              (int)
+                  deposees.stream()
+                      .filter(p -> p.getStatut() == PieceDossier.Statut.EN_ANALYSE)
+                      .count(),
+              (int)
+                  deposees.stream()
+                      .filter(p -> p.getStatut() == PieceDossier.Statut.INFECTE)
+                      .count()));
+    }
+    return resultat;
+  }
+
   @Override
   public boolean eleveUtilise(UUID eleveId) {
     return pieces.existsByEleveId(eleveId);

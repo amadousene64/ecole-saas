@@ -30,7 +30,7 @@ import { ServiceStructure } from '../services/service-structure';
         {{ message }}
       </p>
     }
-    <table data-testid="table-series">
+    <table data-testid="table-series" class="cartes">
       <thead>
         <tr>
           <th>Code</th>
@@ -44,11 +44,11 @@ import { ServiceStructure } from '../services/service-structure';
       <tbody>
         @for (s of series(); track s.id) {
           <tr [attr.data-testid]="'serie-' + s.code">
-            <td>{{ s.code }}</td>
-            <td>{{ s.libelle }}</td>
-            <td>{{ s.actif ? 'Oui' : 'Non' }}</td>
+            <td data-label="Code">{{ s.code }}</td>
+            <td data-label="Libellé">{{ s.libelle }}</td>
+            <td data-label="Actif">{{ s.actif ? 'Oui' : 'Non' }}</td>
             @if (droits.peutEcrire()) {
-              <td>
+              <td data-label="Actions">
                 <button matButton type="button" (click)="modifier(s)">
                   Modifier
                 </button>

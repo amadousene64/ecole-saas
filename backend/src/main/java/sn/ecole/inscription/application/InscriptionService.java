@@ -261,6 +261,30 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     return resultat;
   }
 
+  /** Situation d'un élève pour les listes du personnel. */
+  record Situation(String classe, StatutInscription statut) {}
+
+  /**
+   * Classe actuelle (inscription active la plus récente) et statut de l'inscription la plus
+   * récente, quel qu'il soit, de chaque élève.
+   */
+  Map<UUID, Situation> situations(Collection<UUID> eleveIds) {
+    if (eleveIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<UUID, Inscription> derniere = new HashMap<>();
+    for (Inscription i :
+        inscriptions.findByEleveIdInAndStatutIn(eleveIds, List.of(StatutInscription.values()))) {
+      derniere.merge(
+          i.getEleveId(), i, (a, b) -> a.getDateEntree().isAfter(b.getDateEntree()) ? a : b);
+    }
+    Map<UUID, String> classes = classesActuelles(eleveIds);
+    Map<UUID, Situation> resultat = new HashMap<>();
+    derniere.forEach(
+        (eleve, i) -> resultat.put(eleve, new Situation(classes.get(eleve), i.getStatut())));
+    return resultat;
+  }
+
   /** Élèves pré-inscrits ou inscrits dans la classe (sans verrou : estimation pour l'import). */
   long effectif(UUID classeId) {
     return inscriptions.countByClasseIdAndStatutIn(classeId, StatutInscription.ACTIFS);

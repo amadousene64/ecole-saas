@@ -1,17 +1,10 @@
 import { Component } from '@angular/core';
 import { CoquilleApplication } from '@ecole/auth';
-import { LIENS_ETABLISSEMENT } from '@ecole/feature-etablissement';
-import { LienNavigation } from '@ecole/ui';
 
+/** Le menu vient de la table des droits (`@ecole/auth`) : plus aucune liste de liens ici. */
 @Component({
   imports: [CoquilleApplication],
   selector: 'ecole-root',
-  template:
-    '<ecole-coquille-application titre="Back-office" [liens]="liens" />',
+  template: '<ecole-coquille-application titre="Back-office" />',
 })
-export class App {
-  protected readonly liens: LienNavigation[] = [
-    { chemin: '/', libelle: 'Accueil' },
-    ...LIENS_ETABLISSEMENT,
-  ];
-}
+export class App {}

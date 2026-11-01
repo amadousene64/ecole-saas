@@ -4,6 +4,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import sn.ecole.inscription.application.EleveService.VueEleve;
+import sn.ecole.inscription.application.LigneEleve;
 import sn.ecole.inscription.application.ResumeEleve;
 
 @Mapper
@@ -19,4 +20,9 @@ interface EleveMapper {
   EleveResumeDto versResume(ResumeEleve resume);
 
   List<EleveResumeDto> versResumes(List<ResumeEleve> resumes);
+
+  @Mapping(target = ".", source = "eleve")
+  EleveListeDto versLigne(LigneEleve ligne);
+
+  List<EleveListeDto> versLignes(List<LigneEleve> lignes);
 }

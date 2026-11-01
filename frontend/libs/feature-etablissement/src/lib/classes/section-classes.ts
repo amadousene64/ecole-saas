@@ -63,7 +63,7 @@ import { ServiceStructure } from '../services/service-structure';
       </p>
     }
 
-    <table data-testid="table-classes">
+    <table data-testid="table-classes" class="cartes">
       <thead>
         <tr>
           <th>Classe</th>
@@ -79,13 +79,13 @@ import { ServiceStructure } from '../services/service-structure';
       <tbody>
         @for (c of classes(); track c.id) {
           <tr [attr.data-testid]="'classe-' + c.nom">
-            <td>{{ c.nom }}</td>
-            <td>{{ nomNiveau(c.niveauId) }}</td>
-            <td>{{ codeSerie(c.serieId) }}</td>
-            <td>{{ c.capacite }}</td>
-            <td>{{ nomSalle(c.salleId) }}</td>
+            <td data-label="Classe">{{ c.nom }}</td>
+            <td data-label="Niveau">{{ nomNiveau(c.niveauId) }}</td>
+            <td data-label="Série">{{ codeSerie(c.serieId) }}</td>
+            <td data-label="Capacité">{{ c.capacite }}</td>
+            <td data-label="Salle">{{ nomSalle(c.salleId) }}</td>
             @if (modifiable()) {
-              <td>
+              <td data-label="Actions">
                 <button matButton type="button" (click)="modifier(c)">
                   Modifier
                 </button>
@@ -135,7 +135,8 @@ import { ServiceStructure } from '../services/service-structure';
           </mat-select>
           @if (niveauFige()) {
             <mat-hint
-              >Le niveau et la série ne changent plus une fois l'année en cours.</mat-hint
+              >Le niveau et la série ne changent plus une fois l'année en
+              cours.</mat-hint
             >
           }
         </mat-form-field>

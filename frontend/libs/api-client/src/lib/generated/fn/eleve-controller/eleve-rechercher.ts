@@ -7,28 +7,23 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { PageDtoEleveResumeDto } from '../../models/page-dto-eleve-resume-dto';
+import { PageDtoEleveListeDto } from '../../models/page-dto-eleve-liste-dto';
+import { RechercheElevesRequete } from '../../models/recherche-eleves-requete';
 
 export interface EleveRechercher$Params {
-  recherche?: string;
-  classe?: string;
-  curseur?: string;
-  taille?: number;
 
 /**
  * École demandée (dev). En production : sous-domaine.
  */
   'X-Tenant-Id'?: string;
+      body: RechercheElevesRequete
 }
 
-export function eleveRechercher(http: HttpClient, rootUrl: string, params?: EleveRechercher$Params, context?: HttpContext): Observable<StrictHttpResponse<PageDtoEleveResumeDto>> {
-  const rb = new RequestBuilder(rootUrl, eleveRechercher.PATH, 'get');
+export function eleveRechercher(http: HttpClient, rootUrl: string, params: EleveRechercher$Params, context?: HttpContext): Observable<StrictHttpResponse<PageDtoEleveListeDto>> {
+  const rb = new RequestBuilder(rootUrl, eleveRechercher.PATH, 'post');
   if (params) {
-    rb.query('recherche', params.recherche, {});
-    rb.query('classe', params.classe, {});
-    rb.query('curseur', params.curseur, {});
-    rb.query('taille', params.taille, {});
     rb.header('X-Tenant-Id', params['X-Tenant-Id'], {});
+    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -36,9 +31,9 @@ export function eleveRechercher(http: HttpClient, rootUrl: string, params?: Elev
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<PageDtoEleveResumeDto>;
+      return r as StrictHttpResponse<PageDtoEleveListeDto>;
     })
   );
 }
 
-eleveRechercher.PATH = '/api/v1/eleves';
+eleveRechercher.PATH = '/api/v1/eleves/recherche';
