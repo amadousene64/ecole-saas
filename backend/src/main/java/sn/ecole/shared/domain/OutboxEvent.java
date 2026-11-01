@@ -39,6 +39,9 @@ public class OutboxEvent extends TenantAwareEntity {
   @Column(name = "derniere_erreur")
   private String derniereErreur;
 
+  @Column(name = "prochaine_tentative_le", nullable = false)
+  private Instant prochaineTentativeLe = Instant.now();
+
   protected OutboxEvent() {}
 
   public OutboxEvent(String typeAgregat, UUID idAgregat, String typeEvenement, String chargeJson) {
@@ -53,8 +56,18 @@ public class OutboxEvent extends TenantAwareEntity {
   }
 
   public void enregistrerEchec(String erreur) {
+    enregistrerEchec(erreur, Instant.now());
+  }
+
+  /** Échec d'un traitement : nouvelle tentative au plus tôt à {@code prochaine}. */
+  public void enregistrerEchec(String erreur, Instant prochaine) {
     this.tentatives++;
     this.derniereErreur = erreur;
+    this.prochaineTentativeLe = Objects.requireNonNull(prochaine);
+  }
+
+  public Instant getProchaineTentativeLe() {
+    return prochaineTentativeLe;
   }
 
   public String getTypeAgregat() {

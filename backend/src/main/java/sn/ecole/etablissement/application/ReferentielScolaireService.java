@@ -1,22 +1,31 @@
 package sn.ecole.etablissement.application;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.ecole.etablissement.ReferentielScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaireRepository;
+import sn.ecole.etablissement.domain.Classe;
+import sn.ecole.etablissement.domain.ClasseOption;
+import sn.ecole.etablissement.domain.ClasseOptionRepository;
 import sn.ecole.etablissement.domain.ClasseRepository;
 import sn.ecole.etablissement.domain.Cycle;
 import sn.ecole.etablissement.domain.CycleRepository;
 import sn.ecole.etablissement.domain.Niveau;
 import sn.ecole.etablissement.domain.NiveauRepository;
+import sn.ecole.etablissement.domain.OptionEnseignement;
+import sn.ecole.etablissement.domain.OptionEnseignementRepository;
 import sn.ecole.etablissement.domain.ParametresCycleAnneeRepository;
 import sn.ecole.etablissement.domain.ParametresNiveauAnneeRepository;
 import sn.ecole.etablissement.domain.Periode;
@@ -37,6 +46,8 @@ public class ReferentielScolaireService implements ReferentielScolaire {
   private final ClasseRepository classes;
   private final ParametresCycleAnneeRepository parametresCycles;
   private final ParametresNiveauAnneeRepository parametresNiveaux;
+  private final ClasseOptionRepository classesOptions;
+  private final OptionEnseignementRepository options;
 
   public ReferentielScolaireService(
       AnneeScolaireRepository annees,
@@ -45,7 +56,9 @@ public class ReferentielScolaireService implements ReferentielScolaire {
       NiveauRepository niveaux,
       ClasseRepository classes,
       ParametresCycleAnneeRepository parametresCycles,
-      ParametresNiveauAnneeRepository parametresNiveaux) {
+      ParametresNiveauAnneeRepository parametresNiveaux,
+      ClasseOptionRepository classesOptions,
+      OptionEnseignementRepository options) {
     this.annees = annees;
     this.periodes = periodes;
     this.cycles = cycles;
@@ -53,6 +66,8 @@ public class ReferentielScolaireService implements ReferentielScolaire {
     this.classes = classes;
     this.parametresCycles = parametresCycles;
     this.parametresNiveaux = parametresNiveaux;
+    this.classesOptions = classesOptions;
+    this.options = options;
   }
 
   @Override
@@ -80,6 +95,23 @@ public class ReferentielScolaireService implements ReferentielScolaire {
         .toList();
   }
 
+  @Override
+  @PreAuthorize(Droits.LECTURE_TOUS)
+  public AnneeScolaireInfo annee(UUID anneeId) {
+    AnneeScolaire a =
+        annees
+            .findById(anneeId)
+            .orElseThrow(
+                () -> Erreurs.introuvable("ANNEE_INTROUVABLE", "Année scolaire introuvable."));
+    return new AnneeScolaireInfo(
+        a.getId(),
+        a.getLibelle(),
+        a.getDateDebut(),
+        a.getDateFin(),
+        a.getStatut() == StatutAnnee.EN_COURS,
+        a.getStatut() == StatutAnnee.CLOTUREE);
+  }
+
   /** Réservé au personnel : une classe ne concerne ni les parents ni les élèves. */
   @Override
   @PreAuthorize(Droits.LECTURE_PERSONNEL)
@@ -88,18 +120,93 @@ public class ReferentielScolaireService implements ReferentielScolaire {
         classes
             .findById(classeId)
             .orElseThrow(() -> Erreurs.introuvable("CLASSE_INTROUVABLE", "Classe introuvable."));
-    UUID cycleId =
-        niveaux
-            .findById(classe.getNiveauId())
-            .orElseThrow(() -> Erreurs.introuvable("NIVEAU_INTROUVABLE", "Niveau introuvable."))
-            .getCycleId();
-    return new ClasseScolaire(
-        classe.getId(),
-        classe.getAnneeId(),
-        classe.getNiveauId(),
-        classe.getSerieId(),
-        cycleId,
-        classe.getNom());
+    return versClasseScolaire(List.of(classe)).getFirst();
+  }
+
+  @Override
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  public List<ClasseScolaire> classes(UUID anneeId) {
+    return versClasseScolaire(classes.findByAnneeIdOrderByNom(anneeId));
+  }
+
+  @Override
+  @PreAuthorize(Droits.LECTURE_TOUS)
+  public Map<UUID, String> nomsClasses(Collection<UUID> classeIds) {
+    if (classeIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<UUID, String> noms = new HashMap<>();
+    classes.findByIdIn(Set.copyOf(classeIds)).forEach(c -> noms.put(c.getId(), c.getNom()));
+    return noms;
+  }
+
+  @Override
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  public List<NiveauScolaire> niveaux() {
+    Map<UUID, Cycle> parCycle = new HashMap<>();
+    cycles.findAll().forEach(c -> parCycle.put(c.getId(), c));
+    return niveaux.findAllByOrderByOrdre().stream()
+        .filter(n -> parCycle.containsKey(n.getCycleId()))
+        .map(
+            n ->
+                new NiveauScolaire(
+                    n.getId(),
+                    n.getCode(),
+                    n.getLibelle(),
+                    n.getOrdre(),
+                    parCycle.get(n.getCycleId()).getCode()))
+        .toList();
+  }
+
+  private List<ClasseScolaire> versClasseScolaire(List<Classe> liste) {
+    if (liste.isEmpty()) {
+      return List.of();
+    }
+    Map<UUID, Niveau> parNiveau = new HashMap<>();
+    niveaux.findAllByOrderByOrdre().forEach(n -> parNiveau.put(n.getId(), n));
+    Map<UUID, Cycle> parCycle = new HashMap<>();
+    cycles.findAll().forEach(c -> parCycle.put(c.getId(), c));
+    List<ClasseOption> liens =
+        classesOptions.findByClasseIdIn(liste.stream().map(Classe::getId).toList());
+    Map<UUID, OptionEnseignement> parOption = new HashMap<>();
+    options
+        .findByIdIn(liens.stream().map(ClasseOption::getOptionId).collect(Collectors.toSet()))
+        .forEach(o -> parOption.put(o.getId(), o));
+    Map<UUID, List<OptionScolaire>> optionsParClasse = new HashMap<>();
+    for (ClasseOption lien : liens) {
+      OptionEnseignement o = parOption.get(lien.getOptionId());
+      if (o != null) {
+        optionsParClasse
+            .computeIfAbsent(lien.getClasseId(), k -> new ArrayList<>())
+            .add(new OptionScolaire(o.getId(), o.getCode(), o.getLibelle(), o.getGroupe()));
+      }
+    }
+    return liste.stream()
+        .map(
+            classe -> {
+              Niveau niveau = parNiveau.get(classe.getNiveauId());
+              if (niveau == null) {
+                throw Erreurs.introuvable("NIVEAU_INTROUVABLE", "Niveau introuvable.");
+              }
+              Cycle cycle = parCycle.get(niveau.getCycleId());
+              List<OptionScolaire> proposees =
+                  optionsParClasse.getOrDefault(classe.getId(), List.of()).stream()
+                      .sorted(
+                          Comparator.comparing(OptionScolaire::groupe)
+                              .thenComparing(OptionScolaire::code))
+                      .toList();
+              return new ClasseScolaire(
+                  classe.getId(),
+                  classe.getAnneeId(),
+                  classe.getNiveauId(),
+                  classe.getSerieId(),
+                  niveau.getCycleId(),
+                  cycle.getCode(),
+                  classe.getNom(),
+                  classe.getCapacite(),
+                  proposees);
+            })
+        .toList();
   }
 
   @Override

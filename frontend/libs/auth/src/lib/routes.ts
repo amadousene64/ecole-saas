@@ -10,10 +10,10 @@ export const ROUTES_SESSION: Routes = [
       import('./pages/pages-session').then((m) => m.PageChoixEcole),
   },
   {
-    path: 'acces-refuse',
+    path: 'aucun-espace',
     canActivate: [gardeAuthentifie],
     loadComponent: () =>
-      import('./pages/pages-session').then((m) => m.PageAccesRefuse),
+      import('./pages/pages-session').then((m) => m.PageAucunEspace),
   },
   {
     path: 'erreur',

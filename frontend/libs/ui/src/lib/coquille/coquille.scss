@@ -17,8 +17,16 @@
   }
 }
 
-mat-toolbar {
+// --- Barre du haut ---
+.barre-haute {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
   gap: 12px;
+  min-height: 64px;
+  padding: 0 16px;
   background: var(--ecole-surface);
   color: var(--ecole-texte);
   border-bottom: 1px solid var(--ecole-bordure);
@@ -28,6 +36,7 @@ mat-toolbar {
   font-size: var(--ecole-titre-section-taille);
   font-weight: 700;
   color: var(--ecole-primaire);
+  white-space: nowrap;
 }
 
 .ecole {
@@ -38,34 +47,134 @@ mat-toolbar {
   font-size: var(--ecole-libelle-taille);
   line-height: var(--ecole-libelle-interligne);
   font-weight: var(--ecole-libelle-graisse);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .espace {
   flex: 1;
 }
 
+.bouton-icone,
+.recherche,
+.compte {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--ecole-rayon-controle);
+  background: none;
+  color: var(--ecole-texte);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ecole-fond);
+  }
+}
+
+.bouton-icone {
+  justify-content: center;
+  padding: 0;
+}
+
+.recherche {
+  border-color: var(--ecole-bordure-champ);
+  color: var(--ecole-texte-secondaire);
+}
+
+.raccourci {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid var(--ecole-bordure-champ);
+  border-radius: 6px;
+  font: inherit;
+  font-size: var(--ecole-libelle-taille);
+}
+
+.compte .identite {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.compte .nom {
+  font-weight: 600;
+}
+
+.compte .role {
+  font-size: var(--ecole-libelle-taille);
+  color: var(--ecole-texte-secondaire);
+}
+
+.entete-menu-compte {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 12px;
+  border-bottom: 1px solid var(--ecole-bordure);
+  margin-bottom: 4px;
+
+  span {
+    color: var(--ecole-texte-secondaire);
+    font-size: var(--ecole-libelle-taille);
+  }
+}
+
+// --- Navigation latérale ---
 .conteneur {
   flex: 1;
   background: var(--ecole-fond);
 }
 
-// Navigation latérale blanche, élément actif sur fond vert doux.
 mat-sidenav {
   width: 248px;
   border-right: 1px solid var(--ecole-bordure);
+  background: var(--ecole-surface);
+
+  &.reduite {
+    width: 72px;
+  }
 }
 
 nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 12px;
   padding: 12px;
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titre-section {
+  margin: 8px 12px 4px;
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+  font-weight: var(--ecole-libelle-graisse);
+  color: var(--ecole-texte-secondaire);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .lien {
-  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--ecole-rayon-controle);
   color: var(--ecole-texte);
   font-weight: 500;
+  text-decoration: none;
 
   &:hover {
     background: var(--ecole-fond);
@@ -78,6 +187,11 @@ nav {
   }
 }
 
+.reduite .lien {
+  justify-content: center;
+  padding: 0;
+}
+
 main {
   padding: 24px;
   max-width: 1200px;
@@ -86,11 +200,27 @@ main {
 
   @media (max-width: 599.98px) {
     padding: 16px;
+    // Place pour le bouton d'action flottant.
+    padding-bottom: 96px;
   }
 }
 
-.bouton-menu {
-  @media (min-width: 900px) {
+// Sous 600 px : identité réduite à l'icône, l'école passe sous le titre.
+@media (max-width: 599.98px) {
+  .compte .identite,
+  .compte ecole-icone:last-child,
+  .texte-recherche,
+  .raccourci {
+    display: none;
+  }
+
+  .ecole {
+    display: none;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .raccourci {
     display: none;
   }
 }

@@ -9,3 +9,8 @@ export * from './lib/formats/fcfa';
 export * from './lib/icones/icone';
 export * from './lib/pastille/pastille';
 export * from './lib/carte-evenement/carte-evenement';
+export * from './lib/notifications/notifications';
+export * from './lib/page/en-tete-page';
+export * from './lib/page/action-principale';
+export * from './lib/page/etat-vide';
+export * from './lib/page/squelette';

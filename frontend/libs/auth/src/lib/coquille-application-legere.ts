@@ -1,6 +1,7 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { CoquilleLegere, LienNavigation, TEXTES } from '@ecole/ui';
+import { Acces } from './acces';
 import { Session } from './session';
 
 /** Variante de {@link CoquilleApplication} sans Material, pour l'application parent (budget). */
@@ -13,6 +14,7 @@ import { Session } from './session';
       [liens]="liens()"
       [ecole]="session.ecoleActive()?.nom ?? null"
       [utilisateur]="session.utilisateur()"
+      [role]="acces.libelleRole() || null"
       [plusieursEcoles]="session.plusieursEcoles()"
       (changerEcole)="changerEcole()"
       (deconnexion)="session.deconnecter()"
@@ -23,10 +25,18 @@ import { Session } from './session';
 })
 export class CoquilleApplicationLegere {
   protected readonly session = inject(Session);
+  protected readonly acces = inject(Acces);
   private readonly router = inject(Router);
 
   readonly titre = input<string>(TEXTES.nomPlateforme);
-  readonly liens = input<LienNavigation[]>([]);
+
+  protected readonly liens = computed<LienNavigation[]>(() =>
+    this.acces.menu().map((e) => ({
+      chemin: e.chemin,
+      libelle: e.libelle,
+      icone: e.icone,
+    })),
+  );
 
   protected changerEcole(): void {
     this.session.changerEcole();

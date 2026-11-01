@@ -1,0 +1,225 @@
+package sn.ecole.shared.domain;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.CRC32;
+import java.util.zip.Deflater;
+import javax.imageio.ImageIO;
+import org.junit.jupiter.api.Test;
+
+class ControleImageTest {
+
+  private static byte[] image(String format, int largeur, int hauteur) throws IOException {
+    BufferedImage image =
+        new BufferedImage(
+            largeur,
+            hauteur,
+            format.equals("png") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+    ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+    ImageIO.write(image, format, sortie);
+    return sortie.toByteArray();
+  }
+
+  /**
+   * PNG minimal dont l'en-tête annonce {@code largeur x hauteur}, sans vraies données de pixels.
+   */
+  private static byte[] pngAnnoncant(int largeur, int hauteur) throws IOException {
+    ByteArrayOutputStream png = new ByteArrayOutputStream();
+    png.write(new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A});
+    ByteArrayOutputStream ihdr = new ByteArrayOutputStream();
+    ihdr.write(entier(largeur));
+    ihdr.write(entier(hauteur));
+    ihdr.write(new byte[] {8, 2, 0, 0, 0});
+    bloc(png, "IHDR", ihdr.toByteArray());
+    Deflater deflater = new Deflater();
+    deflater.setInput(new byte[] {0});
+    deflater.finish();
+    byte[] compresse = new byte[32];
+    int n = deflater.deflate(compresse);
+    bloc(png, "IDAT", java.util.Arrays.copyOf(compresse, n));
+    bloc(png, "IEND", new byte[0]);
+    return png.toByteArray();
+  }
+
+  private static void bloc(ByteArrayOutputStream sortie, String type, byte[] donnees)
+      throws IOException {
+    byte[] nom = type.getBytes(StandardCharsets.US_ASCII);
+    sortie.write(entier(donnees.length));
+    sortie.write(nom);
+    sortie.write(donnees);
+    CRC32 crc = new CRC32();
+    crc.update(nom);
+    crc.update(donnees);
+    sortie.write(entier((int) crc.getValue()));
+  }
+
+  private static byte[] entier(int v) {
+    return new byte[] {(byte) (v >>> 24), (byte) (v >>> 16), (byte) (v >>> 8), (byte) v};
+  }
+
+  private static void assertCode(byte[] brut, int tailleMax, String code) {
+    assertThatThrownBy(() -> ControleImage.controler(brut, tailleMax))
+        .isInstanceOfSatisfying(ErreurMetier.class, e -> assertThat(e.code()).isEqualTo(code));
+  }
+
+  @Test
+  void unPngValideEstAccepteEtReencode() throws IOException {
+    var resultat = ControleImage.controler(image("png", 120, 80), 1_000_000);
+    assertThat(resultat.contentType()).isEqualTo("image/png");
+    assertThat(resultat.largeur()).isEqualTo(120);
+    assertThat(resultat.hauteur()).isEqualTo(80);
+    assertThat(ImageIO.read(new java.io.ByteArrayInputStream(resultat.octets()))).isNotNull();
+  }
+
+  @Test
+  void unJpegValideEstAccepte() throws IOException {
+    var resultat = ControleImage.controler(image("jpeg", 200, 100), 1_000_000);
+    assertThat(resultat.contentType()).isEqualTo("image/jpeg");
+  }
+
+  @Test
+  void lesDimensionsMaximalesSontAcceptees() throws IOException {
+    assertThat(ControleImage.controler(image("png", 2000, 10), 1_000_000).largeur())
+        .isEqualTo(2000);
+  }
+
+  @Test
+  void auDelaDe2000PixelsEstRefuse() throws IOException {
+    assertCode(image("png", 2001, 10), 1_000_000, "IMAGE_TROP_GRANDE");
+    assertCode(image("jpeg", 10, 2001), 1_000_000, "IMAGE_TROP_GRANDE");
+  }
+
+  @Test
+  void uneBombeDeDecompressionEstRefuseSurSonEnTeteAvantToutDecodage() throws IOException {
+    // L'en-tête annonce 30 000 x 30 000 pixels (3,6 Go décodés) dans un fichier de quelques octets.
+    byte[] bombe = pngAnnoncant(30_000, 30_000);
+    assertThat(bombe.length).isLessThan(200);
+    // Le code IMAGE_TROP_GRANDE (et non FICHIER_INVALIDE) prouve que la lecture s'est arrêtée à
+    // l'en-tête : un décodage aurait échoué ou épuisé la mémoire.
+    assertCode(bombe, 1_000_000, "IMAGE_TROP_GRANDE");
+  }
+
+  @Test
+  void leSvgEtLesAutresFormatsSontRefuses() {
+    assertCode(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(1)</script></svg>"
+            .getBytes(StandardCharsets.UTF_8),
+        1_000_000,
+        "FICHIER_INVALIDE");
+    assertCode("GIF89a".getBytes(StandardCharsets.US_ASCII), 1_000_000, "FICHIER_INVALIDE");
+    assertCode("%PDF-1.7".getBytes(StandardCharsets.US_ASCII), 1_000_000, "FICHIER_INVALIDE");
+  }
+
+  @Test
+  void uneSignaturePngSansImageEstRefusee() {
+    byte[] faux = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3, 4};
+    assertCode(faux, 1_000_000, "FICHIER_INVALIDE");
+  }
+
+  @Test
+  void unFichierVideOuTropVolumineuxEstRefuse() throws IOException {
+    assertCode(new byte[0], 1_000_000, "FICHIER_INVALIDE");
+    byte[] gros = new byte[512_000 + 1];
+    assertCode(gros, 512_000, "FICHIER_TROP_VOLUMINEUX");
+  }
+
+  @Test
+  void lesDonneesAjouteesApresLImageDisparaissentAuReencodage() throws IOException {
+    ByteArrayOutputStream piege = new ByteArrayOutputStream();
+    piege.write(image("png", 20, 20));
+    piege.write("SECRET-PAYLOAD".getBytes(StandardCharsets.US_ASCII));
+
+    var resultat = ControleImage.controler(piege.toByteArray(), 1_000_000);
+
+    assertThat(new String(resultat.octets(), StandardCharsets.ISO_8859_1))
+        .doesNotContain("SECRET-PAYLOAD");
+  }
+
+  @Test
+  void reduireSousEchantillonneUneGrandePhotoEtRetireLesMetadonnees() {
+    byte[] photo = sn.ecole.ImagesFictives.jpegAvecGps(4000, 3000);
+    assertThatThrownBy(() -> ControleImage.controler(photo, 5_000_000))
+        .isInstanceOf(ErreurMetier.class);
+    ControleImage.ImageValidee reduite = ControleImage.reduire(photo, 5_000_000, 2500);
+    assertThat(reduite.largeur()).isLessThanOrEqualTo(2500).isGreaterThan(1000);
+    assertThat(reduite.hauteur()).isLessThan(reduite.largeur());
+    assertThat(sn.ecole.ImagesFictives.segmentsApp1(reduite.octets())).isZero();
+    // Au-delà de la source maximale, refus avant décodage.
+    assertThatThrownBy(() -> ControleImage.reduire(pngAnnoncant(20_000, 10), 5_000_000, 2500))
+        .hasMessageContaining("pixels");
+  }
+
+  /** Coin où le carré rouge (haut-gauche dans le fichier) doit se retrouver, par orientation. */
+  private static final String[] COIN_ATTENDU = {"", "HG", "HD", "BD", "BG", "HG", "HD", "BD", "BG"};
+
+  private static boolean rouge(BufferedImage image, String coin) {
+    int x = coin.charAt(1) == 'G' ? 4 : image.getWidth() - 5;
+    int y = coin.charAt(0) == 'H' ? 4 : image.getHeight() - 5;
+    int rgb = image.getRGB(x, y);
+    return ((rgb >> 16) & 0xFF) > 200 && ((rgb >> 8) & 0xFF) < 90 && (rgb & 0xFF) < 90;
+  }
+
+  @Test
+  void lOrientationExifEstAppliqueeAuxPixelsPourLesHuitValeurs() throws IOException {
+    for (int valeur = 1; valeur <= 8; valeur++) {
+      var resultat =
+          ControleImage.controler(sn.ecole.ImagesFictives.jpegAvecOrientation(valeur), 1_000_000);
+      BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(resultat.octets()));
+      boolean permute = valeur >= 5;
+      assertThat(resultat.largeur())
+          .as("largeur, orientation %d", valeur)
+          .isEqualTo(permute ? 40 : 60);
+      assertThat(resultat.hauteur())
+          .as("hauteur, orientation %d", valeur)
+          .isEqualTo(permute ? 60 : 40);
+      assertThat(image.getWidth()).isEqualTo(resultat.largeur());
+      assertThat(rouge(image, COIN_ATTENDU[valeur]))
+          .as("coin rouge, orientation %d", valeur)
+          .isTrue();
+      // Le coin opposé reste blanc : le carré n'a pas été étalé.
+      String oppose =
+          (COIN_ATTENDU[valeur].charAt(0) == 'H' ? "B" : "H")
+              + (COIN_ATTENDU[valeur].charAt(1) == 'G' ? "D" : "G");
+      assertThat(rouge(image, oppose)).isFalse();
+      assertThat(sn.ecole.ImagesFictives.segmentsApp1(resultat.octets())).isZero();
+    }
+  }
+
+  @Test
+  void uneOrientationExifIllisibleLaisseLImageTelleQuelle() throws IOException {
+    byte[] tronque = java.util.Arrays.copyOf(sn.ecole.ImagesFictives.tiffOrientation(6), 12);
+    byte[] ifdHorsSegment = sn.ecole.ImagesFictives.tiffOrientation(6);
+    ifdHorsSegment[4] = (byte) 0xF0;
+    byte[] grandBoutisteFaux = sn.ecole.ImagesFictives.tiffOrientation(6);
+    grandBoutisteFaux[0] = 'X';
+    for (byte[] tiff :
+        new byte[][] {
+          tronque,
+          ifdHorsSegment,
+          grandBoutisteFaux,
+          sn.ecole.ImagesFictives.tiffOrientation(0),
+          sn.ecole.ImagesFictives.tiffOrientation(9),
+          sn.ecole.ImagesFictives.tiffOrientation(0xFFFF)
+        }) {
+      var resultat = ControleImage.controler(sn.ecole.ImagesFictives.jpegAvecExif(tiff), 1_000_000);
+      BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(resultat.octets()));
+      assertThat(resultat.largeur()).isEqualTo(60);
+      assertThat(resultat.hauteur()).isEqualTo(40);
+      assertThat(rouge(image, "HG")).isTrue();
+    }
+  }
+
+  @Test
+  void orientationExifSansSegmentExifOuAvecSegmentTronque() throws IOException {
+    assertThat(ControleImage.orientationExif(image("jpeg", 20, 20))).isEqualTo(1);
+    byte[] jpeg = sn.ecole.ImagesFictives.jpegAvecOrientation(6);
+    assertThat(ControleImage.orientationExif(jpeg)).isEqualTo(6);
+    // Fichier coupé au milieu du segment APP1 : pas d'exception, pas de rotation.
+    assertThat(ControleImage.orientationExif(java.util.Arrays.copyOf(jpeg, 30))).isEqualTo(1);
+  }
+}
