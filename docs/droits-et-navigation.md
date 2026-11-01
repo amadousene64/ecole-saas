@@ -26,14 +26,29 @@ ni sur une route**. Quand il existe, on passe l'indicateur à `true` et on branc
 | Rôle | Application | Menu |
 |---|---|---|
 | Directeur | back-office | Accueil, Élèves, *Classes et années* (Classes et salles, Années et périodes), *Paramètres* (Établissement, Structure pédagogique) |
-| Secrétariat | back-office | Accueil, Élèves et inscriptions, Import, Classes et salles |
-| Censeur | back-office | Accueil, Élèves |
+| Secrétariat | back-office | Accueil, Élèves et inscriptions, Import, Classes et salles, *Paramètres de l'école* (Années, périodes et calendrier, Profil et logo, Niveaux et séries) |
+| Censeur | back-office | Accueil, Élèves, Classes (lecture seule) |
 | Comptable | back-office | Accueil, Élèves et payeurs |
 | Surveillant, Enseignant | vie scolaire | Accueil |
 | Parent, Élève | espace parent | Accueil (Mes enfants) ; pas de barre du bas tant qu'il y a moins de deux entrées |
 
 Vie scolaire, Notes et bulletins, Finances, Communication, Notes/Paiements/Messages (parent) sont
-déclarés dans la table mais invisibles. « Comptes parents » n'existe pas encore (issue #44).
+déclarés dans la table mais invisibles.
+
+Le secrétariat n'a **pas** : le cachet et la signature (directeur seul, champ masqué), l'onglet Cycles
+et ses paramètres de notation, l'ouverture et la clôture d'une année (actions `etablissement.direction`).
+
+### Le menu reflète exactement les droits du serveur
+
+- `docs/api/droits-serveur.json` relève les `@PreAuthorize` des services `etablissement` et
+  `inscription` (rôles, écriture ou lecture, condition). `DroitsServeurTest` (backend) échoue si le
+  fichier ne correspond plus au code ; le régénérer : `./mvnw test -Dtest=DroitsServeurTest -Ddroits.maj=true`.
+- `libs/auth/src/lib/droits/couverture.ts` associe chaque méthode serveur à la page et à l'action qui
+  la portent, ou à une **exception documentée** (écran pas encore construit, issue liée).
+- `droits-serveur.spec.ts`, pour chaque rôle : (1) toute méthode serveur a une couverture, sans
+  entrée orpheline ; (2) l'interface ne montre jamais ce que le serveur refuse ; (3) aucun droit
+  d'écriture du serveur n'est inaccessible par l'interface sans raison documentée ; (4) chaque entrée
+  de menu correspond à au moins un endpoint autorisé au rôle. « Comptes parents » n'existe pas encore (issue #44).
 
 ## Après la connexion
 
@@ -82,7 +97,9 @@ localhost. Le `clientId` Keycloak est l'identifiant de l'application
    `canActivate: [gardePage('<id>')]`.
 2. Bouton ou onglet : une entrée dans `ACTIONS`, exposée par `Droits` de la lib, utilisée dans le
    gabarit. Le serveur doit avoir le `@PreAuthorize` correspondant.
-3. `droits.spec.ts` (matrice rôle × menu × route) doit rester vert : il refuse une page sans
+3. Ajouter la méthode serveur correspondante à `couverture.ts` (écran ou exception motivée) après avoir
+   régénéré `droits-serveur.json`.
+4. `droits.spec.ts` (matrice rôle × menu × route) doit rester vert : il refuse une page sans
    rôle, un rôle sur une page d'une autre application, un bouton sans la page qui le porte.
 
 ## Comptes de développement
