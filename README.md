@@ -53,6 +53,11 @@ L'import du realm ne se rejoue pas sur un Keycloak existant. Pour récupérer `c
 l'application de son rôle : DIRECTEUR, SECRETARIAT, CENSEUR, COMPTABLE → back-office (4200) ;
 SURVEILLANT, ENSEIGNANT → vie scolaire (4202) ; PARENT, ELEVE → espace parent (4201).
 
+Les clients du realm de dev (`backoffice`, `parent`, `vie-scolaire`, `dev-cli`) ont « Full scope allowed »
+désactivé : un jeton ne porte que ce que le client demande (audience `ecole-api`, identité), jamais
+tous les rôles de l'utilisateur ; l'API lit les rôles dans sa table d'appartenances. Sur un Keycloak
+déjà démarré : `bash infra/scripts/durcir-clients-dev.sh` (idempotent).
+
 ## Commandes backend
 
 ```bash
