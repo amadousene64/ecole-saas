@@ -7,31 +7,41 @@ import {
   RouterStateSnapshot,
   UrlTree,
 } from '@angular/router';
+import { Notifications } from '@ecole/ui';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { of } from 'rxjs';
-import { gardeAuthentifie, gardeRoles } from './gardes';
+import { IdApp } from './droits/roles';
+import { gardeAuthentifie, gardePage } from './gardes';
+import { CONFIG_APPS, RedirectionApp, URLS_DEV } from './redirection-app';
 import { EtatSession, Session } from './session';
 
 describe('gardes de route', () => {
   const oidc = { isAuthenticated: vi.fn(), authorize: vi.fn() };
+  const redirection = {
+    vers: vi.fn(),
+    origine: vi.fn((): IdApp | null => null),
+    oublierOrigine: vi.fn(),
+  };
 
   function preparer(
     connecte: boolean,
     etat: EtatSession = 'pret',
     roles: string[] = [],
+    app: IdApp = 'backoffice',
   ) {
     oidc.isAuthenticated.mockReturnValue(of(connecte));
     const session = {
       charger: vi.fn(() => Promise.resolve()),
       etat: () => etat,
-      aUnRole: (requis: readonly string[]) =>
-        requis.length === 0 || requis.some((r) => roles.includes(r)),
+      roles: () => roles,
     };
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: OidcSecurityService, useValue: oidc },
         { provide: Session, useValue: session },
+        { provide: CONFIG_APPS, useValue: { courante: app, urls: URLS_DEV } },
+        { provide: RedirectionApp, useValue: redirection },
       ],
     });
     return session;
@@ -51,55 +61,103 @@ describe('gardes de route', () => {
   beforeEach(() => {
     sessionStorage.clear();
     vi.clearAllMocks();
+    redirection.origine.mockReturnValue(null);
   });
 
   it("renvoie vers la connexion quand l'utilisateur n'est pas connecté, et mémorise la page", async () => {
     const session = preparer(false);
-    expect(await executer(gardeRoles('DIRECTEUR'), '/eleves')).toBe(false);
+    expect(await executer(gardePage('eleves'), '/eleves')).toBe(false);
     expect(oidc.authorize).toHaveBeenCalled();
     expect(sessionStorage.getItem('ecole.retour')).toBe('/eleves');
     expect(session.charger).not.toHaveBeenCalled();
   });
 
-  it('laisse passer quand le rôle exigé est présent dans /moi', async () => {
-    preparer(true, 'pret', ['DIRECTEUR']);
-    expect(await executer(gardeRoles('DIRECTEUR', 'SECRETARIAT'))).toBe(true);
+  it('laisse passer un rôle qui a la page, dans sa propre application', async () => {
+    preparer(true, 'pret', ['SECRETARIAT']);
+    expect(await executer(gardePage('eleves'))).toBe(true);
+    expect(redirection.vers).not.toHaveBeenCalled();
   });
 
-  it("laisse passer sans rôle exigé dès qu'une école est choisie", async () => {
+  it('renvoie un utilisateur arrivé dans la mauvaise application vers la sienne', async () => {
+    preparer(true, 'pret', ['SURVEILLANT'], 'backoffice');
+    expect(await executer(gardePage('accueil-backoffice'), '/')).toBe(false);
+    expect(redirection.vers).toHaveBeenCalledWith('vie-scolaire');
+  });
+
+  it.each([
+    ['DIRECTEUR', 'backoffice'],
+    ['ENSEIGNANT', 'vie-scolaire'],
+    ['PARENT', 'parent'],
+  ] as const)('un %s arrivé ailleurs va dans %s', async (role, cible) => {
+    const autre: IdApp = cible === 'parent' ? 'backoffice' : 'parent';
+    preparer(true, 'pret', [role], autre);
+    await executer(gardePage('x'), '/');
+    expect(redirection.vers).toHaveBeenCalledWith(cible);
+  });
+
+  it("ne tourne pas en boucle : revenu d'où il vient d'être renvoyé, il voit « aucun espace »", async () => {
+    preparer(true, 'pret', ['SURVEILLANT'], 'backoffice');
+    redirection.origine.mockReturnValue('vie-scolaire');
+    expect(adresse(await executer(gardePage('x'), '/'))).toBe('/aucun-espace');
+    expect(redirection.vers).not.toHaveBeenCalled();
+  });
+
+  it('un compte sans rôle connu dans cette école voit « aucun espace »', async () => {
     preparer(true, 'pret', []);
-    expect(await executer(gardeRoles())).toBe(true);
+    expect(adresse(await executer(gardePage('eleves')))).toBe('/aucun-espace');
   });
 
-  it('refuse (page accès refusé) quand le rôle manque', async () => {
-    preparer(true, 'pret', ['PARENT']);
-    expect(adresse(await executer(gardeRoles('DIRECTEUR')))).toBe(
-      '/acces-refuse',
+  it("ramène à l'accueil, avec un message discret, une page que le rôle ne voit pas", async () => {
+    preparer(true, 'pret', ['COMPTABLE']);
+    const info = vi.spyOn(TestBed.inject(Notifications), 'info');
+    expect(adresse(await executer(gardePage('import'), '/eleves/import'))).toBe(
+      '/',
+    );
+    expect(info).toHaveBeenCalledOnce();
+    expect(info.mock.calls[0][0]).toContain('pas disponible pour votre rôle');
+  });
+
+  it("ne renvoie pas à l'accueil en boucle si c'est l'accueil lui-même qui est refusé", async () => {
+    preparer(true, 'pret', ['COMPTABLE']);
+    expect(adresse(await executer(gardePage('import'), '/'))).toBe(
+      '/aucun-espace',
     );
   });
 
-  it.each<EtatSession>(['choix-requis', 'aucune-ecole'])(
-    "envoie vers le choix d'école (état %s)",
-    async (etat) => {
-      preparer(true, etat);
-      expect(adresse(await executer(gardeRoles('DIRECTEUR')))).toBe(
-        '/choix-ecole',
-      );
-    },
-  );
+  it("refuse une page dont le module n'est pas construit", async () => {
+    preparer(true, 'pret', ['DIRECTEUR']);
+    expect(adresse(await executer(gardePage('finances'), '/finances'))).toBe(
+      '/',
+    );
+  });
+
+  it("envoie vers le choix d'école (état choix-requis)", async () => {
+    preparer(true, 'choix-requis');
+    expect(adresse(await executer(gardePage('eleves')))).toBe('/choix-ecole');
+  });
+
+  it("aucune école : choix d'école par défaut, ou la page demandée par l'application", async () => {
+    preparer(true, 'aucune-ecole');
+    expect(adresse(await executer(gardePage('eleves')))).toBe('/choix-ecole');
+    TestBed.resetTestingModule();
+    preparer(true, 'aucune-ecole', [], 'parent');
+    expect(
+      adresse(await executer(gardePage('enfants', { sansEcole: '/activer' }))),
+    ).toBe('/activer');
+  });
 
   it.each<EtatSession>(['erreur', 'inconnu'])(
     "envoie vers la page d'erreur (état %s)",
     async (etat) => {
       preparer(true, etat);
-      expect(adresse(await executer(gardeRoles()))).toBe('/erreur');
+      expect(adresse(await executer(gardePage('eleves')))).toBe('/erreur');
     },
   );
 
   it('revient à la page demandée avant la connexion', async () => {
     preparer(true, 'pret', ['DIRECTEUR']);
     sessionStorage.setItem('ecole.retour', '/eleves/12');
-    expect(adresse(await executer(gardeRoles('DIRECTEUR'), '/'))).toBe(
+    expect(adresse(await executer(gardePage('accueil-backoffice'), '/'))).toBe(
       '/eleves/12',
     );
     expect(sessionStorage.getItem('ecole.retour')).toBeNull();
@@ -108,7 +166,7 @@ describe('gardes de route', () => {
   it("ignore une adresse de retour qui n'est pas interne", async () => {
     preparer(true, 'pret', ['DIRECTEUR']);
     sessionStorage.setItem('ecole.retour', '//tiers.example/piege');
-    expect(await executer(gardeRoles('DIRECTEUR'), '/')).toBe(true);
+    expect(await executer(gardePage('accueil-backoffice'), '/')).toBe(true);
   });
 
   it("gardeAuthentifie n'exige que la connexion", async () => {

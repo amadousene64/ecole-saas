@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { RapportImportDto, ResultatImportDto } from '@ecole/api-client';
-import { Pastille, TonStatut } from '@ecole/ui';
+import { Pastille, TonStatut, EnTetePage } from '@ecole/ui';
 import { messageErreur } from '../commun/erreurs';
 import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceImport } from '../services/service-import';
@@ -43,10 +43,13 @@ const LIBELLES: Record<string, string> = {
  */
 @Component({
   selector: 'ecole-page-import',
-  imports: [MatButtonModule, RouterLink, Pastille],
+  imports: [EnTetePage, MatButtonModule, RouterLink, Pastille],
   template: `
     <p><a routerLink="/eleves">← Retour à la liste</a></p>
-    <h1>Importer des élèves</h1>
+    <ecole-en-tete-page
+      titre="Importer des élèves"
+      sousTitre="Vérification à blanc, puis confirmation"
+    />
     @if (erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur-import">
         {{ message }}
@@ -103,7 +106,7 @@ const LIBELLES: Record<string, string> = {
           Colonnes ignorées : {{ r.colonnesIgnorees!.join(', ') }}.
         </p>
       }
-      <table data-testid="table-rapport">
+      <table data-testid="table-rapport" class="cartes">
         <caption class="sr-only">
           Rapport ligne par ligne
         </caption>
@@ -117,13 +120,13 @@ const LIBELLES: Record<string, string> = {
         <tbody>
           @for (l of r.details; track l.numero) {
             <tr [attr.data-testid]="'ligne-' + l.numero">
-              <td class="nombre">{{ l.numero }}</td>
-              <td>
+              <td class="nombre" data-label="Ligne">{{ l.numero }}</td>
+              <td data-label="Résultat">
                 <ecole-pastille [ton]="ton(l.statut)">{{
                   libelle(l.statut)
                 }}</ecole-pastille>
               </td>
-              <td>{{ l.messages?.join(' ') }}</td>
+              <td data-label="Détail">{{ l.messages?.join(' ') }}</td>
             </tr>
           }
         </tbody>

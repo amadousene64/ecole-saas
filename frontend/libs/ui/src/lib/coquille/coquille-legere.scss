@@ -152,3 +152,22 @@ main {
     }
   }
 }
+
+// Hauteur de la barre du bas, pour que le bouton d'action flottant se place au-dessus.
+:host:has(.barre-basse) {
+  --ecole-hauteur-barre-basse: 72px;
+}
+
+.menu summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+.menu .role {
+  font-size: var(--ecole-libelle-taille);
+  font-weight: 400;
+  color: var(--ecole-texte-secondaire);
+}

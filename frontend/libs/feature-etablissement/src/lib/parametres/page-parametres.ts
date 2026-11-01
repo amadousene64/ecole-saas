@@ -1,3 +1,4 @@
+import { EnTetePage } from '@ecole/ui';
 import { Component, effect, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -26,6 +27,7 @@ import { CarteImage } from './carte-image';
 @Component({
   selector: 'ecole-page-parametres',
   imports: [
+    EnTetePage,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -34,7 +36,10 @@ import { CarteImage } from './carte-image';
     CarteImage,
   ],
   template: `
-    <h1>Paramètres de l'établissement</h1>
+    <ecole-en-tete-page
+      titre="Paramètres de l'établissement"
+      sousTitre="Profil, images et réglages de l'école"
+    />
     @if (erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur">
         {{ message }}

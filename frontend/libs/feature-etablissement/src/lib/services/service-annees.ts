@@ -36,7 +36,10 @@ export class ServiceAnnees {
     return this.api.invoke(anneeScolaireCreer, { body: corps });
   }
 
-  modifier(annee: AnneeScolaireDto, corps: AnneeScolaireRequete): Promise<AnneeScolaireDto> {
+  modifier(
+    annee: AnneeScolaireDto,
+    corps: AnneeScolaireRequete,
+  ): Promise<AnneeScolaireDto> {
     return this.api.invoke(anneeScolaireModifier, {
       id: requis(annee.id),
       'If-Match': ifMatch(annee.version),
@@ -80,11 +83,17 @@ export class ServiceAnnees {
     return this.api.invoke(calendrierLister, { anneeId });
   }
 
-  ajouterEvenement(anneeId: string, corps: EvenementRequete): Promise<EvenementDto> {
+  ajouterEvenement(
+    anneeId: string,
+    corps: EvenementRequete,
+  ): Promise<EvenementDto> {
     return this.api.invoke(calendrierAjouter, { anneeId, body: corps });
   }
 
-  modifierEvenement(evenement: EvenementDto, corps: EvenementRequete): Promise<EvenementDto> {
+  modifierEvenement(
+    evenement: EvenementDto,
+    corps: EvenementRequete,
+  ): Promise<EvenementDto> {
     return this.api.invoke(calendrierModifier, {
       anneeId: requis(evenement.anneeId),
       evenementId: requis(evenement.id),

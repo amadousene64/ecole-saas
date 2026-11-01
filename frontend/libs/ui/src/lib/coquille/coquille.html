@@ -1,14 +1,16 @@
 <a class="saut" href="#contenu">{{ textes.allerAuContenu }}</a>
-<mat-toolbar>
-  @if (liens().length > 0) {
+<header class="barre-haute">
+  @if (liens().length > 0 && mode() === 'tiroir') {
   <button
-    matButton
-    class="bouton-menu"
     type="button"
+    class="bouton-icone"
+    [attr.aria-label]="textes.ouvrirMenu"
     [attr.aria-expanded]="menuOuvert()"
+    aria-controls="navigation-principale"
     (click)="basculerMenu()"
+    data-testid="ouvrir-tiroir"
   >
-    {{ textes.ouvrirMenu }}
+    <ecole-icone nom="menu" />
   </button>
   }
   <span class="titre">{{ titre() }}</span>
@@ -16,9 +18,41 @@
   <span class="ecole" title="École courante">{{ nomEcole }}</span>
   }
   <span class="espace"></span>
-  @if (utilisateur(); as nom) {
-  <button matButton type="button" [matMenuTriggerFor]="menu">{{ nom }}</button>
-  <mat-menu #menu="matMenu">
+  @if (recherche()) {
+  <button
+    type="button"
+    class="recherche"
+    (click)="rechercher.emit()"
+    data-testid="ouvrir-recherche"
+  >
+    <ecole-icone nom="recherche" />
+    <span class="texte-recherche">{{ textes.rechercher }}</span>
+    <kbd class="raccourci" aria-hidden="true">Ctrl K</kbd>
+    <span class="sr-only">(raccourci : Ctrl+K)</span>
+  </button>
+  } @if (utilisateur(); as nom) {
+  <button
+    type="button"
+    class="compte"
+    [matMenuTriggerFor]="menuCompte"
+    data-testid="menu-compte"
+  >
+    <ecole-icone nom="compte" />
+    <span class="identite">
+      <span class="nom">{{ nom }}</span>
+      @if (role(); as libelleRole) {
+      <span class="role">{{ libelleRole }}</span>
+      }
+    </span>
+    <ecole-icone nom="bas" [taille]="18" />
+  </button>
+  <mat-menu #menuCompte="matMenu">
+    <div class="entete-menu-compte">
+      <strong>{{ nom }}</strong>
+      @if (role(); as libelleRole) {
+      <span>{{ libelleRole }}</span>
+      }
+    </div>
     @if (plusieursEcoles()) {
     <button mat-menu-item type="button" (click)="changerEcole.emit()">
       {{ textes.changerEcole }}
@@ -29,26 +63,41 @@
     </button>
   </mat-menu>
   }
-</mat-toolbar>
+</header>
 
 <mat-sidenav-container class="conteneur">
   <mat-sidenav
-    [mode]="tiroir() ? 'over' : 'side'"
-    [opened]="tiroir() ? menuOuvert() : liens().length > 0"
+    id="navigation-principale"
+    [class.reduite]="mode() === 'icones'"
+    [mode]="mode() === 'tiroir' ? 'over' : 'side'"
+    [opened]="mode() === 'tiroir' ? menuOuvert() : liens().length > 0"
     (closedStart)="menuOuvert.set(false)"
   >
     <nav [attr.aria-label]="textes.navigationPrincipale">
-      @for (lien of liens(); track lien.chemin) {
-      <a
-        matButton
-        class="lien"
-        [routerLink]="lien.chemin"
-        routerLinkActive="actif"
-        [routerLinkActiveOptions]="{ exact: lien.chemin === '/' }"
-        ariaCurrentWhenActive="page"
-        (click)="fermerSiTiroir()"
-        >{{ lien.libelle }}</a
-      >
+      @for (section of sections(); track $index) {
+      <div class="section">
+        @if (section.titre; as titreSection) {
+        <p class="titre-section" [class.sr-only]="mode() === 'icones'">
+          {{ titreSection }}
+        </p>
+        } @for (lien of section.liens; track lien.chemin) {
+        <a
+          class="lien"
+          [routerLink]="lien.chemin"
+          routerLinkActive="actif"
+          [routerLinkActiveOptions]="{ exact: lien.chemin === '/' }"
+          ariaCurrentWhenActive="page"
+          [attr.title]="mode() === 'icones' ? lien.libelle : null"
+        >
+          @if (lien.icone; as icone) {
+          <ecole-icone [nom]="icone" />
+          }
+          <span class="libelle-lien" [class.sr-only]="mode() === 'icones'"
+            >{{ lien.libelle }}</span
+          >
+        </a>
+        }
+      </div>
       }
     </nav>
   </mat-sidenav>
@@ -58,3 +107,4 @@
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
+<ecole-zone-notifications />

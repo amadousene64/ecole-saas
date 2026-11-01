@@ -1,3 +1,4 @@
+import { EnTetePage } from '@ecole/ui';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -46,10 +47,11 @@ export function presenterCode(brut: string): string {
  * essais sont limités par le serveur.
  */
 @Component({
+  imports: [EnTetePage],
   selector: 'ecole-activation',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1>Activer mon compte</h1>
+    <ecole-en-tete-page titre="Activer mon compte" />
     <p class="texte-secondaire">
       Saisissez le code d'activation remis par l'école de votre enfant.
     </p>

@@ -47,7 +47,7 @@ import { DialogueCode } from './dialogue-code';
       </p>
     }
     <h2>Responsables</h2>
-    <table data-testid="table-liens">
+    <table data-testid="table-liens" class="cartes">
       <caption class="sr-only">
         Responsables de l'élève
       </caption>
@@ -66,22 +66,22 @@ import { DialogueCode } from './dialogue-code';
       <tbody>
         @for (l of liens(); track l.id) {
           <tr [attr.data-testid]="'lien-' + l.responsable?.nom">
-            <td>
+            <td data-label="Responsable">
               {{ l.responsable?.prenoms }} {{ l.responsable?.nom }}
               <div class="aide">{{ l.responsable?.telephone }}</div>
             </td>
-            <td>{{ libelleLien(l.type) }}</td>
-            <td>
+            <td data-label="Lien">{{ libelleLien(l.type) }}</td>
+            <td data-label="Rôles">
               <span class="aide">{{ roles(l) }}</span>
             </td>
-            <td>
+            <td data-label="Compte">
               @if (l.responsable?.compteActive) {
                 <ecole-pastille ton="primaire">Compte activé</ecole-pastille>
               } @else {
                 <ecole-pastille ton="neutre">Pas de compte</ecole-pastille>
               }
             </td>
-            <td>
+            <td data-label="Accès à l'espace parent">
               <mat-slide-toggle
                 [checked]="!!l.accesEspaceParent"
                 [disabled]="!droits.estDirecteur() || occupe()"
@@ -107,7 +107,7 @@ import { DialogueCode } from './dialogue-code';
               }
             </td>
             @if (droits.peutEcrire()) {
-              <td>
+              <td data-label="Actions">
                 @if (l.responsable; as r) {
                   <button
                     matButton

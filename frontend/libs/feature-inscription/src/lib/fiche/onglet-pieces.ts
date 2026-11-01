@@ -68,7 +68,7 @@ export function controlerFichier(fichier: File): string | null {
     <p class="sr-only" role="status" aria-live="polite">{{ annonce() }}</p>
 
     <h2>Pièces du dossier</h2>
-    <table data-testid="table-pieces">
+    <table data-testid="table-pieces" class="cartes">
       <caption class="sr-only">
         Pièces du dossier
       </caption>
@@ -83,14 +83,14 @@ export function controlerFichier(fichier: File): string | null {
       <tbody>
         @for (p of pieces(); track p.id) {
           <tr [attr.data-testid]="'piece-' + p.type">
-            <td>{{ libelle(p.type) }}</td>
-            <td>
+            <td data-label="Pièce">{{ libelle(p.type) }}</td>
+            <td data-label="Analyse">
               @if (analyse(p); as a) {
                 <ecole-pastille [ton]="a.ton">{{ a.libelle }}</ecole-pastille>
               }
             </td>
-            <td>{{ p.creeLe?.slice(0, 10) }}</td>
-            <td>
+            <td data-label="Déposée le">{{ p.creeLe?.slice(0, 10) }}</td>
+            <td data-label="Actions">
               @if (p.statut === 'SAIN') {
                 @if (peutOuvrir(p)) {
                   <button

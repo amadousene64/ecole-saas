@@ -6,7 +6,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { ClasseDto, EleveListeDto } from '@ecole/api-client';
-import { Pastille } from '@ecole/ui';
+import {
+  ActionPrincipale,
+  EnTetePage,
+  EtatVide,
+  Pastille,
+  Squelette,
+} from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import {
@@ -35,19 +41,29 @@ const DELAI_RECHERCHE_MS = 300;
     MatInputModule,
     MatSelectModule,
     Pastille,
+    EnTetePage,
+    ActionPrincipale,
+    EtatVide,
+    Squelette,
   ],
   template: `
-    <h1>Élèves</h1>
-    <div class="actions">
-      @if (droits.peutEcrire()) {
-        <a matButton="filled" routerLink="nouveau" data-testid="nouvel-eleve"
-          >Nouvel élève</a
-        >
-        <a matButton routerLink="import" data-testid="lien-import"
+    <ecole-en-tete-page
+      titre="Élèves"
+      sousTitre="Recherche, inscriptions et dossiers"
+    >
+      @if (droits.peutImporter()) {
+        <a actions matButton routerLink="import" data-testid="lien-import"
           >Importer un fichier</a
         >
       }
-    </div>
+      @if (droits.peutCreer()) {
+        <ecole-action-principale actions>
+          <a matButton="filled" routerLink="nouveau" data-testid="nouvel-eleve"
+            >Nouvel élève</a
+          >
+        </ecole-action-principale>
+      }
+    </ecole-en-tete-page>
 
     <form class="grille" role="search" (submit)="$event.preventDefault()">
       <mat-form-field appearance="outline">
@@ -96,7 +112,7 @@ const DELAI_RECHERCHE_MS = 300;
       </p>
     }
 
-    <table data-testid="table-eleves">
+    <table class="cartes" data-testid="table-eleves">
       <caption class="sr-only">
         Liste des élèves
       </caption>
@@ -112,14 +128,14 @@ const DELAI_RECHERCHE_MS = 300;
       <tbody>
         @for (e of lignes(); track e.id) {
           <tr [attr.data-testid]="'eleve-' + e.matricule">
-            <td class="mono">{{ e.matricule }}</td>
-            <td>
+            <td class="mono" data-label="Matricule">{{ e.matricule }}</td>
+            <td data-label="Nom">
               <a [routerLink]="['/eleves', e.id]"
                 >{{ e.prenoms }} {{ e.nom }}</a
               >
             </td>
-            <td>{{ e.classe || '—' }}</td>
-            <td>
+            <td data-label="Classe">{{ e.classe || '—' }}</td>
+            <td data-label="Statut">
               @if (e.statut) {
                 <ecole-pastille [ton]="ton(e.statut)">{{
                   libelle(e.statut)
@@ -128,7 +144,7 @@ const DELAI_RECHERCHE_MS = 300;
                 <span class="aide">Jamais inscrit</span>
               }
             </td>
-            <td>
+            <td data-label="Dossier">
               @if (e.dossier; as d) {
                 @if (!d.manquantes?.length && !d.enAnalyse && !d.refusees) {
                   <ecole-pastille ton="primaire">Complet</ecole-pastille>
@@ -157,17 +173,21 @@ const DELAI_RECHERCHE_MS = 300;
               }
             </td>
           </tr>
-        } @empty {
-          @if (!chargement()) {
-            <tr>
-              <td colspan="5" class="aide" data-testid="aucun-eleve">
-                Aucun élève ne correspond à cette recherche.
-              </td>
-            </tr>
-          }
         }
       </tbody>
     </table>
+    @if (chargement() && lignes().length === 0) {
+      <ecole-squelette [lignes]="6" variante="cartes" />
+    } @else if (!chargement() && lignes().length === 0 && !erreur()) {
+      <ecole-etat-vide
+        titre="Aucun élève ne correspond"
+        detail="Modifiez la recherche ou les filtres, ou ajoutez un élève."
+      >
+        @if (droits.peutCreer()) {
+          <a matButton="filled" routerLink="nouveau">Nouvel élève</a>
+        }
+      </ecole-etat-vide>
+    }
 
     <div aria-live="polite" class="aide" data-testid="etat-liste">
       @if (chargement()) {

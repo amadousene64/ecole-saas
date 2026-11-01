@@ -1,47 +1,41 @@
-import { computed, inject, Service } from '@angular/core';
-import { Session } from '@ecole/auth';
+import { inject, Service } from '@angular/core';
+import { Acces } from '@ecole/auth';
 
 /**
- * Droits d'affichage dans l'école courante. C'est du confort d'interface (masquer ce qui serait
- * refusé) : le serveur contrôle chaque appel, quoi que l'interface montre.
+ * Droits d'affichage dans l'école courante, tirés de la table commune (`@ecole/auth`) comme le menu
+ * et les gardes de route. C'est du confort d'interface (masquer ce qui serait refusé) : le
+ * serveur contrôle chaque appel, quoi que l'interface montre.
  */
 @Service()
 export class Droits {
-  private readonly session = inject(Session);
-
-  private a(...roles: string[]): boolean {
-    return this.session.roles().some((r) => roles.includes(r));
-  }
+  private readonly acces = inject(Acces);
 
   /** DIRECTEUR et SECRETARIAT écrivent (identité, responsables, pièces, inscriptions). */
-  readonly peutEcrire = computed(() => this.a('DIRECTEUR', 'SECRETARIAT'));
+  readonly peutEcrire = this.acces.signalPour('eleves.ecrire');
 
-  /** Accès à l'espace parent d'un lien, radiation : directeur seul. */
-  readonly estDirecteur = computed(() => this.a('DIRECTEUR'));
+  readonly peutCreer = this.acces.signalPour('eleves.creer');
 
-  /** Lecture du contenu des données sensibles (santé, situation familiale) : DIRECTEUR, CENSEUR. */
-  readonly peutLireSensible = computed(() => this.a('DIRECTEUR', 'CENSEUR'));
+  readonly peutImporter = this.acces.signalPour('eleves.importer');
 
-  /** Le secrétariat voit seulement « renseigné / non renseigné » et peut saisir. */
-  readonly voitEtatSensible = computed(() => this.a('SECRETARIAT'));
+  /** Accès d'un responsable à l'espace parent : directeur seul. */
+  readonly estDirecteur = this.acces.signalPour('eleves.acces-parent');
 
-  /** Pièces du dossier visibles : direction, secrétariat, censeur (certificat médical seul). */
-  readonly voitPieces = computed(() =>
-    this.a('DIRECTEUR', 'SECRETARIAT', 'CENSEUR'),
+  /** Radiation : directeur seul. */
+  readonly peutRadier = this.acces.signalPour('inscription.radier');
+
+  /** Lecture du contenu des données sensibles : DIRECTEUR, CENSEUR. */
+  readonly peutLireSensible = this.acces.signalPour('eleves.sensible.lire');
+
+  /** « Renseigné / non renseigné » des données sensibles. */
+  readonly voitEtatSensible = this.acces.signalPour('eleves.sensible.etat');
+
+  readonly voitPieces = this.acces.signalPour('eleves.pieces.voir');
+
+  readonly peutOuvrirCertificat = this.acces.signalPour(
+    'eleves.certificat.ouvrir',
   );
 
-  /** Ouverture du certificat médical : DIRECTEUR et CENSEUR. */
-  readonly peutOuvrirCertificat = computed(() =>
-    this.a('DIRECTEUR', 'CENSEUR'),
-  );
+  readonly voitScolarite = this.acces.signalPour('eleves.scolarite.voir');
 
-  /** Scolarité (inscriptions) : sans le comptable. */
-  readonly voitScolarite = computed(() =>
-    this.a('DIRECTEUR', 'SECRETARIAT', 'CENSEUR', 'SURVEILLANT'),
-  );
-
-  /** Responsables et leurs liens : direction, secrétariat, comptable (payeurs). */
-  readonly voitResponsables = computed(() =>
-    this.a('DIRECTEUR', 'SECRETARIAT', 'COMPTABLE'),
-  );
+  readonly voitResponsables = this.acces.signalPour('eleves.responsables.voir');
 }

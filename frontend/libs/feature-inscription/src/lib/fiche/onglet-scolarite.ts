@@ -52,7 +52,7 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
     </div>
 
     <h2>Scolarité</h2>
-    <table data-testid="table-inscriptions">
+    <table data-testid="table-inscriptions" class="cartes">
       <caption class="sr-only">
         Inscriptions de l'élève
       </caption>
@@ -68,20 +68,20 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
       <tbody>
         @for (i of historique(); track i.id) {
           <tr>
-            <td>{{ i.classe }}</td>
-            <td>
+            <td data-label="Classe">{{ i.classe }}</td>
+            <td data-label="Statut">
               <ecole-pastille [ton]="ton(i.statut)">{{
                 libelle(i.statut)
               }}</ecole-pastille>
             </td>
-            <td>{{ i.dateEntree }}</td>
-            <td>
+            <td data-label="Entrée">{{ i.dateEntree }}</td>
+            <td data-label="Sortie">
               {{ i.dateSortie || '—' }}
               @if (i.motifSortie) {
                 <div class="aide">{{ i.motifSortie }}</div>
               }
             </td>
-            <td>{{ i.redoublant ? 'Oui' : 'Non' }}</td>
+            <td data-label="Redoublant">{{ i.redoublant ? 'Oui' : 'Non' }}</td>
           </tr>
         } @empty {
           <tr>
@@ -220,11 +220,11 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
           <mat-select formControlName="statut" data-testid="champ-sortie">
             <mat-option value="TRANSFERE">Transféré</mat-option>
             <mat-option value="ABANDON">Abandon</mat-option>
-            @if (droits.estDirecteur()) {
+            @if (droits.peutRadier()) {
               <mat-option value="RADIE">Radié</mat-option>
             }
           </mat-select>
-          @if (!droits.estDirecteur()) {
+          @if (!droits.peutRadier()) {
             <mat-hint>La radiation est réservée au directeur.</mat-hint>
           }
         </mat-form-field>
