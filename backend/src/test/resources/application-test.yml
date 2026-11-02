@@ -12,6 +12,8 @@ spring:
 ecole:
   tenant:
     resolution: entete
+  marque:
+    origines-autorisees: http://keycloak.test:8180
   outbox:
     relais:
       # Les tests déclenchent le relais eux-mêmes (RelaisOutbox.traiterTout).

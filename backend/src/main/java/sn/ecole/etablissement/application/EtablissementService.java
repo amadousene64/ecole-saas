@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,8 @@ public class EtablissementService {
       String ia,
       String ief,
       String adresse,
+      String ville,
+      String phraseAccueil,
       String telephone,
       String email,
       String fuseau,
@@ -51,16 +54,19 @@ public class EtablissementService {
   private final ImageEtablissementRepository images;
   private final StockageFichiers stockage;
   private final JournalAudit journal;
+  private final MarquePubliqueService marque;
 
   public EtablissementService(
       EtablissementRepository etablissements,
       ImageEtablissementRepository images,
       StockageFichiers stockage,
-      JournalAudit journal) {
+      JournalAudit journal,
+      MarquePubliqueService marque) {
     this.etablissements = etablissements;
     this.images = images;
     this.stockage = stockage;
     this.journal = journal;
+    this.marque = marque;
   }
 
   @PreAuthorize(Droits.LECTURE_TOUS)
@@ -82,11 +88,14 @@ public class EtablissementService {
         m.ia(),
         m.ief(),
         m.adresse(),
+        m.ville(),
+        m.phraseAccueil(),
         m.telephone(),
         m.email(),
         m.fuseau(),
         m.devise());
     etablissements.save(e);
+    oublierMarque();
     journal.consigner(
         "ETABLISSEMENT_MODIFIE",
         "Etablissement",
@@ -123,6 +132,7 @@ public class EtablissementService {
       images.save(
           ImageEtablissement.deposer(type, cle, image.contentType(), image.octets().length));
     }
+    oublierMarque();
     journal.consigner("IMAGE_DEPOSEE", "Etablissement", e.getId(), Map.of("type", type.name()));
     return vue(e);
   }
@@ -138,8 +148,15 @@ public class EtablissementService {
     image.retirer(Instant.now());
     images.save(image);
     ApresTransaction.siValidee(() -> stockage.supprimer(cle));
+    oublierMarque();
     journal.consigner("IMAGE_SUPPRIMEE", "Etablissement", e.getId(), Map.of("type", type.name()));
     return vue(e);
+  }
+
+  /** La marque publique se relit après validation : jamais d'ancienne version servie à la suite. */
+  private void oublierMarque() {
+    UUID ecole = ContexteTenant.exiger();
+    ApresTransaction.siValidee(() -> marque.invalider(ecole));
   }
 
   private Etablissement charger() {

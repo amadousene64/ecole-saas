@@ -55,6 +55,8 @@ class EtablissementController {
                 requete.ia(),
                 requete.ief(),
                 requete.adresse(),
+                requete.ville(),
+                requete.phraseAccueil(),
                 requete.telephone(),
                 requete.email(),
                 requete.fuseau(),

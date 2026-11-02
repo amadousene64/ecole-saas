@@ -16,6 +16,8 @@ const PROFIL: EtablissementDto = {
   statut: 'PRIVE_LAIQUE',
   fuseau: 'Africa/Dakar',
   devise: 'XOF',
+  ville: 'Dakar',
+  phraseAccueil: 'Apprendre ensemble.',
   logoUrl: 'https://stockage.test/logo.png',
   cachetUrl: 'https://stockage.test/cachet.png',
   signatureUrl: 'https://stockage.test/signature.png',
@@ -52,6 +54,29 @@ describe('PageParametres', () => {
     const { racine } = await creer(['DIRECTEUR']);
     expect(champ(racine, 'champ-nom').value).toBe('Lycée Exemple A');
     expect(champ(racine, 'champ-code').value).toBe('LYCEE-A');
+  });
+
+  it('affiche et envoie la ville et la phrase d’accueil de la page de connexion', async () => {
+    const { fixture, invoke, racine } = await creer(['SECRETARIAT']);
+    expect(champ(racine, 'champ-ville').value).toBe('Dakar');
+    expect(champ(racine, 'champ-phrase-accueil').value).toBe(
+      'Apprendre ensemble.',
+    );
+
+    const phrase = champ(racine, 'champ-phrase-accueil');
+    phrase.value = 'Une école pour tous.';
+    phrase.dispatchEvent(new Event('input'));
+    racine
+      .querySelector<HTMLButtonElement>('[data-testid="enregistrer"]')!
+      .click();
+    await stabiliser(fixture);
+
+    const appel = invoke.mock.calls.find(
+      ([fn]) => fn === etablissementModifier,
+    )!;
+    expect(appel[1]).toMatchObject({
+      body: { ville: 'Dakar', phraseAccueil: 'Une école pour tous.' },
+    });
   });
 
   it('le directeur enregistre avec la version lue dans If-Match', async () => {

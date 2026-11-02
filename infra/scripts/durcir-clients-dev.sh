@@ -20,15 +20,13 @@ ADMIN=${KEYCLOAK_ADMIN:-admin}
 ADMIN_MDP=${KEYCLOAK_ADMIN_PASSWORD:-admin-dev}
 CLIENTS=${CLIENTS:-"backoffice parent vie-scolaire dev-cli"}
 
-case "$KC" in
-  http://localhost:* | http://127.0.0.1:*) ;;
-  *)
-    if [ "${FORCER_DEV:-}" != "1" ]; then
-      echo "Refus : KC=$KC n'est pas un Keycloak local (FORCER_DEV=1 pour passer outre)." >&2
-      exit 2
-    fi
-    ;;
-esac
+# Hôte strictement local (« http://localhost:8180@autre-hote » enverrait les identifiants ailleurs).
+if ! [[ "$KC" =~ ^http://(localhost|127[.]0[.]0[.]1)(:[0-9]+)?(/|$) ]]; then
+  if [ "${FORCER_DEV:-}" != "1" ]; then
+    echo "Refus : KC=$KC n'est pas un Keycloak local (FORCER_DEV=1 pour passer outre)." >&2
+    exit 2
+  fi
+fi
 
 # Le mot de passe administrateur passe par l'entrée standard de curl, jamais en argument.
 JETON=$(jq -rn --arg u "$ADMIN" --arg p "$ADMIN_MDP" \

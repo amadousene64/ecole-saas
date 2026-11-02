@@ -20,17 +20,13 @@ ADMIN=${KEYCLOAK_ADMIN:-admin}
 ADMIN_MDP=${KEYCLOAK_ADMIN_PASSWORD:-admin-dev}
 MDP=${MDP:-Passer-2026-dev}
 
-case "$KC" in
-  http://localhost:* | http://127.0.0.1:*) ;;
-  *)
-    if [ "${FORCER_DEV:-}" != "1" ]; then
-      echo "Refus : KC=$KC n'est pas un Keycloak local." >&2
-      echo "Ces comptes de dev ont un mot de passe connu : ne les créez jamais hors développement" >&2
-      echo "(FORCER_DEV=1 pour passer outre, sous votre responsabilité)." >&2
-      exit 2
-    fi
-    ;;
-esac
+# Hôte strictement local (« http://localhost:8180@autre-hote » enverrait les identifiants ailleurs).
+if ! [[ "$KC" =~ ^http://(localhost|127[.]0[.]0[.]1)(:[0-9]+)?(/|$) ]]; then
+  if [ "${FORCER_DEV:-}" != "1" ]; then
+    echo "Refus : KC=$KC n'est pas un Keycloak local (FORCER_DEV=1 pour passer outre)." >&2
+    exit 2
+  fi
+fi
 
 # Le mot de passe administrateur passe par l'entrée standard de curl, jamais en argument (une
 # ligne de commande est visible dans la liste des processus).

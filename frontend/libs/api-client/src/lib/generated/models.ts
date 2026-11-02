@@ -33,6 +33,7 @@ export type { InscriptionRequete } from './models/inscription-requete';
 export type { LienParentalDto } from './models/lien-parental-dto';
 export type { LienParentalRequete } from './models/lien-parental-requete';
 export type { LigneImportDto } from './models/ligne-import-dto';
+export type { MarqueDto } from './models/marque-dto';
 export type { ModificationInscriptionRequete } from './models/modification-inscription-requete';
 export type { ModifierCycleRequete } from './models/modifier-cycle-requete';
 export type { ModifierEtablissementRequete } from './models/modifier-etablissement-requete';

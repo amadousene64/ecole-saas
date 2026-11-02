@@ -35,15 +35,27 @@ services:
     ports: ["127.0.0.1:8180:8180"]
     volumes:
       - ./keycloak/realm-ecole.json:/opt/keycloak/data/import/realm-ecole.json:ro
-      # Thème de connexion du personnel (sans lien « S'inscrire »), voir realm-ecole.json.
-      - ./keycloak/themes/ecole-personnel:/opt/keycloak/themes/ecole-personnel:ro
+      # Thème de connexion « ecole » (marque de l'école, deux colonnes), voir realm-ecole.json.
+      - ./keycloak/themes/ecole:/opt/keycloak/themes/ecole:ro
     depends_on:
       postgres: { condition: service_healthy }
+      mailpit: { condition: service_healthy }
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && grep -q UP <&3"]
       interval: 10s
       timeout: 5s
       retries: 30
+
+  # Courrier de développement : Keycloak y envoie les e-mails (vérification d'adresse, mot de passe
+  # oublié) ; rien ne part sur Internet. Boîte de réception : http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:4.4.0-management

@@ -10,6 +10,8 @@ export interface ModifierEtablissementRequete {
   ia?: string;
   ief?: string;
   nom: string;
+  phraseAccueil?: string;
   statut: 'PUBLIC' | 'PRIVE_LAIQUE' | 'PRIVE_CONFESSIONNEL';
   telephone?: string;
+  ville?: string;
 }

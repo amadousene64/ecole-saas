@@ -27,6 +27,7 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
 import sn.ecole.shared.application.AppartenanceService;
 import sn.ecole.shared.domain.Tenant;
 import sn.ecole.shared.domain.TenantRepository;
@@ -87,6 +88,43 @@ class SecuriteConfig {
                         && j.getToken().getClaimAsString("azp") instanceof String client
                         && clients.contains(client)))
         .build();
+  }
+
+  /** Préfixe des appels SANS authentification (marque de l'école sur les pages de connexion). */
+  public static final String CHEMIN_PUBLIC = "/api/v1/public/**";
+
+  /**
+   * Appels publics : lecture seule (GET, HEAD et la pré-vérification CORS), aucun jeton, aucune
+   * école désignée par l'en-tête. Ils ne renvoient que ce qui est public par nature (voir les
+   * contrôleurs concernés) et sont limités par adresse IP. Le CORS n'autorise que les origines
+   * listées dans {@code ecole.marque.origines-autorisees} (l'adresse de Keycloak, dont les pages de
+   * connexion lisent la marque) : aucune autre origine, aucun cookie.
+   */
+  @Bean
+  @Order(0)
+  SecurityFilterChain chainePublique(
+      HttpSecurity http, @Value("${ecole.marque.origines-autorisees:}") List<String> origines)
+      throws Exception {
+    CorsConfiguration cors = new CorsConfiguration();
+    cors.setAllowedOrigins(origines.stream().filter(o -> !o.isBlank()).map(String::strip).toList());
+    cors.setAllowedMethods(List.of("GET", "HEAD", "OPTIONS"));
+    cors.setAllowCredentials(false);
+    cors.setMaxAge(3600L);
+    http.securityMatcher(CHEMIN_PUBLIC)
+        .cors(c -> c.configurationSource(requete -> cors))
+        .authorizeHttpRequests(
+            r ->
+                r.requestMatchers(HttpMethod.GET, CHEMIN_PUBLIC)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.HEAD, CHEMIN_PUBLIC)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, CHEMIN_PUBLIC)
+                    .permitAll()
+                    .anyRequest()
+                    .denyAll())
+        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .csrf(c -> c.disable());
+    return http.build();
   }
 
   /** API : jeton obligatoire, puis vérification de l'appartenance à l'école demandée. */
