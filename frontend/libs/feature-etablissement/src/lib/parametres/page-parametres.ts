@@ -108,6 +108,29 @@ import { CarteImage } from './carte-image';
         <input matInput formControlName="adresse" />
       </mat-form-field>
       <mat-form-field appearance="outline">
+        <mat-label>Ville</mat-label>
+        <input
+          matInput
+          formControlName="ville"
+          maxlength="100"
+          data-testid="champ-ville"
+        />
+        <mat-hint>Affichée sur la page de connexion.</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="large">
+        <mat-label>Phrase d'accueil</mat-label>
+        <input
+          matInput
+          formControlName="phraseAccueil"
+          maxlength="200"
+          data-testid="champ-phrase-accueil"
+        />
+        <mat-hint
+          >Une courte phrase sous le nom de l'école, sur la page de
+          connexion.</mat-hint
+        >
+      </mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Téléphone</mat-label>
         <input
           matInput
@@ -207,6 +230,8 @@ export class PageParametres {
     ia: [''],
     ief: [''],
     adresse: [''],
+    ville: ['', Validators.maxLength(100)],
+    phraseAccueil: ['', Validators.maxLength(200)],
     telephone: [''],
     email: ['', Validators.email],
     fuseau: ['Africa/Dakar'],
@@ -241,6 +266,8 @@ export class PageParametres {
       ia: e.ia ?? '',
       ief: e.ief ?? '',
       adresse: e.adresse ?? '',
+      ville: e.ville ?? '',
+      phraseAccueil: e.phraseAccueil ?? '',
       telephone: e.telephone ?? '',
       email: e.email ?? '',
       fuseau: e.fuseau ?? 'Africa/Dakar',

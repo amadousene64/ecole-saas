@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import sn.ecole.etablissement.TestEtablissement;
 import sn.ecole.etablissement.application.AnneeScolaireService;
 import sn.ecole.etablissement.application.ClasseService;
+import sn.ecole.etablissement.application.EtablissementService;
 import sn.ecole.etablissement.application.NiveauService;
 import sn.ecole.etablissement.application.SalleService;
 import sn.ecole.etablissement.application.SerieService;
@@ -27,10 +28,19 @@ class DonneesDevTest extends TestEtablissement {
   @Autowired ClasseService classes;
   @Autowired NiveauService niveaux;
   @Autowired SerieService series;
+  @Autowired EtablissementService etablissement;
 
   private DonneesDev donnees() {
     return new DonneesDev(
-        execution, tenants, initialisation, annees, salles, classes, niveaux, series);
+        execution,
+        tenants,
+        initialisation,
+        annees,
+        salles,
+        classes,
+        niveaux,
+        series,
+        etablissement);
   }
 
   private List<String> noms(Reponse r) {
@@ -53,6 +63,17 @@ class DonneesDevTest extends TestEtablissement {
     assertThat(noms(get(DIRECTEUR_B, B, "/api/v1/classes"))).containsExactly("CE1A", "CM2B");
     assertThat(get(DIRECTEUR_B, B, "/api/v1/annees-scolaires/en-cours").id())
         .isNotEqualTo(anneeA.id());
+  }
+
+  @Test
+  void lesEcolesFictivesOntUneVilleEtUnePhraseDAccueilPourLaMarque() throws Exception {
+    donnees().run(null);
+
+    var a = get(DIRECTEUR_A, A, "/api/v1/etablissement").corps();
+    assertThat(a.path("ville").asText()).isEqualTo("Dakar");
+    assertThat(a.path("phraseAccueil").asText()).isNotBlank();
+    assertThat(get(DIRECTEUR_B, B, "/api/v1/etablissement").corps().path("ville").asText())
+        .isEqualTo("Saint-Louis");
   }
 
   @Test

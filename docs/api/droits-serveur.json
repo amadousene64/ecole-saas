@@ -386,6 +386,20 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "MarquePubliqueService.logo" : {
+      "roles" : [ ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "permitAll()"
+    },
+    "MarquePubliqueService.marque" : {
+      "roles" : [ ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "permitAll()"
+    },
     "NiveauService.creer" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
       "ecriture" : true,

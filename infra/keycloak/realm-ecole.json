@@ -54,7 +54,7 @@
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:4200/*",
-        "login_theme": "ecole-personnel"
+        "login_theme": "ecole"
       },
       "protocolMappers": [
         {
@@ -86,7 +86,8 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4201/*"
+        "post.logout.redirect.uris": "http://localhost:4201/*",
+        "login_theme": "ecole"
       },
       "protocolMappers": [
         {
@@ -119,7 +120,7 @@
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:4202/*",
-        "login_theme": "ecole-personnel"
+        "login_theme": "ecole"
       },
       "protocolMappers": [
         {
@@ -316,5 +317,15 @@
         }
       }
     ]
-  }
+  },
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "ne-pas-repondre@ecole.local",
+    "fromDisplayName": "Plateforme de gestion scolaire",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
+  "loginTheme": "ecole"
 }

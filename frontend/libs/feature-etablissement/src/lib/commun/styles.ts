@@ -15,6 +15,9 @@ export const STYLES_COMMUNS = `
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 0 16px;
   }
+  .grille .large {
+    grid-column: 1 / -1;
+  }
   .actions {
     display: flex;
     flex-wrap: wrap;

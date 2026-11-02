@@ -48,6 +48,13 @@ public class Etablissement extends TenantAwareEntity {
   @Column(length = 300)
   private String adresse;
 
+  @Column(length = 100)
+  private String ville;
+
+  /** Courte phrase affichée sur les pages de connexion (marque de l'école). */
+  @Column(name = "phrase_accueil", length = 200)
+  private String phraseAccueil;
+
   @Column(length = 16)
   private String telephone;
 
@@ -78,6 +85,8 @@ public class Etablissement extends TenantAwareEntity {
       String ia,
       String ief,
       String adresse,
+      String ville,
+      String phraseAccueil,
       String telephone,
       String email,
       String fuseau,
@@ -86,6 +95,8 @@ public class Etablissement extends TenantAwareEntity {
     this.ia = Verif.optionnel(ia, "L'inspection d'académie", 120);
     this.ief = Verif.optionnel(ief, "L'IEF", 120);
     this.adresse = Verif.optionnel(adresse, "L'adresse", 300);
+    this.ville = Verif.optionnel(ville, "La ville", 100);
+    this.phraseAccueil = Verif.optionnel(phraseAccueil, "La phrase d'accueil", 200);
     this.telephone = Telephone.normaliser(telephone);
     this.email = email(email);
     this.fuseau = fuseau(fuseau);
@@ -147,6 +158,14 @@ public class Etablissement extends TenantAwareEntity {
 
   public String getIef() {
     return ief;
+  }
+
+  public String getVille() {
+    return ville;
+  }
+
+  public String getPhraseAccueil() {
+    return phraseAccueil;
   }
 
   public String getAdresse() {
