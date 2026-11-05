@@ -73,45 +73,7 @@ export class Notifications {
       }
     </div>
   `,
-  styles: `
-    .zone {
-      position: fixed;
-      left: 50%;
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      transform: translateX(-50%);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: min(480px, calc(100vw - 32px));
-      pointer-events: none;
-    }
-    .notification {
-      pointer-events: auto;
-      margin: 0;
-      padding: 10px 14px;
-      border-radius: var(--ecole-rayon-controle, 10px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: var(--ecole-texte, #1f2a24);
-      color: var(--ecole-fond, #fff);
-      box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
-    }
-    .notification.erreur {
-      background: var(--ecole-bissap, #9c2f23);
-    }
-    .fermer {
-      font: inherit;
-      color: inherit;
-      background: none;
-      border: 0;
-      text-decoration: underline;
-      cursor: pointer;
-      min-height: 32px;
-    }
-  `,
+  styleUrl: './notifications.scss',
 })
 export class ZoneNotifications {
   protected readonly notifications = inject(Notifications);

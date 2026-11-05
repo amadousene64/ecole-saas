@@ -29,14 +29,7 @@ import { CarteCycle } from './carte-cycle';
       />
     }
   `,
-  styles: `
-    .aide {
-      color: var(--mat-sys-on-surface-variant, #555);
-    }
-    .erreur {
-      color: var(--mat-sys-error, #b00020);
-    }
-  `,
+  styleUrl: './section-cycles.scss',
 })
 export class SectionCycles {
   private readonly service = inject(ServiceStructure);

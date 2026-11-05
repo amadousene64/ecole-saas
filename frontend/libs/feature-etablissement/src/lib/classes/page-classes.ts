@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { SectionClasses } from './section-classes';
 import { SectionSalles } from './section-salles';
-import { EnTetePage } from '@ecole/ui';
+import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
 
 /** Classes d'une année et salles de l'école. */
 @Component({
   selector: 'ecole-page-classes',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [EnTetePage, MatTabsModule, SectionClasses, SectionSalles],
   template: `
     <ecole-en-tete-page
@@ -23,6 +23,6 @@ import { EnTetePage } from '@ecole/ui';
       </mat-tab>
     </mat-tab-group>
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageClasses {}

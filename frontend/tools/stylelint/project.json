@@ -1,0 +1,8 @@
+{
+  "name": "stylelint-regles",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/stylelint",
+  "projectType": "library",
+  "tags": ["type:outil"],
+  "targets": {}
+}

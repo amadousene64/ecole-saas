@@ -3,18 +3,7 @@
   min-height: 100dvh;
 }
 
-.saut {
-  position: absolute;
-  left: -999px;
-
-  &:focus {
-    left: 8px;
-    top: 8px;
-    z-index: 1000;
-    padding: 8px 16px;
-    background: var(--ecole-surface);
-  }
-}
+// Lien d'évitement « .saut » : thème commun (_base.scss).
 
 header {
   position: sticky;
@@ -22,9 +11,9 @@ header {
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--ecole-espace-3);
   min-height: 56px;
-  padding: 0 16px;
+  padding: 0 var(--ecole-espace-4);
   background: var(--ecole-surface);
   border-bottom: 1px solid var(--ecole-bordure);
 }
@@ -35,7 +24,7 @@ header {
 }
 
 .ecole {
-  padding: 2px 10px;
+  padding: var(--ecole-espace-1) var(--ecole-espace-3);
   border-radius: 999px;
   background: var(--ecole-primaire-doux);
   color: var(--ecole-primaire-survol);
@@ -55,7 +44,7 @@ header {
     display: flex;
     align-items: center;
     min-height: 44px;
-    padding: 0 12px;
+    padding: 0 var(--ecole-espace-3);
     border-radius: var(--ecole-rayon-controle);
     list-style: none;
     cursor: pointer;
@@ -77,8 +66,8 @@ header {
   right: 0;
   z-index: 10;
   min-width: 220px;
-  margin-top: 4px;
-  padding: 6px;
+  margin-top: var(--ecole-espace-1);
+  padding: var(--ecole-espace-2);
   display: flex;
   flex-direction: column;
   border: 1px solid var(--ecole-bordure);
@@ -87,7 +76,7 @@ header {
 
   button {
     min-height: 44px;
-    padding: 0 12px;
+    padding: 0 var(--ecole-espace-3);
     border: 0;
     border-radius: var(--ecole-rayon-controle);
     background: none;
@@ -103,14 +92,17 @@ header {
 }
 
 main {
-  padding: 16px;
+  padding: var(--ecole-espace-page);
   max-width: 720px;
   margin: 0 auto;
   outline: none;
 
   // Place pour la barre basse (et la zone de geste des téléphones).
   &.avec-barre {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    padding-bottom: calc(
+      var(--ecole-espace-8) + var(--ecole-espace-5) +
+        env(safe-area-inset-bottom)
+    );
   }
 }
 
@@ -124,7 +116,8 @@ main {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  padding: var(--ecole-espace-2) var(--ecole-espace-2)
+    calc(var(--ecole-espace-2) + env(safe-area-inset-bottom));
   background: var(--ecole-surface);
   border-top: 1px solid var(--ecole-bordure);
 
@@ -133,7 +126,7 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: var(--ecole-espace-1);
     min-height: 56px;
     border-radius: var(--ecole-rayon-controle);
     color: var(--ecole-texte-secondaire);

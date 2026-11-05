@@ -70,19 +70,7 @@ interface EnfantsEcole {
       }
     </section>
   `,
-  styles: `
-    .liste-enfants {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    h3 {
-      margin: 0 0 8px;
-    }
-  `,
+  styleUrl: './enfants.scss',
 })
 export class PageEnfants {
   private readonly api = inject(Api);

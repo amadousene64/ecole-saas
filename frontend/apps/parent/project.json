@@ -90,6 +90,7 @@
       "options": {
         "command": "node tools/serveur-statique.mjs --dossier dist/apps/parent/browser --port 4201"
       }
-    }
+    },
+    "stylelint": {}
   }
 }

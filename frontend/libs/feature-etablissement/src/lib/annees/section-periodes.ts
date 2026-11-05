@@ -12,7 +12,6 @@ import { AnneeScolaireDto, CycleDto, PeriodeDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { LIBELLES_CYCLE } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceAnnees } from '../services/service-annees';
 import { ServiceStructure } from '../services/service-structure';
 import { LignePeriode } from './ligne-periode';
@@ -58,13 +57,9 @@ import { LignePeriode } from './ligne-periode';
       </p>
     }
   `,
-  styles: [
-    STYLES_COMMUNS,
-    `
-      .periodes {
-        margin-bottom: 16px;
-      }
-    `,
+  styleUrls: [
+    '../../../../ui/src/lib/styles/ecran.scss',
+    './section-periodes.scss',
   ],
 })
 export class SectionPeriodes {

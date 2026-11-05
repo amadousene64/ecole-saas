@@ -111,33 +111,7 @@ import { ServiceStructure } from '../services/service-structure';
       }
     </form>
   `,
-  styles: `
-    .cycle {
-      background: var(--ecole-surface);
-      border: 1px solid var(--ecole-bordure);
-      border-radius: var(--ecole-rayon-carte);
-      padding: 8px 16px 12px;
-      margin-bottom: 16px;
-    }
-    h3 {
-      margin: 8px 0;
-    }
-    .champs {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 0 16px;
-    }
-    .message {
-      padding: 6px 10px;
-      border-radius: 4px;
-    }
-    .message.erreur {
-      background: var(--mat-sys-error-container, #fdd);
-    }
-    .message.ok {
-      background: var(--mat-sys-secondary-container, #dfd);
-    }
-  `,
+  styleUrl: './carte-cycle.scss',
 })
 export class CarteCycle {
   private readonly service = inject(ServiceStructure);

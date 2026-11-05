@@ -4,18 +4,7 @@
   min-height: 100dvh;
 }
 
-.saut {
-  position: absolute;
-  left: -999px;
-
-  &:focus {
-    left: 8px;
-    top: 8px;
-    z-index: 1000;
-    padding: 8px 16px;
-    background: var(--ecole-surface);
-  }
-}
+// Lien d'évitement « .saut » : thème commun (_base.scss).
 
 // --- Barre du haut ---
 .barre-haute {
@@ -24,9 +13,9 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--ecole-espace-3);
   min-height: 64px;
-  padding: 0 16px;
+  padding: 0 var(--ecole-espace-4);
   background: var(--ecole-surface);
   color: var(--ecole-texte);
   border-bottom: 1px solid var(--ecole-bordure);
@@ -40,7 +29,7 @@
 }
 
 .ecole {
-  padding: 2px 12px;
+  padding: var(--ecole-espace-1) var(--ecole-espace-3);
   border-radius: 999px;
   background: var(--ecole-primaire-doux);
   color: var(--ecole-primaire-survol);
@@ -62,10 +51,10 @@
 .compte {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ecole-espace-2);
   min-height: 44px;
   min-width: 44px;
-  padding: 0 12px;
+  padding: 0 var(--ecole-espace-3);
   border: 1px solid transparent;
   border-radius: var(--ecole-rayon-controle);
   background: none;
@@ -89,8 +78,8 @@
 }
 
 .raccourci {
-  margin-left: 8px;
-  padding: 1px 6px;
+  margin-left: var(--ecole-espace-2);
+  padding: var(--ecole-espace-1) var(--ecole-espace-2);
   border: 1px solid var(--ecole-bordure-champ);
   border-radius: 6px;
   font: inherit;
@@ -123,7 +112,7 @@
   right: 0;
   z-index: 20;
   min-width: 220px;
-  padding: 4px 0;
+  padding: var(--ecole-espace-1) 0;
   background: var(--ecole-surface);
   border: 1px solid var(--ecole-bordure);
   border-radius: var(--ecole-rayon-carte);
@@ -134,7 +123,7 @@
   display: block;
   width: 100%;
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 var(--ecole-espace-4);
   border: 0;
   background: none;
   color: var(--ecole-texte);
@@ -151,9 +140,9 @@
 .entete-menu-compte {
   display: flex;
   flex-direction: column;
-  padding: 8px 16px 12px;
+  padding: var(--ecole-espace-2) var(--ecole-espace-4) var(--ecole-espace-3);
   border-bottom: 1px solid var(--ecole-bordure);
-  margin-bottom: 4px;
+  margin-bottom: var(--ecole-espace-1);
 
   span {
     color: var(--ecole-texte-secondaire);
@@ -180,18 +169,18 @@ mat-sidenav {
 nav {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--ecole-espace-3);
+  padding: var(--ecole-espace-3);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--ecole-espace-1);
 }
 
 .titre-section {
-  margin: 8px 12px 4px;
+  margin: var(--ecole-espace-2) var(--ecole-espace-3) var(--ecole-espace-1);
   font-size: var(--ecole-libelle-taille);
   line-height: var(--ecole-libelle-interligne);
   font-weight: var(--ecole-libelle-graisse);
@@ -203,9 +192,9 @@ nav {
 .lien {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--ecole-espace-3);
   min-height: 44px;
-  padding: 0 12px;
+  padding: 0 var(--ecole-espace-3);
   border-radius: var(--ecole-rayon-controle);
   color: var(--ecole-texte);
   font-weight: 500;
@@ -228,15 +217,14 @@ nav {
 }
 
 main {
-  padding: 24px;
+  padding: var(--ecole-espace-page);
   max-width: 1200px;
   margin: 0 auto;
   outline: none;
 
   @media (max-width: 599.98px) {
-    padding: 16px;
     // Place pour le bouton d'action flottant.
-    padding-bottom: 96px;
+    padding-bottom: calc(var(--ecole-espace-8) + var(--ecole-espace-6));
   }
 }
 
@@ -245,15 +233,12 @@ main {
   .compte .identite,
   .compte ecole-icone:last-child,
   .texte-recherche,
-  .raccourci {
-    display: none;
-  }
-
   .ecole {
     display: none;
   }
 }
 
+// Raccourci clavier masqué sous 1024 px (téléphone compris).
 @media (max-width: 1023.98px) {
   .raccourci {
     display: none;

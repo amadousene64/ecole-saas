@@ -6,7 +6,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EleveDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceEleves } from '../services/service-eleves';
 import { ServiceResponsables } from '../services/service-responsables';
 import { DialogueCode } from './dialogue-code';
@@ -14,6 +13,7 @@ import { OngletIdentite } from './onglet-identite';
 import { OngletPieces } from './onglet-pieces';
 import { OngletResponsables } from './onglet-responsables';
 import { OngletScolarite } from './onglet-scolarite';
+import { CHAMPS_FORMULAIRE } from '@ecole/ui';
 
 /**
  * Fiche d'un élève : onglets Identité, Responsables, Scolarité et Pièces. Un onglet n'apparaît que
@@ -21,6 +21,7 @@ import { OngletScolarite } from './onglet-scolarite';
  */
 @Component({
   selector: 'ecole-page-fiche',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [
     MatButtonModule,
     MatTabsModule,
@@ -87,7 +88,7 @@ import { OngletScolarite } from './onglet-scolarite';
       </mat-tab-group>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageFiche {
   private readonly service = inject(ServiceEleves);

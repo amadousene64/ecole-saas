@@ -15,20 +15,7 @@ import { TEXTES } from '../textes';
       <span class="visuellement-cache">{{ message() }}</span>
     </div>
   `,
-  styles: `
-    .centre {
-      display: flex;
-      justify-content: center;
-      padding: 48px 16px;
-    }
-    .visuellement-cache {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-    }
-  `,
+  styleUrl: './chargement.scss',
 })
 export class Chargement {
   readonly message = input<string>(TEXTES.chargement);

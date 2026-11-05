@@ -21,7 +21,6 @@ import { AnneeScolaireDto, EvenementDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { TypeEvenement, TYPES_EVENEMENT } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceAnnees } from '../services/service-annees';
 
 /** Jours fériés et vacances d'une année. Les fériés proposés à la création restent modifiables. */
@@ -87,7 +86,7 @@ import { ServiceAnnees } from '../services/service-annees';
       <form
         [formGroup]="formulaire"
         (ngSubmit)="enregistrer()"
-        class="grille"
+        class="formulaire"
         data-testid="form-evenement"
       >
         <mat-form-field appearance="outline">
@@ -106,7 +105,7 @@ import { ServiceAnnees } from '../services/service-annees';
             data-testid="champ-evenement-libelle"
           />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Du</mat-label>
           <input
             matInput
@@ -115,7 +114,7 @@ import { ServiceAnnees } from '../services/service-annees';
             data-testid="champ-evenement-debut"
           />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Au</mat-label>
           <input
             matInput
@@ -144,7 +143,7 @@ import { ServiceAnnees } from '../services/service-annees';
       </p>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class SectionCalendrier {
   private readonly service = inject(ServiceAnnees);

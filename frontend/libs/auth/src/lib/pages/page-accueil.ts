@@ -38,29 +38,7 @@ import { PageMoi } from './page-moi';
     }
     <ecole-page-moi [integre]="true" />
   `,
-  styles: `
-    .raccourcis {
-      list-style: none;
-      margin: 0 0 16px;
-      padding: 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .carte {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-height: 64px;
-      padding: 12px 16px;
-      color: var(--ecole-texte);
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .carte:hover {
-      background: var(--ecole-primaire-doux);
-    }
-  `,
+  styleUrl: './page-accueil.scss',
 })
 export class PageAccueil {
   protected readonly session = inject(Session);

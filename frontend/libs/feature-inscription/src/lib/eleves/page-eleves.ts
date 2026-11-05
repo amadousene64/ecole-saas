@@ -12,6 +12,7 @@ import {
   EtatVide,
   Pastille,
   Squelette,
+  CHAMPS_FORMULAIRE,
 } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
@@ -20,7 +21,6 @@ import {
   libelleStatut,
   tonStatut,
 } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceEleves, StatutInscription } from '../services/service-eleves';
 
 const TAILLE_PAGE = 25;
@@ -33,6 +33,7 @@ const DELAI_RECHERCHE_MS = 300;
  */
 @Component({
   selector: 'ecole-page-eleves',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [
     FormsModule,
     RouterLink,
@@ -213,7 +214,7 @@ const DELAI_RECHERCHE_MS = 300;
       </div>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageEleves {
   private readonly service = inject(ServiceEleves);

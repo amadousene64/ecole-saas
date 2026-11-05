@@ -1,0 +1,13 @@
+.vide {
+  text-align: center;
+  padding: var(--ecole-espace-6) var(--ecole-espace-4);
+}
+h2 {
+  margin: 0 0 var(--ecole-espace-2);
+}
+.action {
+  margin-top: var(--ecole-espace-4);
+  display: flex;
+  justify-content: center;
+  gap: var(--ecole-espace-boutons);
+}

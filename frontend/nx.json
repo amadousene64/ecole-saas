@@ -43,6 +43,22 @@
     "@angular/build:unit-test": {
       "cache": true,
       "inputs": ["default", "^production"]
+    },
+    "stylelint": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*.{scss,css}",
+        "{workspaceRoot}/libs/ui/src/lib/theme/_jetons.scss",
+        "{workspaceRoot}/stylelint.config.mjs",
+        "{workspaceRoot}/tools/stylelint/espacements-echelle.mjs"
+      ],
+      "options": {
+        "command": "stylelint \"{projectRoot}/**/*.{scss,css}\" --allow-empty-input"
+      }
+    },
+    "lint": {
+      "dependsOn": ["stylelint"]
     }
   },
   "generators": {
