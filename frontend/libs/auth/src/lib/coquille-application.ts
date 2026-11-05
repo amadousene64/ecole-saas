@@ -1,4 +1,12 @@
-import { Component, computed, inject, Injector, input } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  signal,
+  Type,
+} from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Coquille, LienNavigation, TEXTES } from '@ecole/ui';
 import { Acces } from './acces';
@@ -11,7 +19,7 @@ import { Session } from './session';
  */
 @Component({
   selector: 'ecole-coquille-application',
-  imports: [Coquille, RouterOutlet],
+  imports: [Coquille, RouterOutlet, NgComponentOutlet],
   host: { '(document:keydown)': 'surTouche($event)' },
   template: `
     <ecole-coquille
@@ -28,14 +36,21 @@ import { Session } from './session';
     >
       <router-outlet />
     </ecole-coquille>
+    @if (recherche(); as composant) {
+      <ng-container
+        *ngComponentOutlet="composant; inputs: { fermer: fermerRecherche }"
+      />
+    }
   `,
 })
 export class CoquilleApplication {
   protected readonly session = inject(Session);
   protected readonly acces = inject(Acces);
   private readonly router = inject(Router);
-  private readonly injecteur = inject(Injector);
-  private rechercheOuverte = false;
+  /** Recherche globale affichée (chargée à la première ouverture), ou nulle. */
+  protected readonly recherche = signal<Type<unknown> | null>(null);
+  private chargement = false;
+  protected readonly fermerRecherche = () => this.recherche.set(null);
 
   readonly titre = input<string>(TEXTES.nomPlateforme);
 
@@ -64,35 +79,21 @@ export class CoquilleApplication {
   }
 
   /**
-   * La boîte de dialogue de Material et l'écran de recherche ne sont téléchargés qu'à la première
-   * ouverture : ils restent hors du lot initial, que le premier écran n'utilise pas.
+   * L'écran de recherche (et sa modale) n'est téléchargé qu'à la première ouverture : il reste hors
+   * du lot initial, que le premier écran n'utilise pas.
    */
   protected async ouvrirRecherche(): Promise<void> {
-    if (this.rechercheOuverte || this.liens().length === 0) {
+    if (this.recherche() || this.chargement || this.liens().length === 0) {
       return;
     }
-    this.rechercheOuverte = true;
+    this.chargement = true;
     try {
-      const [{ MatDialog }, { RechercheGlobale }] = await Promise.all([
-        import('@angular/material/dialog'),
-        import('./recherche-globale'),
-      ]);
-      const dialogue = this.injecteur.get(MatDialog);
-      if (dialogue.openDialogs.length === 0) {
-        dialogue
-          .open(RechercheGlobale, {
-            position: { top: '12vh' },
-            autoFocus: 'first-tabbable',
-            ariaLabel: 'Recherche globale',
-            panelClass: 'panneau-recherche-globale',
-          })
-          .afterClosed()
-          .subscribe(() => (this.rechercheOuverte = false));
-        return;
-      }
+      const { RechercheGlobale } = await import('./recherche-globale');
+      this.recherche.set(RechercheGlobale);
     } catch {
       // Réseau coupé ou nouvelle version : la recherche reste disponible au prochain essai.
+    } finally {
+      this.chargement = false;
     }
-    this.rechercheOuverte = false;
   }
 }

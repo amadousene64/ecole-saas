@@ -9,6 +9,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -92,6 +99,49 @@ class StockageS3Test {
     assertThat(reponse.headers().firstValue("Content-Disposition"))
         .hasValue("attachment; filename=\"acte_de_naissance_.pdf\"");
     assertThat(reponse.headers().firstValue("Content-Type")).hasValue("application/pdf");
+  }
+
+  /**
+   * Premiers dépôts simultanés sur un bucket qui n'existe pas encore (nouvel environnement,
+   * plusieurs instances ou requêtes) : chacune voit le bucket absent et le crée ; celles qui
+   * arrivent après la première reçoivent « déjà à vous », ce qui n'est pas une erreur.
+   */
+  @Test
+  void desPremiersDepotsSimultanesCreentLeBucketSansEchouer() throws Exception {
+    URI endpoint = URI.create("http://" + minio.getHost() + ":" + minio.getMappedPort(9000));
+    for (int tour = 0; tour < 3; tour++) {
+      String bucket = "simultane-" + tour + "-" + System.nanoTime();
+      int nombre = 8;
+      CountDownLatch depart = new CountDownLatch(1);
+      try (ExecutorService pool = Executors.newFixedThreadPool(nombre)) {
+        List<Future<?>> depots = new ArrayList<>();
+        for (int i = 0; i < nombre; i++) {
+          // Une instance par appel, comme autant de serveurs démarrés en même temps.
+          StockageS3 instance =
+              new StockageS3(
+                  new StockageProperties(
+                      endpoint, null, "us-east-1", bucket, CLE_ACCES, CLE_SECRETE, true));
+          String cle = "ecole-a/logo-" + i + ".png";
+          depots.add(
+              pool.submit(
+                  () -> {
+                    depart.await();
+                    instance.deposer(cle, new byte[] {1, 2, 3}, "image/png");
+                    return null;
+                  }));
+        }
+        depart.countDown();
+        for (Future<?> depot : depots) {
+          depot.get(30, TimeUnit.SECONDS);
+        }
+      }
+      assertThat(
+              new StockageS3(
+                      new StockageProperties(
+                          endpoint, null, "us-east-1", bucket, CLE_ACCES, CLE_SECRETE, false))
+                  .lire("ecole-a/logo-7.png"))
+          .containsExactly(1, 2, 3);
+    }
   }
 
   @AfterAll

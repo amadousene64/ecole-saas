@@ -1,8 +1,10 @@
 import {
+  afterNextRender,
   Component,
   computed,
   effect,
   inject,
+  Injector,
   input,
   signal,
   untracked,
@@ -18,7 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ClasseDto, InscriptionDto } from '@ecole/api-client';
-import { Pastille } from '@ecole/ui';
+import { Confirmation, Modale, Pastille } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { libelleStatut, tonStatut } from '../commun/etiquettes';
@@ -28,9 +30,10 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
 
 /**
  * Scolarité : historique des inscriptions, inscription, validation d'une pré-inscription, changement
- * de classe et changement de statut. La radiation n'est proposée qu'au directeur (le serveur la
- * refuse à tout autre rôle). Les avertissements de capacité renvoyés par le serveur sont affichés
- * tels quels après l'opération.
+ * de classe et changement de statut, chacun dans une modale (créée à l'ouverture, détruite à la fermeture). La radiation n'est proposée qu'au
+ * directeur (le serveur la refuse à tout autre rôle) et passe par une confirmation à motif
+ * obligatoire, ouverte une fois la modale du statut fermée (jamais deux modales). Les
+ * avertissements de capacité renvoyés par le serveur sont affichés tels quels après l'opération.
  */
 @Component({
   selector: 'ecole-onglet-scolarite',
@@ -42,9 +45,11 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
     MatInputModule,
     MatSelectModule,
     Pastille,
+    Modale,
+    Confirmation,
   ],
   template: `
-    @if (erreur(); as message) {
+    @if (!action() && erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur-scolarite">
         {{ message }}
       </p>
@@ -142,140 +147,221 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
     }
 
     @if (action() === 'inscrire') {
-      <h3>Inscrire dans une classe</h3>
-      <form
-        [formGroup]="formulaire"
-        (ngSubmit)="inscrire()"
-        class="formulaire"
-        data-testid="form-inscrire"
+      <ecole-modale
+        #modaleInscrire
+        titre="Inscrire dans une classe"
+        testId="modale-inscrire"
+        [ouverte]="true"
+        [modifiee]="formulaire.dirty"
+        (fermee)="action.set(null)"
       >
-        @if (erreurClasses(); as message) {
-          <div class="message erreur" role="alert" data-testid="erreur-classes">
+        @if (erreur(); as message) {
+          <p class="message erreur" role="alert" data-testid="erreur-scolarite">
             {{ message }}
-            <button
-              matButton
-              type="button"
-              (click)="chargerClasses()"
-              data-testid="reessayer-classes"
-            >
-              Réessayer
-            </button>
-          </div>
-        } @else if (chargementClasses()) {
-          <p role="status" data-testid="chargement-classes">
-            Chargement des classes…
           </p>
         }
-        <mat-form-field appearance="outline">
-          <mat-label>Classe</mat-label>
-          <mat-select formControlName="classeId" data-testid="champ-classe">
-            @for (c of classes(); track c.id) {
-              <mat-option [value]="c.id">{{ c.nom }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Statut</mat-label>
-          <mat-select formControlName="statut" data-testid="champ-statut">
-            <mat-option value="INSCRIT">Inscrit</mat-option>
-            <mat-option value="PRE_INSCRIT">Pré-inscrit</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-checkbox formControlName="redoublant">Redoublant</mat-checkbox>
-        <div class="actions">
+        <form
+          id="form-inscrire"
+          [formGroup]="formulaire"
+          (ngSubmit)="inscrire()"
+          class="formulaire"
+          data-testid="form-inscrire"
+        >
+          @if (erreurClasses(); as message) {
+            <div
+              class="message erreur"
+              role="alert"
+              data-testid="erreur-classes"
+            >
+              {{ message }}
+              <button
+                matButton
+                type="button"
+                (click)="chargerClasses()"
+                data-testid="reessayer-classes"
+              >
+                Réessayer
+              </button>
+            </div>
+          } @else if (chargementClasses()) {
+            <p role="status" data-testid="chargement-classes">
+              Chargement des classes…
+            </p>
+          }
+          <mat-form-field appearance="outline">
+            <mat-label>Classe</mat-label>
+            <mat-select formControlName="classeId" data-testid="champ-classe">
+              @for (c of classes(); track c.id) {
+                <mat-option [value]="c.id">{{ c.nom }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Statut</mat-label>
+            <mat-select formControlName="statut" data-testid="champ-statut">
+              <mat-option value="INSCRIT">Inscrit</mat-option>
+              <mat-option value="PRE_INSCRIT">Pré-inscrit</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-checkbox formControlName="redoublant">Redoublant</mat-checkbox>
+        </form>
+        <div pied>
+          <button
+            matButton
+            type="button"
+            (click)="modaleInscrire.demanderFermeture('fermer')"
+          >
+            Annuler
+          </button>
           <button
             matButton="filled"
             type="submit"
+            form="form-inscrire"
             [disabled]="occupe()"
             data-testid="confirmer-inscription"
           >
             Inscrire
           </button>
-          <button matButton type="button" (click)="ouvrir(null)">
-            Annuler
-          </button>
         </div>
-      </form>
+      </ecole-modale>
     }
 
     @if (action() === 'classe') {
-      <h3>Changer de classe</h3>
-      <form
-        [formGroup]="formulaire"
-        (ngSubmit)="changerClasse()"
-        class="formulaire"
-        data-testid="form-classe"
+      <ecole-modale
+        #modaleClasse
+        titre="Changer de classe"
+        testId="modale-classe"
+        [ouverte]="true"
+        [modifiee]="formulaire.dirty"
+        (fermee)="action.set(null)"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Nouvelle classe</mat-label>
-          <mat-select formControlName="classeId" data-testid="champ-classe">
-            @for (c of classes(); track c.id) {
-              <mat-option [value]="c.id">{{ c.nom }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-checkbox formControlName="redoublant">Redoublant</mat-checkbox>
-        <div class="actions">
+        @if (erreur(); as message) {
+          <p class="message erreur" role="alert" data-testid="erreur-scolarite">
+            {{ message }}
+          </p>
+        }
+        <form
+          id="form-classe"
+          [formGroup]="formulaire"
+          (ngSubmit)="changerClasse()"
+          class="formulaire"
+          data-testid="form-classe"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label>Nouvelle classe</mat-label>
+            <mat-select formControlName="classeId" data-testid="champ-classe">
+              @for (c of classes(); track c.id) {
+                <mat-option [value]="c.id">{{ c.nom }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-checkbox formControlName="redoublant">Redoublant</mat-checkbox>
+        </form>
+        <div pied>
+          <button
+            matButton
+            type="button"
+            (click)="modaleClasse.demanderFermeture('fermer')"
+          >
+            Annuler
+          </button>
           <button
             matButton="filled"
             type="submit"
+            form="form-classe"
             [disabled]="occupe()"
             data-testid="confirmer-classe"
           >
             Changer de classe
           </button>
-          <button matButton type="button" (click)="ouvrir(null)">
-            Annuler
-          </button>
         </div>
-      </form>
+      </ecole-modale>
     }
 
     @if (action() === 'sortie') {
-      <h3>Changer le statut</h3>
-      <form
-        [formGroup]="sortie"
-        (ngSubmit)="sortir()"
-        class="formulaire"
-        data-testid="form-sortie"
+      <ecole-modale
+        #modaleSortie
+        titre="Changer le statut"
+        sousTitre="Transfert, abandon ou radiation : l'inscription prend fin."
+        testId="modale-sortie"
+        [ouverte]="true"
+        [modifiee]="sortie.dirty"
+        (fermee)="action.set(null)"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Nouveau statut</mat-label>
-          <mat-select formControlName="statut" data-testid="champ-sortie">
-            <mat-option value="TRANSFERE">Transféré</mat-option>
-            <mat-option value="ABANDON">Abandon</mat-option>
-            @if (droits.peutRadier()) {
-              <mat-option value="RADIE">Radié</mat-option>
+        @if (erreur(); as message) {
+          <p class="message erreur" role="alert" data-testid="erreur-scolarite">
+            {{ message }}
+          </p>
+        }
+        <form
+          id="form-sortie"
+          [formGroup]="sortie"
+          (ngSubmit)="sortir()"
+          class="formulaire"
+          data-testid="form-sortie"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label>Nouveau statut</mat-label>
+            <mat-select formControlName="statut" data-testid="champ-sortie">
+              <mat-option value="TRANSFERE">Transféré</mat-option>
+              <mat-option value="ABANDON">Abandon</mat-option>
+              @if (droits.peutRadier()) {
+                <mat-option value="RADIE">Radié</mat-option>
+              }
+            </mat-select>
+            @if (!droits.peutRadier()) {
+              <mat-hint>La radiation est réservée au directeur.</mat-hint>
             }
-          </mat-select>
-          @if (!droits.peutRadier()) {
-            <mat-hint>La radiation est réservée au directeur.</mat-hint>
-          }
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Date</mat-label>
-          <input matInput type="date" formControlName="date" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Motif</mat-label>
-          <input matInput formControlName="motif" maxlength="200" />
-        </mat-form-field>
-        <p class="aide">Cette décision est définitive.</p>
-        <div class="actions">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="champ-court">
+            <mat-label>Date</mat-label>
+            <input matInput type="date" formControlName="date" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="champ-plein">
+            <mat-label>Motif</mat-label>
+            <input matInput formControlName="motif" maxlength="200" />
+          </mat-form-field>
+          <p class="aide">Cette décision est définitive.</p>
+        </form>
+        <div pied>
+          <button
+            matButton
+            type="button"
+            (click)="modaleSortie.demanderFermeture('fermer')"
+          >
+            Annuler
+          </button>
           <button
             matButton="filled"
             type="submit"
+            form="form-sortie"
             [disabled]="occupe()"
             data-testid="confirmer-sortie"
           >
-            Confirmer
-          </button>
-          <button matButton type="button" (click)="ouvrir(null)">
-            Annuler
+            {{
+              sortie.controls.statut.value === 'RADIE'
+                ? 'Continuer'
+                : 'Confirmer'
+            }}
           </button>
         </div>
-      </form>
+      </ecole-modale>
     }
+
+    <ecole-confirmation
+      titre="Radier l'élève"
+      [consequence]="consequenceRadiation()"
+      action="Radier l'élève"
+      motif="obligatoire"
+      libelleMotif="Motif de la radiation"
+      [motifInitial]="motifRadiation()"
+      testId="confirmer-radiation"
+      [ouverte]="radiation()"
+      [occupe]="occupe()"
+      [erreur]="erreurRadiation()"
+      (confirmee)="radier($event)"
+      (annulee)="radiation.set(false)"
+    />
   `,
   styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
@@ -297,6 +383,12 @@ export class OngletScolarite {
   protected readonly avertissements = signal<string[]>([]);
   protected readonly confirmation = signal<string | null>(null);
   protected readonly occupe = signal(false);
+  /** Confirmation de la radiation, ouverte après la fermeture de la modale du statut. */
+  protected readonly radiation = signal(false);
+  protected readonly erreurRadiation = signal<string | null>(null);
+  protected readonly motifRadiation = signal('');
+  private readonly dateRadiation = signal('');
+  private readonly injecteur = inject(Injector);
   protected readonly libelle = libelleStatut;
   protected readonly ton = tonStatut;
 
@@ -312,6 +404,16 @@ export class OngletScolarite {
     classeId: ['', Validators.required],
     statut: ['INSCRIT' as StatutInscription, Validators.required],
     redoublant: [false],
+  });
+
+  protected readonly consequenceRadiation = computed(() => {
+    const date = this.dateRadiation();
+    const jour = date
+      ? new Date(`${date}T00:00:00`).toLocaleDateString('fr-FR', {
+          dateStyle: 'long',
+        })
+      : '';
+    return `L'inscription de l'élève prend fin le ${jour} : il est radié de l'école. Cette décision est définitive et le motif est conservé au dossier.`;
   });
 
   protected readonly sortie = inject(NonNullableFormBuilder).group({
@@ -359,6 +461,11 @@ export class OngletScolarite {
   protected ouvrir(action: Action): void {
     this.action.set(action);
     this.erreur.set(null);
+    this.sortie.reset({
+      statut: 'TRANSFERE',
+      date: new Date().toISOString().slice(0, 10),
+      motif: '',
+    });
     // Rouvrir le formulaire retente le chargement des classes s'il avait échoué.
     void this.chargerClasses();
     this.formulaire.reset({
@@ -443,6 +550,17 @@ export class OngletScolarite {
       return;
     }
     const v = this.sortie.getRawValue();
+    if (v.statut === 'RADIE') {
+      // Jamais deux modales : on ferme celle du statut, puis la confirmation s'ouvre.
+      this.motifRadiation.set(v.motif);
+      this.dateRadiation.set(v.date);
+      this.erreurRadiation.set(null);
+      this.action.set(null);
+      afterNextRender(() => this.radiation.set(true), {
+        injector: this.injecteur,
+      });
+      return;
+    }
     await this.executer(
       () =>
         this.service.sortir(courante, {
@@ -452,5 +570,31 @@ export class OngletScolarite {
         }),
       'Statut modifié.',
     );
+  }
+
+  protected async radier(motif: string | undefined): Promise<void> {
+    const courante = this.active();
+    if (!courante) {
+      return;
+    }
+    this.erreurRadiation.set(null);
+    this.confirmation.set(null);
+    this.avertissements.set([]);
+    this.occupe.set(true);
+    try {
+      const resultat = await this.service.sortir(courante, {
+        statut: 'RADIE',
+        date: this.dateRadiation(),
+        motif,
+      });
+      this.avertissements.set(resultat.avertissements ?? []);
+      this.confirmation.set('Élève radié.');
+      this.radiation.set(false);
+      await this.charger();
+    } catch (e) {
+      this.erreurRadiation.set(messageErreur(e));
+    } finally {
+      this.occupe.set(false);
+    }
   }
 }

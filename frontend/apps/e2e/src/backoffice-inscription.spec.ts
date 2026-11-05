@@ -140,6 +140,11 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
 
   // Responsable, puis code d'activation affiché une seule fois.
   await page.getByRole('tab', { name: 'Responsables' }).click();
+  await page.getByTestId('ouvrir-ajout-responsable').click();
+  await expect(
+    page.getByRole('dialog', { name: 'Ajouter un responsable' }),
+  ).toBeVisible();
+  await verifierAccessibilite(page, 'Modale « Ajouter un responsable »');
   await page.getByTestId('resp-prenoms').fill('Mame');
   await page.getByTestId('resp-nom').fill(NOM_RESPONSABLE);
   await page.getByTestId('resp-telephone').fill('+221700000099');

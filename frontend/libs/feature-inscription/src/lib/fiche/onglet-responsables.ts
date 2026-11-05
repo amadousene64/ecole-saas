@@ -1,43 +1,29 @@
-import { Component, inject, input, signal } from '@angular/core';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {
-  LienParentalDto,
-  LienParentalRequete,
-  ResponsableDto,
-} from '@ecole/api-client';
-import { Pastille } from '@ecole/ui';
+import { LienParentalDto, ResponsableDto } from '@ecole/api-client';
+import { Confirmation, Pastille } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
-import { libelleLien, TYPES_LIEN } from '../commun/etiquettes';
+import { libelleLien } from '../commun/etiquettes';
 import { ServiceResponsables } from '../services/service-responsables';
-import { DialogueCode } from './dialogue-code';
+import { DonneesCode, ModaleCode } from './modale-code';
+import { ModaleResponsable } from './modale-responsable';
 
 /**
  * Responsables de l'élève et leurs liens. L'indicateur « accès à l'espace parent » est modifiable
- * par le DIRECTEUR seul ; un accès bloqué reste signalé en clair, avec son effet.
+ * par le DIRECTEUR seul ; un accès bloqué reste signalé en clair, avec son effet. Ajout et
+ * modification dans une modale (ModaleResponsable), retrait après confirmation.
  */
 @Component({
   selector: 'ecole-onglet-responsables',
   imports: [
-    ReactiveFormsModule,
     MatButtonModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
     MatSlideToggleModule,
     Pastille,
+    Confirmation,
+    ModaleCode,
+    ModaleResponsable,
   ],
   template: `
     @if (erreur(); as message) {
@@ -45,7 +31,22 @@ import { DialogueCode } from './dialogue-code';
         {{ message }}
       </p>
     }
+    @if (confirmationEdition(); as message) {
+      <p class="message ok" role="status">{{ message }}</p>
+    }
     <h2>Responsables</h2>
+    @if (droits.peutEcrire()) {
+      <div class="actions">
+        <button
+          matButton="filled"
+          type="button"
+          (click)="edition.set({ lien: null })"
+          data-testid="ouvrir-ajout-responsable"
+        >
+          Ajouter un responsable
+        </button>
+      </div>
+    }
     <table data-testid="table-liens" class="cartes">
       <caption class="sr-only">
         Responsables de l'élève
@@ -107,6 +108,17 @@ import { DialogueCode } from './dialogue-code';
             </td>
             @if (droits.peutEcrire()) {
               <td data-label="Actions">
+                <button
+                  matButton
+                  type="button"
+                  (click)="edition.set({ lien: l })"
+                  [disabled]="occupe()"
+                  [attr.data-testid]="'modifier-' + l.responsable?.nom"
+                >
+                  Modifier<span class="sr-only">
+                    {{ l.responsable?.prenoms }} {{ l.responsable?.nom }}</span
+                  >
+                </button>
                 @if (l.responsable; as r) {
                   <button
                     matButton
@@ -123,8 +135,9 @@ import { DialogueCode } from './dialogue-code';
                 <button
                   matButton
                   type="button"
-                  (click)="delier(l)"
+                  (click)="aRetirer.set(l)"
                   [disabled]="occupe()"
+                  [attr.data-testid]="'retirer-' + l.responsable?.nom"
                 >
                   Retirer le lien<span class="sr-only">
                     de {{ l.responsable?.nom }}</span
@@ -143,104 +156,64 @@ import { DialogueCode } from './dialogue-code';
       </tbody>
     </table>
 
-    @if (droits.peutEcrire()) {
-      <h2>Ajouter un responsable</h2>
-      <form
-        [formGroup]="formulaire"
-        (ngSubmit)="ajouter()"
-        class="formulaire"
-        data-testid="form-responsable"
-      >
-        <mat-form-field appearance="outline">
-          <mat-label>Prénoms</mat-label>
-          <input
-            matInput
-            formControlName="prenoms"
-            data-testid="resp-prenoms"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Nom</mat-label>
-          <input matInput formControlName="nom" data-testid="resp-nom" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Téléphone</mat-label>
-          <input
-            matInput
-            type="tel"
-            formControlName="telephone"
-            data-testid="resp-telephone"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Courriel</mat-label>
-          <input matInput type="email" formControlName="email" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Lien avec l'élève</mat-label>
-          <mat-select formControlName="type" data-testid="resp-type">
-            @for (t of types; track t.valeur) {
-              <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <div class="cases">
-          <mat-checkbox formControlName="responsableLegal"
-            >Responsable légal</mat-checkbox
-          >
-          <mat-checkbox formControlName="payeur">Payeur</mat-checkbox>
-          <mat-checkbox formControlName="contactUrgence"
-            >Contact d'urgence</mat-checkbox
-          >
-          <mat-checkbox formControlName="autoriseRecuperer"
-            >Autorisé à récupérer l'élève</mat-checkbox
-          >
-          <mat-checkbox formControlName="recoitNotifications"
-            >Reçoit les notifications</mat-checkbox
-          >
-        </div>
-        <div class="actions">
-          <button
-            matButton="filled"
-            type="submit"
-            [disabled]="occupe()"
-            data-testid="ajouter-responsable"
-          >
-            Ajouter
-          </button>
-        </div>
-      </form>
+    @if (edition(); as e) {
+      <ecole-modale-responsable
+        [eleveId]="eleveId()"
+        [lien]="e.lien"
+        [lies]="idsLies()"
+        (enregistre)="apresEdition(e.lien)"
+        (fermee)="edition.set(null)"
+      />
+    }
+
+    <ecole-confirmation
+      titre="Retirer le lien"
+      [consequence]="consequenceRetrait()"
+      action="Retirer le lien"
+      testId="confirmer-retrait"
+      [ouverte]="aRetirer() !== null"
+      [occupe]="occupe()"
+      [erreur]="erreurRetrait()"
+      (confirmee)="delier()"
+      (annulee)="aRetirer.set(null)"
+    />
+
+    @if (code(); as c) {
+      <ecole-modale-code [donnees]="c" (fermee)="code.set(null)" />
     }
   `,
-  styleUrls: [
-    '../../../../ui/src/lib/styles/ecran.scss',
-    './onglet-responsables.scss',
-  ],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class OngletResponsables {
   readonly eleveId = input.required<string>();
 
   private readonly service = inject(ServiceResponsables);
-  private readonly dialogue = inject(MatDialog);
   protected readonly droits = inject(Droits);
 
-  protected readonly types = TYPES_LIEN;
   protected readonly liens = signal<LienParentalDto[]>([]);
+  /** Modale ouverte : ajout (lien nul) ou modification d'un lien. */
+  protected readonly edition = signal<{ lien: LienParentalDto | null } | null>(
+    null,
+  );
+  /** Lien dont le retrait attend confirmation. */
+  protected readonly aRetirer = signal<LienParentalDto | null>(null);
+  protected readonly erreurRetrait = signal<string | null>(null);
+  protected readonly code = signal<DonneesCode | null>(null);
+  protected readonly confirmationEdition = signal<string | null>(null);
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   protected readonly libelleLien = libelleLien;
 
-  protected readonly formulaire = inject(NonNullableFormBuilder).group({
-    prenoms: ['', [Validators.required, Validators.maxLength(100)]],
-    nom: ['', [Validators.required, Validators.maxLength(100)]],
-    telephone: ['', Validators.required],
-    email: [''],
-    type: ['MERE' as LienParentalRequete['type'], Validators.required],
-    responsableLegal: [true],
-    payeur: [false],
-    contactUrgence: [true],
-    autoriseRecuperer: [true],
-    recoitNotifications: [true],
+  protected readonly idsLies = computed(() =>
+    this.liens()
+      .map((l) => l.responsable?.id)
+      .filter((id): id is string => !!id),
+  );
+
+  protected readonly consequenceRetrait = computed(() => {
+    const r = this.aRetirer()?.responsable;
+    const nom = r ? `${r.prenoms} ${r.nom}` : 'Ce responsable';
+    return `${nom} ne sera plus lié à cet élève : il ne le verra plus dans l'espace parent et ne recevra plus ses notifications. Le responsable lui-même n'est pas supprimé.`;
   });
 
   constructor() {
@@ -291,14 +264,10 @@ export class OngletResponsables {
     this.occupe.set(true);
     try {
       const reponse = await this.service.codeResponsable(responsable);
-      this.dialogue.open(DialogueCode, {
-        data: {
-          titulaire: `${responsable.prenoms} ${responsable.nom}`,
-          code: reponse.code ?? '',
-          expireLe: reponse.expireLe,
-        },
-        disableClose: true,
-        autoFocus: 'first-tabbable',
+      this.code.set({
+        titulaire: `${responsable.prenoms} ${responsable.nom}`,
+        code: reponse.code ?? '',
+        expireLe: reponse.expireLe,
       });
     } catch (e) {
       this.erreur.set(messageErreur(e));
@@ -307,49 +276,30 @@ export class OngletResponsables {
     }
   }
 
-  protected async delier(lien: LienParentalDto): Promise<void> {
-    this.erreur.set(null);
+  /** Retrait confirmé ; en cas d'échec, la confirmation reste ouverte avec l'erreur. */
+  protected async delier(): Promise<void> {
+    const lien = this.aRetirer();
+    if (!lien) {
+      return;
+    }
+    this.erreurRetrait.set(null);
     this.occupe.set(true);
     try {
       await this.service.delier(this.eleveId(), lien);
+      this.aRetirer.set(null);
       await this.charger();
     } catch (e) {
-      this.erreur.set(messageErreur(e));
+      this.erreurRetrait.set(messageErreur(e));
     } finally {
       this.occupe.set(false);
     }
   }
 
-  protected async ajouter(): Promise<void> {
-    if (this.formulaire.invalid) {
-      this.formulaire.markAllAsTouched();
-      return;
-    }
-    const v = this.formulaire.getRawValue();
-    this.erreur.set(null);
-    this.occupe.set(true);
-    try {
-      const responsable = await this.service.creer({
-        prenoms: v.prenoms,
-        nom: v.nom,
-        telephone: v.telephone,
-        email: v.email || undefined,
-      });
-      await this.service.lier(this.eleveId(), {
-        responsableId: responsable.id,
-        type: v.type,
-        responsableLegal: v.responsableLegal,
-        payeur: v.payeur,
-        contactUrgence: v.contactUrgence,
-        autoriseRecuperer: v.autoriseRecuperer,
-        recoitNotifications: v.recoitNotifications,
-      });
-      this.formulaire.reset();
-      await this.charger();
-    } catch (e) {
-      this.erreur.set(messageErreur(e));
-    } finally {
-      this.occupe.set(false);
-    }
+  protected async apresEdition(lien: LienParentalDto | null): Promise<void> {
+    this.edition.set(null);
+    this.confirmationEdition.set(
+      lien ? 'Responsable modifié.' : 'Responsable ajouté.',
+    );
+    await this.charger();
   }
 }

@@ -77,3 +77,32 @@ Toutes les pages de l'app parent sont chargées à la demande (`loadComponent`),
 worker est enregistré sans `@angular/service-worker` (`apps/parent/src/app/service-worker.ts`,
 même stratégie « stable ou 30 s »). Le lot initial ne porte que l'amorçage : Angular, routeur,
 client OIDC (115 Ko à lui seul), coquille légère, icônes et table des droits.
+
+## Modales (`libs/ui/src/lib/modales/`)
+
+Une seule famille de modales pour les trois applications, sans Angular Material : `ecole-modale`
+et `ecole-confirmation`, sur l'élément natif `<dialog>` (`showModal()`). ESLint refuse
+`@angular/material/dialog` et `@angular/cdk/dialog`.
+
+- **`ecole-modale`** : titre, sous-titre, bouton « Fermer », corps défilant, pied à droite
+  (`<div pied>` : Annuler, puis l'action principale ; bouton d'envoi relié au formulaire du corps
+  par `form="…"`). Ouverture par `[(ouverte)]` (ou `[ouverte]="true"` dans un `@if`, pour une
+  modale que le parent détruit à la fermeture, comme le code d'activation).
+  - Échap, « × » et le fond ferment ; avec `[modifiee]`, la confirmation « modifications non
+    enregistrées » s'affiche **dans la même modale** (textes réglables : `messageAbandon`,
+    `libelleContinuer`, `libelleAbandon`). Un bouton « Annuler » appelle
+    `modale.demanderFermeture('fermer')` pour suivre la même règle.
+  - Focus sur le premier champ du corps (ou `focusInitial`), piégé dans la modale, rendu à
+    l'élément d'origine à la fermeture. Page figée dessous (`html.modale-ouverte`).
+  - Plein écran sous 600 px. Les listes de `mat-select` s'ouvrent dans la modale (popover de la
+    CDK placé à côté du champ).
+- **`ecole-confirmation`** (`alertdialog`) : icône, conséquence écrite, motif `obligatoire` ou
+  `facultatif` si demandé, bouton rouge nommé par l'action. Focus sur « Annuler ». `confirmee`
+  émet le motif ; en cas d'erreur du serveur, `[erreur]` l'affiche et la confirmation reste ouverte.
+- **`Modales`** (service) : jamais deux modales empilées ; une seconde demande est refusée (erreur
+  en console en développement). Pour enchaîner (statut « Radié » puis confirmation), fermer la
+  première, puis ouvrir la seconde au rendu suivant.
+
+Tests : `libs/ui/src/lib/modales/modale.navigateur.spec.ts`, dans Chromium (projet Vitest
+`ui-navigateur`, jsdom n'implémentant pas `<dialog>`). Sous jsdom (tests des écrans), la modale se
+replie sur l'attribut `open`.
