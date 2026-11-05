@@ -36,24 +36,7 @@ const LIBELLES_ROLES: Record<string, string> = {
       </dd>
     </dl>
   `,
-  styles: `
-    .profil {
-      display: grid;
-      grid-template-columns: max-content 1fr;
-      gap: 8px 24px;
-    }
-    dt {
-      color: var(--ecole-texte-secondaire);
-      font-weight: 600;
-    }
-    dd {
-      margin: 0;
-    }
-    ul {
-      margin: 0;
-      padding-left: 20px;
-    }
-  `,
+  styleUrl: './page-moi.scss',
 })
 export class PageMoi {
   protected readonly session = inject(Session);

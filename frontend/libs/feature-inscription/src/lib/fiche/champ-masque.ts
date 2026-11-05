@@ -32,16 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
       </button>
     }
   `,
-  styles: `
-    .champ {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 4px;
-    }
-    .valeur {
-      white-space: pre-wrap;
-    }
-  `,
+  styleUrl: './champ-masque.scss',
 })
 export class ChampMasque {
   readonly cle = input.required<string>();

@@ -1,4 +1,4 @@
-import { EnTetePage } from '@ecole/ui';
+import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
 import { Component, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -11,12 +11,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceEleves } from '../services/service-eleves';
 
 /** Création d'un élève (le matricule est attribué par le serveur), puis ouverture de sa fiche. */
 @Component({
   selector: 'ecole-page-nouvel-eleve',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [
     EnTetePage,
     ReactiveFormsModule,
@@ -40,7 +40,7 @@ import { ServiceEleves } from '../services/service-eleves';
     <form
       [formGroup]="formulaire"
       (ngSubmit)="creer()"
-      class="grille"
+      class="formulaire"
       data-testid="form-nouvel-eleve"
     >
       <mat-form-field appearance="outline">
@@ -58,7 +58,7 @@ import { ServiceEleves } from '../services/service-eleves';
           <mat-option value="M">Masculin</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="champ-court">
         <mat-label>Date de naissance</mat-label>
         <input
           matInput
@@ -91,7 +91,7 @@ import { ServiceEleves } from '../services/service-eleves';
       </div>
     </form>
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageNouvelEleve {
   private readonly service = inject(ServiceEleves);

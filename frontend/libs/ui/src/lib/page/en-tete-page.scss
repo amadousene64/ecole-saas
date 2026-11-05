@@ -1,0 +1,20 @@
+.en-tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ecole-espace-2) var(--ecole-espace-4);
+  margin-bottom: var(--ecole-espace-sections);
+}
+h1 {
+  margin: 0;
+}
+.sous-titre {
+  margin: var(--ecole-espace-1) 0 0;
+}
+.actions-page {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ecole-espace-boutons);
+}

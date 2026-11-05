@@ -97,12 +97,7 @@ export type NomIcone = keyof typeof ICONES;
       <path [attr.d]="trace()" fill="currentColor" />
     </svg>
   `,
-  styles: `
-    :host {
-      display: inline-flex;
-      line-height: 0;
-    }
-  `,
+  styleUrl: './icone.scss',
 })
 export class Icone {
   readonly nom = input.required<NomIcone>();

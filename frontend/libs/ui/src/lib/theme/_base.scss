@@ -28,7 +28,7 @@
 
   h1,
   .titre-page {
-    margin: 0 0 16px;
+    margin: 0 0 var(--ecole-espace-4);
     font-size: var(--ecole-titre-page-taille);
     line-height: var(--ecole-titre-page-interligne);
     font-weight: var(--ecole-titre-page-graisse);
@@ -37,7 +37,7 @@
 
   h2,
   .titre-section {
-    margin: 24px 0 12px;
+    margin: var(--ecole-espace-sections) 0 var(--ecole-espace-3);
     font-size: var(--ecole-titre-section-taille);
     line-height: var(--ecole-titre-section-interligne);
     font-weight: var(--ecole-titre-section-graisse);
@@ -95,20 +95,35 @@
     white-space: nowrap;
   }
 
+  // Lien d'évitement « Aller au contenu » des coquilles : visible seulement au focus clavier.
+  .saut {
+    position: absolute;
+    left: -999px;
+
+    &:focus {
+      left: 8px;
+      top: 8px;
+      z-index: 1000;
+      padding: var(--ecole-espace-2) var(--ecole-espace-4);
+      background: var(--ecole-surface);
+    }
+  }
+
   // --- Carte : rayon 12, bordure 1 px, sans ombre ---
   .carte {
     background: var(--ecole-surface);
     border: 1px solid var(--ecole-bordure);
     border-radius: var(--ecole-rayon-carte);
-    padding: 16px;
+    padding: var(--ecole-espace-carte);
   }
 
   // --- Pastille de statut : un point ET un texte, jamais la couleur seule ---
   .pastille {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 2px 10px 2px 8px;
+    gap: var(--ecole-espace-2);
+    padding: var(--ecole-espace-1) var(--ecole-espace-3) var(--ecole-espace-1)
+      var(--ecole-espace-2);
     border-radius: 999px;
     font-size: var(--ecole-libelle-taille);
     line-height: var(--ecole-libelle-interligne);
@@ -154,9 +169,9 @@
 
   // --- Messages (bandeaux) : mêmes couples de signaux ---
   .message {
-    padding: 10px 14px;
+    padding: var(--ecole-espace-3) var(--ecole-espace-4);
     border-radius: var(--ecole-rayon-controle);
-    margin: 8px 0;
+    margin: var(--ecole-espace-2) 0;
 
     &.erreur {
       background: var(--ecole-bissap-fond);
@@ -184,9 +199,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--ecole-espace-2);
     min-height: var(--ecole-hauteur-controle);
-    padding: 0 18px;
+    padding: 0 var(--ecole-espace-4);
     border-radius: var(--ecole-rayon-controle);
     border: 1px solid transparent;
     font: inherit;
@@ -235,8 +250,8 @@
 
       tr {
         display: block;
-        margin: 0 0 12px;
-        padding: 6px 14px;
+        margin: 0 0 var(--ecole-espace-sections);
+        padding: var(--ecole-espace-2) var(--ecole-espace-4);
         background: var(--ecole-surface);
         border: 1px solid var(--ecole-bordure);
         border-radius: var(--ecole-rayon-carte);
@@ -246,8 +261,8 @@
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        gap: 12px;
-        padding: 8px 0;
+        gap: var(--ecole-espace-3);
+        padding: var(--ecole-espace-2) 0;
         border-bottom: 1px solid var(--ecole-bordure);
         text-align: right;
 

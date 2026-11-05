@@ -63,4 +63,21 @@ export default [
     // Override or add rules here
     rules: {},
   },
+  {
+    // Styles des composants dans un .scss (styleUrl) : stylelint ne lit pas les .ts, et l'échelle
+    // d'espacement (ecole/espacements-echelle) doit s'appliquer partout.
+    files: ['**/*.ts'],
+    ignores: ['**/*.spec.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "Decorator[expression.callee.name='Component'] Property[key.name='styles']",
+          message:
+            'Styles du composant dans un fichier .scss (styleUrl), contrôlé par stylelint.',
+        },
+      ],
+    },
+  },
 ];

@@ -1,0 +1,21 @@
+.code-activation .code-valeur {
+  font-size: 1.75rem;
+  letter-spacing: 0.12em;
+  margin: var(--ecole-espace-3) 0;
+  user-select: all;
+}
+@media print {
+  body > *:not(.cdk-overlay-container) {
+    display: none !important;
+  }
+  .cdk-overlay-backdrop {
+    display: none !important;
+  }
+  .cdk-overlay-pane {
+    position: static !important;
+    max-width: none !important;
+  }
+  .mat-mdc-dialog-actions {
+    display: none !important;
+  }
+}

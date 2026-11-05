@@ -20,7 +20,6 @@ import { Pastille } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { libelleLien, TYPES_LIEN } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceResponsables } from '../services/service-responsables';
 import { DialogueCode } from './dialogue-code';
 
@@ -149,7 +148,7 @@ import { DialogueCode } from './dialogue-code';
       <form
         [formGroup]="formulaire"
         (ngSubmit)="ajouter()"
-        class="grille"
+        class="formulaire"
         data-testid="form-responsable"
       >
         <mat-form-field appearance="outline">
@@ -213,15 +212,9 @@ import { DialogueCode } from './dialogue-code';
       </form>
     }
   `,
-  styles: [
-    STYLES_COMMUNS,
-    `
-      .cases {
-        display: flex;
-        flex-direction: column;
-        grid-column: 1 / -1;
-      }
-    `,
+  styleUrls: [
+    '../../../../ui/src/lib/styles/ecran.scss',
+    './onglet-responsables.scss',
   ],
 })
 export class OngletResponsables {

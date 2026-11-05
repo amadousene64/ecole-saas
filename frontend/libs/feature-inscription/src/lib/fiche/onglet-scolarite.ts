@@ -22,7 +22,6 @@ import { Pastille } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { libelleStatut, tonStatut } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceEleves, StatutInscription } from '../services/service-eleves';
 
 type Action = 'inscrire' | 'classe' | 'sortie' | null;
@@ -147,7 +146,7 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
       <form
         [formGroup]="formulaire"
         (ngSubmit)="inscrire()"
-        class="grille"
+        class="formulaire"
         data-testid="form-inscrire"
       >
         @if (erreurClasses(); as message) {
@@ -204,7 +203,7 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
       <form
         [formGroup]="formulaire"
         (ngSubmit)="changerClasse()"
-        class="grille"
+        class="formulaire"
         data-testid="form-classe"
       >
         <mat-form-field appearance="outline">
@@ -237,7 +236,7 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
       <form
         [formGroup]="sortie"
         (ngSubmit)="sortir()"
-        class="grille"
+        class="formulaire"
         data-testid="form-sortie"
       >
         <mat-form-field appearance="outline">
@@ -253,7 +252,7 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
             <mat-hint>La radiation est réservée au directeur.</mat-hint>
           }
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Date</mat-label>
           <input matInput type="date" formControlName="date" />
         </mat-form-field>
@@ -278,7 +277,7 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
       </form>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class OngletScolarite {
   readonly eleveId = input.required<string>();

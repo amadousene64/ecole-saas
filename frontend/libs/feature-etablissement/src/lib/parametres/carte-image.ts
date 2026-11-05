@@ -50,36 +50,7 @@ const TYPES_ACCEPTES = ['image/png', 'image/jpeg'];
       }
     </section>
   `,
-  styles: `
-    .carte {
-      padding: 12px 16px;
-    }
-    h3 {
-      margin: 0 0 8px;
-    }
-    img {
-      display: block;
-      max-width: 100%;
-      max-height: 120px;
-      object-fit: contain;
-      margin-bottom: 8px;
-    }
-    .fichier {
-      display: block;
-      margin: 8px 0;
-    }
-    .fichier span {
-      display: block;
-      margin-bottom: 4px;
-    }
-    .aide {
-      color: var(--mat-sys-on-surface-variant, #555);
-      font-size: 0.85rem;
-    }
-    .message.erreur {
-      color: var(--mat-sys-error, #b00020);
-    }
-  `,
+  styleUrl: './carte-image.scss',
 })
 export class CarteImage {
   readonly type = input.required<TypeImage>();

@@ -1,3 +1,7 @@
+@use 'sass:list';
+@use 'sass:math';
+@use 'sass:meta';
+
 // Identité visuelle : SOURCE UNIQUE des valeurs. Exposées en variables CSS (--ecole-*) pour les
 // trois applications ; le thème Angular Material est construit dessus (voir _theme.scss).
 // Les contrastes texte/fond sont vérifiés par jetons.spec.ts (4,5:1 minimum) et par l'e2e axe.
@@ -70,6 +74,53 @@ $hauteur-controle: 44px;
 $rayon-controle: 10px;
 $rayon-carte: 12px;
 
+// --- Espacements ---
+// Échelle : --ecole-espace-1 à 8. Partout ailleurs, la règle stylelint « ecole/espacements-echelle »
+// refuse toute valeur brute : un espacement s'écrit var(--ecole-espace-…).
+$espaces: (
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 24px,
+  6: 32px,
+  7: 48px,
+  8: 64px,
+);
+
+// Point de rupture « téléphone » (même valeur que les @media des composants).
+$telephone-max: 599.98px;
+
+// Jetons d'usage : (bureau, téléphone), chacun un pas de l'échelle, sauf l'écart entre les champs
+// d'un groupe : 20 px, seule exception actée, accessible uniquement par --ecole-espace-champs.
+$espaces-usage: (
+  // Libellé ↔ champ
+  'libelle': (2, 2),
+  // Champs d'un même groupe
+  'champs': (20px, 4),
+  // Groupes de champs
+  'groupes': (6, 5),
+  // Intérieur d'une carte ou d'une modale
+  'carte': (5, 4),
+  // Entre cartes et sections
+  'sections': (5, 4),
+  // Bord de page
+  'page': (6, 4),
+  // Boutons côte à côte
+  'boutons': (3, 3)
+);
+
+// Largeurs des formulaires : 720 px au plus, deux colonnes à partir de 900 px de large.
+$formulaire-largeur-max: 720px;
+$formulaire-deux-colonnes-min: 900px;
+
+@function -espace-usage($valeur) {
+  @if meta.type-of($valeur) == number and math.is-unitless($valeur) {
+    @return var(--ecole-espace-#{$valeur});
+  }
+  @return $valeur;
+}
+
 @mixin variables() {
   :root {
     @each $nom, $valeur in $couleurs {
@@ -78,12 +129,28 @@ $rayon-carte: 12px;
     --ecole-police: #{$police};
     --ecole-police-mono: #{$police-mono};
     @each $nom, $style in $echelle {
-      --ecole-#{$nom}-taille: #{nth($style, 1)};
-      --ecole-#{$nom}-interligne: #{nth($style, 2)};
-      --ecole-#{$nom}-graisse: #{nth($style, 3)};
+      --ecole-#{$nom}-taille: #{list.nth($style, 1)};
+      --ecole-#{$nom}-interligne: #{list.nth($style, 2)};
+      --ecole-#{$nom}-graisse: #{list.nth($style, 3)};
     }
     --ecole-hauteur-controle: #{$hauteur-controle};
     --ecole-rayon-controle: #{$rayon-controle};
     --ecole-rayon-carte: #{$rayon-carte};
+    @each $pas, $valeur in $espaces {
+      --ecole-espace-#{$pas}: #{$valeur};
+    }
+    @each $nom, $valeurs in $espaces-usage {
+      --ecole-espace-#{$nom}: #{-espace-usage(list.nth($valeurs, 1))};
+    }
+  }
+
+  @media (max-width: $telephone-max) {
+    :root {
+      @each $nom, $valeurs in $espaces-usage {
+        @if list.nth($valeurs, 1) != list.nth($valeurs, 2) {
+          --ecole-espace-#{$nom}: #{-espace-usage(list.nth($valeurs, 2))};
+        }
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Pastille, TonStatut, EnTetePage } from '@ecole/ui';
+import { Pastille, TonStatut, EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import {
@@ -13,7 +13,6 @@ import { AnneeScolaireDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { LIBELLES_STATUT_ANNEE, StatutAnnee } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceAnnees } from '../services/service-annees';
 import { SectionCalendrier } from './section-calendrier';
 import { SectionPeriodes } from './section-periodes';
@@ -31,6 +30,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
 /** Années scolaires : création, ouverture, clôture, puis périodes et calendrier de l'année choisie. */
 @Component({
   selector: 'ecole-page-annees',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [
     EnTetePage,
     DatePipe,
@@ -162,7 +162,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
       <form
         [formGroup]="formulaire"
         (ngSubmit)="creer()"
-        class="grille"
+        class="formulaire"
         data-testid="form-annee"
       >
         <mat-form-field appearance="outline">
@@ -177,7 +177,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
             <mat-error>Format AAAA-AAAA, par exemple 2027-2028.</mat-error>
           }
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Début</mat-label>
           <input
             matInput
@@ -186,7 +186,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
             data-testid="champ-annee-debut"
           />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Fin</mat-label>
           <input
             matInput
@@ -224,18 +224,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
       <ecole-section-calendrier [annee]="annee" />
     }
   `,
-  styles: [
-    STYLES_COMMUNS,
-    `
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-      }
-    `,
-  ],
+  styleUrls: ['../../../../ui/src/lib/styles/ecran.scss', './page-annees.scss'],
 })
 export class PageAnnees {
   private readonly service = inject(ServiceAnnees);

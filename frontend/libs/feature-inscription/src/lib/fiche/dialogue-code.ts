@@ -68,29 +68,7 @@ export interface DonneesCode {
       </button>
     </mat-dialog-actions>
   `,
-  styles: `
-    .code-activation .code-valeur {
-      font-size: 1.75rem;
-      letter-spacing: 0.12em;
-      margin: 12px 0;
-      user-select: all;
-    }
-    @media print {
-      body > *:not(.cdk-overlay-container) {
-        display: none !important;
-      }
-      .cdk-overlay-backdrop {
-        display: none !important;
-      }
-      .cdk-overlay-pane {
-        position: static !important;
-        max-width: none !important;
-      }
-      .mat-mdc-dialog-actions {
-        display: none !important;
-      }
-    }
-  `,
+  styleUrl: './dialogue-code.scss',
 })
 export class DialogueCode {
   protected readonly donnees = inject<DonneesCode>(MAT_DIALOG_DATA);
