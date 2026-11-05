@@ -93,7 +93,11 @@ export async function verifierProfil(
   ecole: string,
   roles: string[],
 ): Promise<void> {
-  await expect(page.getByTestId('moi-ecole')).toHaveText(ecole);
+  // 15 s : premier écran après la connexion ; au démarrage à froid (serveur de dev qui compile la
+  // page, API qui chauffe), 5 s ne suffisent pas toujours.
+  await expect(page.getByTestId('moi-ecole')).toHaveText(ecole, {
+    timeout: 15_000,
+  });
   await expect(page.getByTestId('moi-roles').locator('li')).toHaveText(roles);
 }
 
