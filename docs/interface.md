@@ -64,3 +64,16 @@ Les champs Material n'ont plus de place réservée sous eux (`subscriptSizing: '
 vient du seul jeton. Le réglage est `CHAMPS_FORMULAIRE` (`@ecole/ui`), fourni sur chaque **page**
 à formulaires (`providers: [CHAMPS_FORMULAIRE]`), que ses sections et onglets héritent. Jamais dans
 `app.config` : Material form-field entrerait dans le lot initial du back-office (+110 Ko mesurés).
+
+Un test le vérifie : `npx nx test verifications-front` (`frontend/tools/verifications/`). Il
+part de chaque page routée et de chaque composant ouvert en dialogue, suit les `imports` des
+composants, et échoue si un composant contenant `<mat-form-field>` n'a aucun
+`CHAMPS_FORMULAIRE` sur son chemin, ou si `CHAMPS_FORMULAIRE` apparaît dans un `app.config`. Le
+projet dépend de tous les autres : `nx affected` le relance dès qu'un écran change.
+
+## Lot initial de l'espace parent (budget 450 Ko)
+
+Toutes les pages de l'app parent sont chargées à la demande (`loadComponent`), et le service
+worker est enregistré sans `@angular/service-worker` (`apps/parent/src/app/service-worker.ts`,
+même stratégie « stable ou 30 s »). Le lot initial ne porte que l'amorçage : Angular, routeur,
+client OIDC (115 Ko à lui seul), coquille légère, icônes et table des droits.
