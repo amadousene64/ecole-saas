@@ -1,0 +1,9 @@
+{
+  "name": "verifications-front",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/verifications",
+  "projectType": "library",
+  "tags": ["type:outil"],
+  "implicitDependencies": ["*", "!e2e"],
+  "targets": {}
+}
