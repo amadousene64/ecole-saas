@@ -88,6 +88,13 @@ ecole:
       # Seuls ces clients activent un code d'école (rattachement parent/élève).
       clients-activation: [parent]
 
+  marque:
+    # Origines autorisées (CORS) à lire la marque publique d'une école : l'adresse de Keycloak, dont
+    # les pages de connexion l'affichent. Séparées par des virgules ; vide : aucune origine.
+    origines-autorisees: ${ECOLE_MARQUE_ORIGINES:}
+    # Développement seulement (résolution par en-tête) : école montrée quand l'hôte n'en désigne pas.
+    ecole-par-defaut: ${ECOLE_MARQUE_ECOLE_PAR_DEFAUT:}
+
   statistique:
     # Durée de vie du tableau de bord de la direction dans Redis (par école, année, période, cycle).
     cache-ttl: 5m

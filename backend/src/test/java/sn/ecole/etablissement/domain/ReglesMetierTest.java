@@ -175,12 +175,16 @@ class ReglesMetierTest {
         "IA Dakar",
         "IEF Pikine",
         "Rue 1",
+        "  Dakar ",
+        "Bienvenue au lycée",
         "77 123 45 67",
         "contact@exemple.test",
         "Africa/Dakar",
         "XOF");
     assertThat(e.getNom()).isEqualTo("Lycée Exemple A");
     assertThat(e.getTelephone()).isEqualTo("+221771234567");
+    assertThat(e.getVille()).isEqualTo("Dakar");
+    assertThat(e.getPhraseAccueil()).isEqualTo("Bienvenue au lycée");
     assertThat(e.getStatut()).isEqualTo(StatutEtablissement.PRIVE_LAIQUE);
   }
 
@@ -193,6 +197,8 @@ class ReglesMetierTest {
                 "A",
                 "B",
                 StatutEtablissement.PUBLIC,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -212,6 +218,8 @@ class ReglesMetierTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 "Africa/Dakar",
                 "ZZZ9"),
         "DEVISE_INVALIDE");
@@ -220,7 +228,8 @@ class ReglesMetierTest {
   @Test
   void leFuseauEtLaDeviseVidesRetombentSurLesDefauts() {
     Etablissement e = etablissement();
-    e.modifier("A", "B", StatutEtablissement.PUBLIC, null, null, null, null, null, " ", null);
+    e.modifier(
+        "A", "B", StatutEtablissement.PUBLIC, null, null, null, null, null, null, null, " ", null);
     assertThat(e.getFuseau()).isEqualTo("Africa/Dakar");
     assertThat(e.getDevise()).isEqualTo("XOF");
   }
@@ -238,6 +247,8 @@ class ReglesMetierTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 "pas-un-email",
                 null,
                 null),
@@ -245,12 +256,34 @@ class ReglesMetierTest {
     assertCode(
         () ->
             e.modifier(
-                "A", "B C", StatutEtablissement.PUBLIC, null, null, null, null, null, null, null),
+                "A",
+                "B C",
+                StatutEtablissement.PUBLIC,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null),
         "CHAMP_INVALIDE");
     assertCode(
         () ->
             e.modifier(
-                "", "B", StatutEtablissement.PUBLIC, null, null, null, null, null, null, null),
+                "",
+                "B",
+                StatutEtablissement.PUBLIC,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null),
         "CHAMP_INVALIDE");
   }
 

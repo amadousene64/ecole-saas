@@ -33,6 +33,7 @@ class OpenApiConfig {
           .forEach(
               (chemin, operations) -> {
                 if (chemin.startsWith("/api/")
+                    && !chemin.startsWith("/api/v1/public/")
                     && !chemin.equals(SecuriteConfig.CHEMIN_MES_ECOLES)) {
                   operations
                       .readOperations()

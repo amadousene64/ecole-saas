@@ -13,8 +13,10 @@ export interface EtablissementDto {
   ief?: string;
   logoUrl?: string;
   nom?: string;
+  phraseAccueil?: string;
   signatureUrl?: string;
   statut?: 'PUBLIC' | 'PRIVE_LAIQUE' | 'PRIVE_CONFESSIONNEL';
   telephone?: string;
   version?: number;
+  ville?: string;
 }

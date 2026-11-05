@@ -25,6 +25,7 @@ cd backend
 | --- | --- | --- |
 | API | http://localhost:8080 (Swagger : `/swagger-ui.html`) | jeton Keycloak |
 | Keycloak | http://localhost:8180 (realm `ecole`) | admin / admin-dev |
+| Mailpit (courrier de dev) | http://localhost:8025 | — (Keycloak y envoie vérification d'adresse et mot de passe oublié) |
 | RabbitMQ | http://localhost:15672 | ecole / rabbit-dev |
 | MinIO | http://localhost:9001 | ecole / minio-dev-123 |
 | ClamAV (clamd) | localhost:3310 | — |
@@ -57,6 +58,10 @@ Les clients du realm de dev (`backoffice`, `parent`, `vie-scolaire`, `dev-cli`) 
 désactivé : un jeton ne porte que ce que le client demande (audience `ecole-api`, identité), jamais
 tous les rôles de l'utilisateur ; l'API lit les rôles dans sa table d'appartenances. Sur un Keycloak
 déjà démarré : `bash infra/scripts/durcir-clients-dev.sh` (idempotent).
+
+Les pages de connexion utilisent le thème Keycloak « ecole » (marque de l'école, deux colonnes, bandeau sur
+téléphone ; voir `docs/theme-keycloak.md`). Sur un Keycloak déjà démarré :
+`bash infra/scripts/configurer-realm-dev.sh` (thème du realm et des clients, serveur d'e-mails Mailpit).
 
 ## Commandes backend
 

@@ -16,6 +16,8 @@ public record EtablissementDto(
     String ia,
     String ief,
     String adresse,
+    String ville,
+    String phraseAccueil,
     String telephone,
     String email,
     String fuseau,

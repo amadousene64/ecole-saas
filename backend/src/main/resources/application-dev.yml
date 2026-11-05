@@ -16,6 +16,10 @@ ecole:
     creer-bucket: true
   tenant:
     resolution: entete
+  marque:
+    # Pages de connexion de Keycloak (localhost:8180) et école A comme école par défaut du poste.
+    origines-autorisees: http://localhost:8180
+    ecole-par-defaut: 01930000-0000-7000-8000-0000000000a1
   securite:
     jeton:
       # La liste remplace celle par défaut : on y ajoute le client en ligne de commande.

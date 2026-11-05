@@ -17,11 +17,15 @@ import sn.ecole.etablissement.StatutEtablissement;
 import sn.ecole.etablissement.application.AnneeScolaireService;
 import sn.ecole.etablissement.application.ClasseService;
 import sn.ecole.etablissement.application.ClasseService.Saisie;
+import sn.ecole.etablissement.application.EtablissementService;
+import sn.ecole.etablissement.application.EtablissementService.Modification;
+import sn.ecole.etablissement.application.EtablissementService.VueEtablissement;
 import sn.ecole.etablissement.application.NiveauService;
 import sn.ecole.etablissement.application.NiveauService.VueNiveau;
 import sn.ecole.etablissement.application.SalleService;
 import sn.ecole.etablissement.application.SerieService;
 import sn.ecole.etablissement.domain.AnneeScolaire;
+import sn.ecole.etablissement.domain.Etablissement;
 import sn.ecole.etablissement.domain.Serie;
 import sn.ecole.shared.application.ExecutionPourTenant;
 import sn.ecole.shared.domain.Tenant;
@@ -51,6 +55,7 @@ class DonneesDev implements ApplicationRunner {
   private final ClasseService classes;
   private final NiveauService niveaux;
   private final SerieService series;
+  private final EtablissementService etablissement;
 
   DonneesDev(
       ExecutionPourTenant execution,
@@ -60,7 +65,8 @@ class DonneesDev implements ApplicationRunner {
       SalleService salles,
       ClasseService classes,
       NiveauService niveaux,
-      SerieService series) {
+      SerieService series,
+      EtablissementService etablissement) {
     this.execution = execution;
     this.tenants = tenants;
     this.initialisation = initialisation;
@@ -69,6 +75,7 @@ class DonneesDev implements ApplicationRunner {
     this.classes = classes;
     this.niveaux = niveaux;
     this.series = series;
+    this.etablissement = etablissement;
   }
 
   @Override
@@ -80,8 +87,39 @@ class DonneesDev implements ApplicationRunner {
             ecole, tenant.getNom(), tenant.getCode(), StatutEtablissement.PRIVE_LAIQUE);
       }
       boolean lycee = tenant.getCode().startsWith("LYCEE");
-      agirCommeDirecteur(() -> execution.executer(ecole, () -> semer(lycee)));
+      agirCommeDirecteur(
+          () ->
+              execution.executer(
+                  ecole,
+                  () -> {
+                    marque(lycee);
+                    semer(lycee);
+                  }));
     }
+  }
+
+  /** Ville et phrase d'accueil fictives : la marque des pages de connexion a de quoi s'afficher. */
+  private void marque(boolean lycee) {
+    VueEtablissement vue = etablissement.lire();
+    Etablissement e = vue.etablissement();
+    if (e.getVille() != null) {
+      return;
+    }
+    etablissement.modifier(
+        e.getVersion(),
+        new Modification(
+            e.getNom(),
+            e.getCode(),
+            e.getStatut(),
+            e.getIa(),
+            e.getIef(),
+            e.getAdresse(),
+            lycee ? "Dakar" : "Saint-Louis",
+            lycee ? "Apprendre ensemble, grandir ensemble." : "Une école ouverte sur le monde.",
+            e.getTelephone(),
+            e.getEmail(),
+            e.getFuseau(),
+            e.getDevise()));
   }
 
   private void semer(boolean lycee) {

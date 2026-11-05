@@ -3169,6 +3169,87 @@
         "tags" : [ "parametres-inscription-controller" ]
       }
     },
+    "/api/v1/public/marque" : {
+      "get" : {
+        "description" : "Nom, ville, phrase d'accueil et version du logo. `hote` : hôte de l'application vers laquelle Keycloak redirige (sous-domaine de l'école). Un hôte inconnu, commun ou une école inactive donne la même marque neutre (champs nuls). `ecole` n'est pris en compte qu'en développement.",
+        "operationId" : "marquePublique_marque",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "hote",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ecole",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MarqueDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Marque publique de l'école de l'hôte demandé (sans authentification)",
+        "tags" : [ "marque-publique-controller" ]
+      }
+    },
+    "/api/v1/public/marque/logo" : {
+      "get" : {
+        "operationId" : "marquePublique_logo",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "hote",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ecole",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "v",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Logo de l'école (le seul fichier public : jamais le cachet ni la signature)",
+        "tags" : [ "marque-publique-controller" ]
+      }
+    },
     "/api/v1/responsables" : {
       "get" : {
         "operationId" : "responsable_rechercher",
@@ -4355,6 +4436,9 @@
           "nom" : {
             "type" : "string"
           },
+          "phraseAccueil" : {
+            "type" : "string"
+          },
           "signatureUrl" : {
             "type" : "string"
           },
@@ -4368,6 +4452,9 @@
           "version" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "ville" : {
+            "type" : "string"
           }
         }
       },
@@ -4614,6 +4701,23 @@
           }
         }
       },
+      "MarqueDto" : {
+        "type" : "object",
+        "properties" : {
+          "logoVersion" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "phraseAccueil" : {
+            "type" : "string"
+          },
+          "ville" : {
+            "type" : "string"
+          }
+        }
+      },
       "ModificationInscriptionRequete" : {
         "type" : "object",
         "properties" : {
@@ -4701,6 +4805,11 @@
             "maxLength" : 200,
             "minLength" : 0
           },
+          "phraseAccueil" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
           "statut" : {
             "type" : "string",
             "enum" : [ "PUBLIC", "PRIVE_LAIQUE", "PRIVE_CONFESSIONNEL" ]
@@ -4708,6 +4817,11 @@
           "telephone" : {
             "type" : "string",
             "maxLength" : 30,
+            "minLength" : 0
+          },
+          "ville" : {
+            "type" : "string",
+            "maxLength" : 100,
             "minLength" : 0
           }
         },

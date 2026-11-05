@@ -1,0 +1,348 @@
+/* Thème « ecole » : deux colonnes (marque | formulaire), bandeau sur téléphone.
+   Couleurs et formes : celles des applications (frontend/libs/ui/src/lib/theme/_jetons.scss).
+   Police Figtree auto-hébergée (licence OFL) : aucun appel à un service de polices. */
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/figtree-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/figtree-latin-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/figtree-latin-700-normal.woff2') format('woff2');
+}
+
+:root {
+  --ecole-primaire: #1f6b4f;
+  --ecole-primaire-fonce: #16503b;
+  --ecole-primaire-doux: #e4f0ea;
+  --ecole-texte: #16201c;
+  --ecole-texte-secondaire: #56635d;
+  --ecole-fond: #f5f6f3;
+  --ecole-surface: #ffffff;
+  --ecole-bordure: #dde3df;
+  --ecole-rayon: 12px;
+
+  /* Les composants PatternFly de keycloak.v2 reprennent la charte. */
+  --pf-v5-global--primary-color--100: var(--ecole-primaire);
+  --pf-v5-global--primary-color--200: var(--ecole-primaire-fonce);
+  --pf-v5-global--link--Color: var(--ecole-primaire);
+  --pf-v5-global--link--Color--hover: var(--ecole-primaire-fonce);
+  --pf-v5-global--active-color--100: var(--ecole-primaire);
+  --pf-v5-global--FontFamily--text: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pf-v5-global--FontFamily--heading: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --keycloak-card-top-color: var(--ecole-primaire);
+}
+
+html {
+  font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body.ecole {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--ecole-fond);
+  color: var(--ecole-texte);
+  font-family: inherit;
+}
+
+/* Lien d'évitement : visible seulement au clavier. */
+.ecole-saut {
+  position: absolute;
+  left: 8px;
+  top: -64px;
+  z-index: 10;
+  padding: 12px 16px;
+  background: var(--ecole-surface);
+  color: var(--ecole-primaire-fonce);
+  border: 2px solid var(--ecole-primaire);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.ecole-saut:focus {
+  top: 8px;
+}
+
+/* --- Deux colonnes --- */
+.ecole-page {
+  display: grid;
+  grid-template-columns: minmax(320px, 5fr) minmax(360px, 7fr);
+  min-height: 100vh;
+}
+
+.ecole-marque {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 56px 48px;
+  background:
+    radial-gradient(circle at 15% 10%, rgb(255 255 255 / 10%), transparent 45%),
+    linear-gradient(160deg, var(--ecole-primaire) 0%, var(--ecole-primaire-fonce) 100%);
+  color: #fff;
+}
+
+.ecole-marque-contenu {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ecole-identite {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ecole-logo {
+  flex: none;
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  padding: 8px;
+  background: #fff;
+  border-radius: var(--ecole-rayon);
+}
+
+.ecole-logo[hidden],
+.ecole-nom[hidden],
+.ecole-ville[hidden],
+.ecole-phrase[hidden] {
+  display: none;
+}
+
+.ecole-textes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ecole-plateforme {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+/* Une école est reconnue : la plateforme passe au second plan. */
+.ecole-plateforme--discrete {
+  order: 3;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  opacity: 0.88;
+}
+
+.ecole-nom {
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ecole-ville {
+  margin: 0;
+  font-size: 1.0625rem;
+  opacity: 0.92;
+}
+
+.ecole-phrase {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Encart de l'espace parent (client « parent » seulement). */
+.ecole-encart-parent {
+  max-width: 28rem;
+  padding: 20px 24px;
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: var(--ecole-rayon);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.ecole-encart-titre {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.ecole-encart-parent ul {
+  list-style: disc;
+  margin: 0 0 12px;
+  padding-left: 1.25rem;
+}
+
+.ecole-encart-parent li + li {
+  margin-top: 4px;
+}
+
+.ecole-encart-code {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 30%);
+}
+
+/* --- Colonne du formulaire : on neutralise le plein écran de PatternFly --- */
+.ecole-colonne {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+
+body.ecole .pf-v5-c-login {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  background: none;
+}
+
+body.ecole .pf-v5-c-login__container {
+  display: block;
+  width: 100%;
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 0;
+}
+
+body.ecole .pf-v5-c-login__main {
+  margin: 0;
+  background: var(--ecole-surface);
+  border: 1px solid var(--ecole-bordure);
+  border-radius: var(--ecole-rayon);
+  box-shadow: 0 8px 24px rgb(22 32 28 / 8%);
+  overflow: hidden;
+}
+
+body.ecole .pf-v5-c-login__main-header {
+  border-top: 4px solid var(--ecole-primaire);
+}
+
+body.ecole .pf-v5-c-login__main-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ecole-texte);
+}
+
+/* Boutons principaux aux couleurs de la charte (contraste texte blanc / vert ≥ 4,5:1). */
+body.ecole .pf-v5-c-button.pf-m-primary {
+  background-color: var(--ecole-primaire);
+  color: #fff;
+  border-radius: 10px;
+  min-height: 44px;
+}
+
+body.ecole .pf-v5-c-button.pf-m-primary:hover,
+body.ecole .pf-v5-c-button.pf-m-primary:focus {
+  background-color: var(--ecole-primaire-fonce);
+}
+
+body.ecole a {
+  color: var(--ecole-primaire-fonce);
+}
+
+body.ecole :focus-visible {
+  outline: 3px solid var(--ecole-primaire);
+  outline-offset: 2px;
+}
+
+body.ecole .ecole-sans-email {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  background: #fbefd9;
+  color: #6f3e04;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+}
+
+/* --- Téléphone : la marque devient un bandeau compact au-dessus du formulaire --- */
+@media (max-width: 767.98px) {
+  .ecole-page {
+    display: block;
+  }
+
+  .ecole-marque {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .ecole-marque-contenu {
+    gap: 0;
+  }
+
+  .ecole-identite {
+    gap: 12px;
+  }
+
+  .ecole-logo {
+    width: 48px;
+    height: 48px;
+    padding: 4px;
+  }
+
+  .ecole-plateforme {
+    font-size: 1.0625rem;
+  }
+
+  .ecole-nom {
+    font-size: 1.125rem;
+  }
+
+  .ecole-ville {
+    font-size: 0.875rem;
+  }
+
+  .ecole-plateforme--discrete {
+    display: none;
+  }
+
+  /* Phrase d'accueil et encart parent : trop hauts pour un bandeau, le formulaire passe d'abord. */
+  .ecole-phrase,
+  .ecole-encart-parent {
+    display: none;
+  }
+
+  .ecole-colonne {
+    display: block;
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Un lien dans une phrase se distingue autrement que par sa couleur (WCAG 1.4.1). */
+body.ecole .pf-v5-c-login__main a:not([class*='pf-v5-c-button']):not([class*='pf-m-link']) {
+  text-decoration: underline;
+}

@@ -1,5 +1,0 @@
-/* Le personnel reçoit son compte de l'école : pas de lien d'auto-inscription. */
-#kc-registration-container,
-#kc-registration {
-  display: none !important;
-}

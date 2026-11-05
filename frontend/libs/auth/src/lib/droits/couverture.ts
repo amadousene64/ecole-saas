@@ -92,6 +92,20 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
     action: 'etablissement.ecrire',
   },
 
+  // --- Marque publique : pages de connexion Keycloak, sans compte (nom, ville, phrase, logo) ---
+  'MarquePubliqueService.marque': {
+    exception: {
+      raison:
+        'Marque affichée sur la page de connexion Keycloak, avant toute authentification : appelée par le thème Keycloak, jamais par une application (aucun rôle).',
+    },
+  },
+  'MarquePubliqueService.logo': {
+    exception: {
+      raison:
+        'Logo seul (jamais cachet ni signature) affiché sur la page de connexion Keycloak, avant toute authentification : appelé par le thème Keycloak, jamais par une application.',
+    },
+  },
+
   // --- Établissement : structure (cycles, niveaux, séries, options) ---
   'CycleService.lister': { page: 'structure' },
   // Paramètres de notation des cycles : directeur seul.

@@ -39,6 +39,7 @@ export type { InscriptionRequete } from './models/inscription-requete';
 export type { LienParentalDto } from './models/lien-parental-dto';
 export type { LienParentalRequete } from './models/lien-parental-requete';
 export type { LigneImportDto } from './models/ligne-import-dto';
+export type { MarqueDto } from './models/marque-dto';
 export type { ModificationInscriptionRequete } from './models/modification-inscription-requete';
 export type { ModifierCycleRequete } from './models/modifier-cycle-requete';
 export type { ModifierEtablissementRequete } from './models/modifier-etablissement-requete';
@@ -220,6 +221,10 @@ export type { ParametresInscriptionLire$Params as ParametresInscriptionLire$Para
 export { parametresInscriptionLire as parametresInscriptionLire } from './fn/parametres-inscription-controller/parametres-inscription-lire';
 export type { ParametresInscriptionModifier$Params as ParametresInscriptionModifier$Params } from './fn/parametres-inscription-controller/parametres-inscription-modifier';
 export { parametresInscriptionModifier as parametresInscriptionModifier } from './fn/parametres-inscription-controller/parametres-inscription-modifier';
+export type { MarquePubliqueMarque$Params as MarquePubliqueMarque$Params } from './fn/marque-publique-controller/marque-publique-marque';
+export { marquePubliqueMarque as marquePubliqueMarque } from './fn/marque-publique-controller/marque-publique-marque';
+export type { MarquePubliqueLogo$Params as MarquePubliqueLogo$Params } from './fn/marque-publique-controller/marque-publique-logo';
+export { marquePubliqueLogo as marquePubliqueLogo } from './fn/marque-publique-controller/marque-publique-logo';
 export type { ResponsableRechercher$Params as ResponsableRechercher$Params } from './fn/responsable-controller/responsable-rechercher';
 export { responsableRechercher as responsableRechercher } from './fn/responsable-controller/responsable-rechercher';
 export type { ResponsableCreer$Params as ResponsableCreer$Params } from './fn/responsable-controller/responsable-creer';

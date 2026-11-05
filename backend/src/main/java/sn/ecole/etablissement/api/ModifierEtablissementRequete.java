@@ -13,6 +13,8 @@ public record ModifierEtablissementRequete(
     @Size(max = 120) String ia,
     @Size(max = 120) String ief,
     @Size(max = 300) String adresse,
+    @Size(max = 100) String ville,
+    @Size(max = 200) String phraseAccueil,
     @Size(max = 30) String telephone,
     @Size(max = 254) String email,
     @Size(max = 40) String fuseau,
