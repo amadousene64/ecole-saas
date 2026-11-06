@@ -166,17 +166,19 @@ import { ModaleResponsable } from './modale-responsable';
       />
     }
 
-    <ecole-confirmation
-      titre="Retirer le lien"
-      [consequence]="consequenceRetrait()"
-      action="Retirer le lien"
-      testId="confirmer-retrait"
-      [ouverte]="aRetirer() !== null"
-      [occupe]="occupe()"
-      [erreur]="erreurRetrait()"
-      (confirmee)="delier()"
-      (annulee)="aRetirer.set(null)"
-    />
+    @if (aRetirer()) {
+      <ecole-confirmation
+        titre="Retirer le lien"
+        [consequence]="consequenceRetrait()"
+        action="Retirer le lien"
+        testId="confirmer-retrait"
+        [ouverte]="true"
+        [occupe]="occupe()"
+        [erreur]="erreurRetrait()"
+        (confirmee)="delier()"
+        (annulee)="aRetirer.set(null)"
+      />
+    }
 
     @if (code(); as c) {
       <ecole-modale-code [donnees]="c" (fermee)="code.set(null)" />

@@ -39,21 +39,29 @@ public class ResponsableService {
   }
 
   /**
-   * Recherche par téléphone (pour éviter les doublons à la saisie) ou par nom. Un critère est
-   * obligatoire : pas d'export de tous les responsables d'un coup.
+   * Responsables qui ont exactement ce téléphone (normalisé), pour éviter un doublon à la saisie.
+   * Le numéro arrive dans le corps d'une requête, jamais dans une URL.
    */
   @PreAuthorize(Droits.ECRITURE)
   @Transactional(readOnly = true)
-  public List<Responsable> rechercher(String telephone, String nom) {
-    if (telephone != null && !telephone.isBlank()) {
-      return responsables.findByTelephoneOrderByNomRecherche(Responsable.telephone(telephone));
+  public List<Responsable> rechercherParTelephone(String telephone) {
+    if (telephone == null || telephone.isBlank()) {
+      throw Erreurs.invalide("CRITERE_REQUIS", "Indiquez un téléphone.");
     }
+    return responsables.findByTelephoneOrderByNomRecherche(Responsable.telephone(telephone));
+  }
+
+  /**
+   * Recherche par nom (deux lettres au moins) : pas d'export de tous les responsables d'un coup.
+   */
+  @PreAuthorize(Droits.ECRITURE)
+  @Transactional(readOnly = true)
+  public List<Responsable> rechercherParNom(String nom) {
     if (nom != null && nom.strip().length() >= 2) {
       return responsables.findTop50ByNomRechercheContainingOrderByNomRecherche(
           Saisies.normaliser(nom));
     }
-    throw Erreurs.invalide(
-        "CRITERE_REQUIS", "Indiquez un téléphone ou au moins deux lettres du nom.");
+    throw Erreurs.invalide("CRITERE_REQUIS", "Indiquez au moins deux lettres du nom.");
   }
 
   @PreAuthorize(Droits.ECRITURE)

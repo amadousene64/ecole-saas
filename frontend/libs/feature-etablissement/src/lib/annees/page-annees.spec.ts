@@ -155,7 +155,8 @@ describe('PageAnnees', () => {
     bouton(racine, 'annuler-confirmation')!.click();
     await stabiliser(fixture);
 
-    expect(confirmation.hasAttribute('open')).toBe(false);
+    // Fermée puis détruite : plus rien de la confirmation (ni le motif saisi) dans la page.
+    expect(confirmation.isConnected).toBe(false);
     expect(invoke.mock.calls.some(([fn]) => fn === anneeScolaireCloturer)).toBe(
       false,
     );

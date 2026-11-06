@@ -348,20 +348,22 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
       </ecole-modale>
     }
 
-    <ecole-confirmation
-      titre="Radier l'élève"
-      [consequence]="consequenceRadiation()"
-      action="Radier l'élève"
-      motif="obligatoire"
-      libelleMotif="Motif de la radiation"
-      [motifInitial]="motifRadiation()"
-      testId="confirmer-radiation"
-      [ouverte]="radiation()"
-      [occupe]="occupe()"
-      [erreur]="erreurRadiation()"
-      (confirmee)="radier($event)"
-      (annulee)="radiation.set(false)"
-    />
+    @if (radiation()) {
+      <ecole-confirmation
+        titre="Radier l'élève"
+        [consequence]="consequenceRadiation()"
+        action="Radier l'élève"
+        motif="obligatoire"
+        libelleMotif="Motif de la radiation"
+        [motifInitial]="motifRadiation()"
+        testId="confirmer-radiation"
+        [ouverte]="true"
+        [occupe]="occupe()"
+        [erreur]="erreurRadiation()"
+        (confirmee)="radier($event)"
+        (annulee)="radiation.set(false)"
+      />
+    }
   `,
   styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })

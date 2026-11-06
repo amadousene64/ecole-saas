@@ -23,7 +23,7 @@ import { MatSelectModule } from '@angular/material/select';
 import {
   LienParentalDto,
   LienParentalRequete,
-  ResponsableDto,
+  ResponsableResumeDto,
 } from '@ecole/api-client';
 import { Modale } from '@ecole/ui';
 import { map } from 'rxjs';
@@ -89,8 +89,9 @@ let suivant = 0;
           >
             <p>
               Responsable existant :
-              <strong>{{ r.prenoms }} {{ r.nom }}</strong> ({{ r.telephone }}).
-              Seuls le lien et les rôles seront enregistrés.
+              <strong>{{ r.prenoms }} {{ r.nom }}</strong>
+              ({{ formulaire.controls.telephone.value }}). Seuls le lien et les
+              rôles seront enregistrés.
             </p>
             <button
               matButton
@@ -224,9 +225,9 @@ export class ModaleResponsable implements OnInit {
   protected readonly idFormulaire = `form-responsable-${++suivant}`;
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
-  protected readonly doublons = signal<ResponsableDto[]>([]);
+  protected readonly doublons = signal<ResponsableResumeDto[]>([]);
   /** Responsable existant choisi à la place d'une création. */
-  protected readonly existant = signal<ResponsableDto | null>(null);
+  protected readonly existant = signal<ResponsableResumeDto | null>(null);
   private minuterie: ReturnType<typeof setTimeout> | undefined;
   private recherche = 0;
 
@@ -280,7 +281,7 @@ export class ModaleResponsable implements OnInit {
     }
   }
 
-  protected dejaLie(r: ResponsableDto): boolean {
+  protected dejaLie(r: ResponsableResumeDto): boolean {
     return !!r.id && this.lies().includes(r.id);
   }
 
@@ -297,7 +298,7 @@ export class ModaleResponsable implements OnInit {
     }
     this.minuterie = setTimeout(async () => {
       try {
-        const trouves = await this.service.rechercher({ telephone });
+        const trouves = await this.service.parTelephone(telephone);
         if (numero === this.recherche) {
           this.doublons.set(trouves);
         }
@@ -310,7 +311,7 @@ export class ModaleResponsable implements OnInit {
     }, DELAI_MS);
   }
 
-  protected choisir(r: ResponsableDto): void {
+  protected choisir(r: ResponsableResumeDto): void {
     this.existant.set(r);
     this.doublons.set([]);
     // L'identité vient du responsable existant : plus rien à saisir ni à valider.

@@ -156,17 +156,19 @@ const CONFIRMATIONS: Record<
       </tbody>
     </table>
 
-    <ecole-confirmation
-      [titre]="texte().titre"
-      [consequence]="texte().consequence"
-      [action]="texte().action"
-      testId="confirmer"
-      [ouverte]="enAttente() !== null"
-      [occupe]="occupe()"
-      [erreur]="erreurConfirmation()"
-      (confirmee)="confirmer()"
-      (annulee)="enAttente.set(null)"
-    />
+    @if (enAttente()) {
+      <ecole-confirmation
+        [titre]="texte().titre"
+        [consequence]="texte().consequence"
+        [action]="texte().action"
+        testId="confirmer"
+        [ouverte]="true"
+        [occupe]="occupe()"
+        [erreur]="erreurConfirmation()"
+        (confirmee)="confirmer()"
+        (annulee)="enAttente.set(null)"
+      />
+    }
 
     @if (droits.peutEcrire()) {
       <h2>Nouvelle année</h2>

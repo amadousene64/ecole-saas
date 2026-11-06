@@ -9,18 +9,13 @@ import {
   responsableCreer,
   responsableEmettreCode,
   responsableModifier,
-  responsableRechercher,
+  responsableRechercherParTelephone,
 } from '@ecole/api-client';
 import { fournisseursDeTest, stabiliser } from '../test-utilitaires';
 import { OngletResponsables } from './onglet-responsables';
 
-/** Responsable déjà enregistré avec ce numéro (dans une autre famille). */
-const EXISTANT = {
-  id: 'r9',
-  prenoms: 'Awa',
-  nom: 'Existante-Fictive',
-  telephone: '+221770000099',
-};
+/** Responsable déjà enregistré avec ce numéro (dans une autre famille) : identité seule. */
+const EXISTANT = { id: 'r9', prenoms: 'Awa', nom: 'Existante-Fictive' };
 
 const LIEN: LienParentalDto = {
   id: 'l1',
@@ -59,7 +54,7 @@ async function creer(roles: string[], liens: LienParentalDto[] = [LIEN]) {
       [lienParentalSupprimer, undefined],
       [responsableCreer, { id: 'r2', nom: 'Nouveau-Fictif' }],
       [lienParentalAjouter, { id: 'l3' }],
-      [responsableRechercher, [EXISTANT]],
+      [responsableRechercherParTelephone, [EXISTANT]],
       [responsableModifier, { ...LIEN.responsable, version: 2 }],
       [lienParentalModifier, { ...LIEN, version: 4 }],
     ]),
@@ -163,7 +158,8 @@ describe('OngletResponsables', () => {
       eleveId: 'e1',
       lienId: 'l1',
     });
-    expect(confirmation.hasAttribute('open')).toBe(false);
+    // Fermée puis détruite : plus rien de la confirmation (ni le motif saisi) dans la page.
+    expect(confirmation.isConnected).toBe(false);
   });
 
   it('annuler le retrait n’appelle pas le serveur', async () => {
@@ -208,8 +204,9 @@ describe('OngletResponsables', () => {
     saisir(racine, 'resp-telephone', '+221 77 000 00 99');
     await new Promise((r) => setTimeout(r, 450));
     await stabiliser(fixture);
-    expect(appels(responsableRechercher)[0][1]).toMatchObject({
-      telephone: '+221 77 000 00 99',
+    // Le numéro part dans le corps de la requête.
+    expect(appels(responsableRechercherParTelephone)[0][1]).toEqual({
+      body: { telephone: '+221 77 000 00 99' },
     });
     expect(
       racine.querySelector('[data-testid="doublons-telephone"]')!.textContent,
@@ -251,7 +248,7 @@ describe('OngletResponsables', () => {
       'If-Match': '"3"',
     });
     // Aucun doublon cherché en modification.
-    expect(appels(responsableRechercher)).toHaveLength(0);
+    expect(appels(responsableRechercherParTelephone)).toHaveLength(0);
   });
 });
 

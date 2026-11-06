@@ -173,7 +173,8 @@ describe('OngletScolarite', () => {
         motif: 'Exclusion définitive (conseil de discipline fictif)',
       },
     });
-    expect(confirmation.hasAttribute('open')).toBe(false);
+    // Fermée puis détruite : plus rien de la confirmation (ni le motif saisi) dans la page.
+    expect(confirmation.isConnected).toBe(false);
   });
 
   describe('chargement des classes', () => {
