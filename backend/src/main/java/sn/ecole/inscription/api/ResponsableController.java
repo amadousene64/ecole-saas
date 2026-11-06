@@ -38,13 +38,23 @@ class ResponsableController {
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Recherche des responsables par nom (2 lettres au moins)")
+  ResponseEntity<List<ResponsableDto>> rechercher(
+      @RequestParam(name = "nom", required = false) String nom) {
+    return Reponses.ok(mapper.versDtos(service.rechercherParNom(nom)));
+  }
+
+  @PostMapping(
+      path = "/recherche",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(
       summary =
-          "Recherche des responsables par téléphone (doublons) ou par nom (2 lettres au moins)")
-  ResponseEntity<List<ResponsableDto>> rechercher(
-      @RequestParam(name = "telephone", required = false) String telephone,
-      @RequestParam(name = "nom", required = false) String nom) {
-    return Reponses.ok(mapper.versDtos(service.rechercher(telephone, nom)));
+          "Responsables qui ont déjà ce téléphone (doublons à la saisie) : identifiant, prénoms et"
+              + " nom. Le numéro est dans le corps, jamais dans l'URL.")
+  ResponseEntity<List<ResponsableResumeDto>> rechercherParTelephone(
+      @Valid @RequestBody RechercheResponsableRequete r) {
+    return Reponses.ok(mapper.versResumes(service.rechercherParTelephone(r.telephone())));
   }
 
   @PostMapping(

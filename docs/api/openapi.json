@@ -3255,13 +3255,6 @@
         "operationId" : "responsable_rechercher",
         "parameters" : [ {
           "in" : "query",
-          "name" : "telephone",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
           "name" : "nom",
           "required" : false,
           "schema" : {
@@ -3292,7 +3285,7 @@
             "description" : "OK"
           }
         },
-        "summary" : "Recherche des responsables par téléphone (doublons) ou par nom (2 lettres au moins)",
+        "summary" : "Recherche des responsables par nom (2 lettres au moins)",
         "tags" : [ "responsable-controller" ]
       },
       "post" : {
@@ -3330,6 +3323,48 @@
           }
         },
         "summary" : "Crée un responsable (propre à l'école)",
+        "tags" : [ "responsable-controller" ]
+      }
+    },
+    "/api/v1/responsables/recherche" : {
+      "post" : {
+        "operationId" : "responsable_rechercherParTelephone",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RechercheResponsableRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ResponsableResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Responsables qui ont déjà ce téléphone (doublons à la saisie) : identifiant, prénoms et nom. Le numéro est dans le corps, jamais dans l'URL.",
         "tags" : [ "responsable-controller" ]
       }
     },
@@ -5172,6 +5207,17 @@
           }
         }
       },
+      "RechercheResponsableRequete" : {
+        "type" : "object",
+        "properties" : {
+          "telephone" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "telephone" ]
+      },
       "ResponsableDto" : {
         "type" : "object",
         "properties" : {
@@ -5233,6 +5279,21 @@
           }
         },
         "required" : [ "nom", "prenoms", "telephone" ]
+      },
+      "ResponsableResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          }
+        }
       },
       "ResultatImportDto" : {
         "type" : "object",

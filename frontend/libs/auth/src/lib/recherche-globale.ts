@@ -1,7 +1,13 @@
-import { MatDialogRef } from '@angular/material/dialog';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { Icone } from '@ecole/ui';
+import { Icone, Modale } from '@ecole/ui';
 import { Acces } from './acces';
 import { ResultatRecherche, SOURCES_RECHERCHE } from './recherche-sources';
 
@@ -11,61 +17,66 @@ const MIN_CARACTERES = 2;
 /**
  * Recherche globale (Ctrl+K) : les pages du menu de l'utilisateur, puis les sources de
  * l'application. Les sources sont interrogées avec un délai, résultats périmés ignorés.
+ *
+ * Une modale à elle seule (ecole-modale, posée en haut de l'écran) : la coquille la charge à la
+ * première ouverture et la détruit à la fermeture (`fermer`).
  */
 @Component({
   selector: 'ecole-recherche-globale',
-  imports: [Icone],
+  imports: [Icone, Modale],
   template: `
-    <div
-      class="recherche"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Recherche globale"
+    <ecole-modale
+      titre="Recherche globale"
+      position="haut"
+      testId="recherche-globale"
+      [ouverte]="true"
+      (fermee)="fermer()()"
     >
-      <label class="champ" for="terme-global">
-        <ecole-icone nom="recherche" />
-        <span class="sr-only">Rechercher une page ou un élève</span>
-        <input
-          id="terme-global"
-          type="search"
-          autocomplete="off"
-          placeholder="Rechercher une page ou un élève…"
-          [value]="terme()"
-          (input)="saisir($any($event.target).value)"
-          (keydown.escape)="fermer()"
-          data-testid="terme-recherche-globale"
-        />
-      </label>
-      <div class="resultats" role="status" aria-live="polite">
-        @for (groupe of groupes(); track groupe.titre) {
-          <section [attr.aria-label]="groupe.titre">
-            <h2>{{ groupe.titre }}</h2>
-            <ul>
-              @for (r of groupe.resultats; track r.id) {
-                <li>
-                  <button
-                    type="button"
-                    (click)="aller(r)"
-                    [attr.data-testid]="'resultat-' + r.id"
-                  >
-                    <span>{{ r.libelle }}</span>
-                    @if (r.detail) {
-                      <span class="detail">{{ r.detail }}</span>
-                    }
-                  </button>
-                </li>
-              }
-            </ul>
-          </section>
-        }
-        @if (aucun()) {
-          <p class="vide">Aucun résultat pour « {{ terme() }} ».</p>
-        }
-        @if (chargement()) {
-          <p class="vide">Recherche en cours…</p>
-        }
+      <div class="recherche">
+        <label class="champ" for="terme-global">
+          <ecole-icone nom="recherche" />
+          <span class="sr-only">Rechercher une page ou un élève</span>
+          <input
+            id="terme-global"
+            type="search"
+            autocomplete="off"
+            placeholder="Rechercher une page ou un élève…"
+            [value]="terme()"
+            (input)="saisir($any($event.target).value)"
+            data-testid="terme-recherche-globale"
+          />
+        </label>
+        <div class="resultats" role="status" aria-live="polite">
+          @for (groupe of groupes(); track groupe.titre) {
+            <section [attr.aria-label]="groupe.titre">
+              <h2>{{ groupe.titre }}</h2>
+              <ul>
+                @for (r of groupe.resultats; track r.id) {
+                  <li>
+                    <button
+                      type="button"
+                      (click)="aller(r)"
+                      [attr.data-testid]="'resultat-' + r.id"
+                    >
+                      <span>{{ r.libelle }}</span>
+                      @if (r.detail) {
+                        <span class="detail">{{ r.detail }}</span>
+                      }
+                    </button>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+          @if (aucun()) {
+            <p class="vide">Aucun résultat pour « {{ terme() }} ».</p>
+          }
+          @if (chargement()) {
+            <p class="vide">Recherche en cours…</p>
+          }
+        </div>
       </div>
-    </div>
+    </ecole-modale>
   `,
   styleUrl: './recherche-globale.scss',
 })
@@ -74,7 +85,8 @@ export class RechercheGlobale {
   private readonly routeur = inject(Router);
   private readonly sources =
     inject(SOURCES_RECHERCHE, { optional: true }) ?? [];
-  private readonly ref = inject<MatDialogRef<RechercheGlobale>>(MatDialogRef);
+  /** Fermeture (Échap, « × », fond, résultat choisi) : la coquille détruit la recherche. */
+  readonly fermer = input<() => void>(() => undefined);
 
   protected readonly terme = signal('');
   protected readonly chargement = signal(false);
@@ -152,14 +164,10 @@ export class RechercheGlobale {
   }
 
   protected aller(r: ResultatRecherche): void {
-    this.fermer();
-    void this.routeur.navigateByUrl(r.chemin);
-  }
-
-  protected fermer(): void {
     clearTimeout(this.minuterie);
     this.numero++;
-    this.ref.close();
+    this.fermer()();
+    void this.routeur.navigateByUrl(r.chemin);
   }
 }
 

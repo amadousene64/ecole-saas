@@ -274,7 +274,14 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
   },
   'LienParentalService.enfantsDuParentConnecte': { page: 'enfants' },
   'ResponsableService.lire': { page: 'eleves', action: 'eleves.ecrire' },
-  'ResponsableService.rechercher': { page: 'eleves', action: 'eleves.ecrire' },
+  'ResponsableService.rechercherParNom': {
+    page: 'eleves',
+    action: 'eleves.ecrire',
+  },
+  'ResponsableService.rechercherParTelephone': {
+    page: 'eleves',
+    action: 'eleves.ecrire',
+  },
   'ResponsableService.creer': { page: 'eleves', action: 'eleves.ecrire' },
   'ResponsableService.modifier': { page: 'eleves', action: 'eleves.ecrire' },
   'ResponsableService.delierCompte': {

@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -98,19 +99,33 @@ class StockageS3 implements StockageFichiers {
             .toString());
   }
 
+  /**
+   * Crée le bucket au premier dépôt s'il manque (dev, tests). Une seule création à la fois par
+   * instance ; entre instances (ou si le bucket apparaît entre la vérification et la création), «
+   * déjà à vous » signifie que le bucket existe : ce n'est pas une erreur.
+   */
   private void assurerBucket() {
     if (bucketPret) {
       return;
     }
-    try {
-      client().headBucket(HeadBucketRequest.builder().bucket(proprietes.bucket()).build());
-    } catch (NoSuchBucketException e) {
-      if (!proprietes.creerBucket()) {
-        throw new IllegalStateException("Le bucket " + proprietes.bucket() + " n'existe pas.", e);
+    synchronized (this) {
+      if (bucketPret) {
+        return;
       }
-      client().createBucket(CreateBucketRequest.builder().bucket(proprietes.bucket()).build());
+      try {
+        client().headBucket(HeadBucketRequest.builder().bucket(proprietes.bucket()).build());
+      } catch (NoSuchBucketException e) {
+        if (!proprietes.creerBucket()) {
+          throw new IllegalStateException("Le bucket " + proprietes.bucket() + " n'existe pas.", e);
+        }
+        try {
+          client().createBucket(CreateBucketRequest.builder().bucket(proprietes.bucket()).build());
+        } catch (BucketAlreadyOwnedByYouException dejaCree) {
+          // Créé entre-temps par une autre instance : le bucket est prêt.
+        }
+      }
+      bucketPret = true;
     }
-    bucketPret = true;
   }
 
   private S3Client client() {

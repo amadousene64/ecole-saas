@@ -1,6 +1,5 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MatDialogRef } from '@angular/material/dialog';
 import { provideRouter, Router } from '@angular/router';
 import { Acces } from './acces';
 import { RechercheGlobale } from './recherche-globale';
@@ -30,7 +29,6 @@ function creer(roles: string[], sources: SourceRecherche[]) {
         provide: CONFIG_APPS,
         useValue: { courante: 'backoffice', urls: URLS_DEV },
       },
-      { provide: MatDialogRef, useValue: { close: fermer } },
       ...sources.map((s) => ({
         provide: SOURCES_RECHERCHE,
         multi: true,
@@ -39,8 +37,9 @@ function creer(roles: string[], sources: SourceRecherche[]) {
     ],
   });
   const fixture = TestBed.createComponent(RechercheGlobale);
+  fixture.componentRef.setInput('fermer', fermer);
   fixture.detectChanges();
-  const racine = fixture.nativeElement as HTMLElement;
+  const racine = document.body; /* les modales sont placées sous <body> */
   const saisir = (texte: string) => {
     const champ = racine.querySelector<HTMLInputElement>(
       '[data-testid="terme-recherche-globale"]',

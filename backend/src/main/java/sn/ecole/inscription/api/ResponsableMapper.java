@@ -14,6 +14,10 @@ interface ResponsableMapper {
 
   List<ResponsableDto> versDtos(List<Responsable> responsables);
 
+  ResponsableResumeDto versResume(Responsable r);
+
+  List<ResponsableResumeDto> versResumes(List<Responsable> responsables);
+
   @Mapping(target = ".", source = "lien")
   @Mapping(target = "id", source = "lien.id")
   @Mapping(target = "version", source = "lien.version")

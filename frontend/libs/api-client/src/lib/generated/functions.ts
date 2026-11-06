@@ -161,6 +161,8 @@ export type { ResponsableRechercher$Params as ResponsableRechercher$Params } fro
 export { responsableRechercher as responsableRechercher } from './fn/responsable-controller/responsable-rechercher';
 export type { ResponsableCreer$Params as ResponsableCreer$Params } from './fn/responsable-controller/responsable-creer';
 export { responsableCreer as responsableCreer } from './fn/responsable-controller/responsable-creer';
+export type { ResponsableRechercherParTelephone$Params as ResponsableRechercherParTelephone$Params } from './fn/responsable-controller/responsable-rechercher-par-telephone';
+export { responsableRechercherParTelephone as responsableRechercherParTelephone } from './fn/responsable-controller/responsable-rechercher-par-telephone';
 export type { ResponsableLire$Params as ResponsableLire$Params } from './fn/responsable-controller/responsable-lire';
 export { responsableLire as responsableLire } from './fn/responsable-controller/responsable-lire';
 export type { ResponsableModifier$Params as ResponsableModifier$Params } from './fn/responsable-controller/responsable-modifier';

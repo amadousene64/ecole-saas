@@ -215,9 +215,13 @@ test('recherche globale (Ctrl+K) : pages et élèves selon le rôle', async ({
   // Les élèves : le terme part dans le corps d'un POST, jamais dans une URL.
   const urls: string[] = [];
   page.on('request', (r) => urls.push(r.url()));
+  // La requête de CE terme : celle du terme précédent (« param », différée) peut partir après.
   const requete = page.waitForRequest(
     (r) =>
-      r.url().endsWith('/api/v1/eleves/recherche') && r.method() === 'POST',
+      r.url().endsWith('/api/v1/eleves/recherche') &&
+      r.method() === 'POST' &&
+      (r.postDataJSON() as { recherche?: string } | null)?.recherche ===
+        'Fictif Un',
   );
   await champ.fill('Fictif Un');
   expect((await requete).postDataJSON()).toMatchObject({

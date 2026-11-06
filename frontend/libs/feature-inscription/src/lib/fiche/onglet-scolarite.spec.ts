@@ -48,7 +48,11 @@ async function creer(roles: string[], historique: InscriptionDto[]) {
   await stabiliser(fixture);
   await stabiliser(fixture);
   const appels = (fn: unknown) => invoke.mock.calls.filter(([f]) => f === fn);
-  return { fixture, racine: fixture.nativeElement as HTMLElement, appels };
+  return {
+    fixture,
+    racine: document.body /* les modales sont placées sous <body> */,
+    appels,
+  };
 }
 
 const clic = (racine: HTMLElement, id: string) =>
@@ -123,6 +127,56 @@ describe('OngletScolarite', () => {
     expect(directeur).toContain('Radié');
   });
 
+  it('radiation : la modale du statut se ferme, puis une confirmation exige le motif', async () => {
+    const { fixture, racine, appels } = await creer(['DIRECTEUR'], [PRE]);
+    clic(racine, 'action-sortie');
+    await stabiliser(fixture);
+    const ecran = fixture.componentInstance as unknown as {
+      sortie: import('@angular/forms').FormGroup;
+    };
+    ecran.sortie.setValue({ statut: 'RADIE', date: '2026-11-05', motif: '' });
+    racine
+      .querySelector<HTMLFormElement>('[data-testid="form-sortie"]')!
+      .dispatchEvent(new Event('submit'));
+    await stabiliser(fixture);
+    await stabiliser(fixture);
+
+    // Jamais deux modales : celle du statut est détruite, la confirmation est ouverte.
+    const confirmation = racine.querySelector(
+      'dialog[data-testid="confirmer-radiation"]',
+    )!;
+    expect(
+      racine.querySelector('dialog[data-testid="modale-sortie"]'),
+    ).toBeNull();
+    expect(confirmation.hasAttribute('open')).toBe(true);
+    expect(confirmation.textContent).toContain('5 novembre 2026');
+    expect(appels(inscriptionSortir)).toHaveLength(0);
+
+    // Sans motif : refusé, rien n'est envoyé.
+    clic(racine, 'confirmer-action');
+    await stabiliser(fixture);
+    expect(confirmation.textContent).toContain('Indiquez le motif.');
+    expect(appels(inscriptionSortir)).toHaveLength(0);
+
+    const motif = racine.querySelector<HTMLTextAreaElement>(
+      '[data-testid="motif-confirmation"]',
+    )!;
+    motif.value = 'Exclusion définitive (conseil de discipline fictif)';
+    motif.dispatchEvent(new Event('input'));
+    clic(racine, 'confirmer-action');
+    await stabiliser(fixture);
+
+    expect(appels(inscriptionSortir)[0][1]).toMatchObject({
+      body: {
+        statut: 'RADIE',
+        date: '2026-11-05',
+        motif: 'Exclusion définitive (conseil de discipline fictif)',
+      },
+    });
+    // Fermée puis détruite : plus rien de la confirmation (ni le motif saisi) dans la page.
+    expect(confirmation.isConnected).toBe(false);
+  });
+
   describe('chargement des classes', () => {
     /** Écran monté avec une session et un « serveur » dont on garde la main. */
     async function monter(roles: string[], classes: () => unknown) {
@@ -146,7 +200,7 @@ describe('OngletScolarite', () => {
       fixture.componentRef.setInput('eleveId', 'e1');
       await stabiliser(fixture);
       await stabiliser(fixture);
-      const racine = fixture.nativeElement as HTMLElement;
+      const racine = document.body; /* les modales sont placées sous <body> */
       const nombre = () =>
         invoke.mock.calls.filter(([f]) => f === classeLister).length;
       return { fixture, racine, rolesSession, nombre };

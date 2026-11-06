@@ -1,4 +1,10 @@
-import { Pastille, TonStatut, EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
+import {
+  CHAMPS_FORMULAIRE,
+  Confirmation,
+  EnTetePage,
+  Pastille,
+  TonStatut,
+} from '@ecole/ui';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import {
@@ -19,12 +25,29 @@ import { SectionPeriodes } from './section-periodes';
 
 type Action = 'ouvrir' | 'cloturer' | 'supprimer';
 
-const TEXTES_CONFIRMATION: Record<Action, string> = {
-  ouvrir:
-    "Ouvrir l'année : les paramètres de notation des cycles et des niveaux sont alors copiés pour cette année et ne changeront plus. Une seule année peut être en cours.",
-  cloturer:
-    "Clôturer l'année : définitif. L'année et tout ce qui lui est rattaché passent en lecture seule.",
-  supprimer: "Supprimer l'année en préparation et ses périodes.",
+/** Confirmation de chaque action : titre, conséquence écrite, bouton nommé par l'action. */
+const CONFIRMATIONS: Record<
+  Action,
+  { titre: string; consequence: string; action: string }
+> = {
+  ouvrir: {
+    titre: "Ouvrir l'année",
+    consequence:
+      'Les paramètres de notation des cycles et des niveaux sont copiés pour cette année et ne changeront plus. Une seule année peut être en cours.',
+    action: "Ouvrir l'année",
+  },
+  cloturer: {
+    titre: "Clôturer l'année",
+    consequence:
+      "Définitif : l'année et tout ce qui lui est rattaché (inscriptions, périodes, calendrier) passent en lecture seule.",
+    action: "Clôturer l'année",
+  },
+  supprimer: {
+    titre: "Supprimer l'année",
+    consequence:
+      "L'année en préparation et ses périodes sont supprimées. Rien n'y est encore rattaché.",
+    action: "Supprimer l'année",
+  },
 };
 
 /** Années scolaires : création, ouverture, clôture, puis périodes et calendrier de l'année choisie. */
@@ -41,6 +64,7 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
     SectionPeriodes,
     SectionCalendrier,
     Pastille,
+    Confirmation,
   ],
   template: `
     <ecole-en-tete-page
@@ -132,29 +156,18 @@ const TEXTES_CONFIRMATION: Record<Action, string> = {
       </tbody>
     </table>
 
-    @if (enAttente(); as attente) {
-      <div
-        class="message erreur"
-        role="alertdialog"
-        aria-label="Confirmation"
-        data-testid="confirmer"
-      >
-        <p>
-          <strong>{{ attente.annee.libelle }}</strong> :
-          {{ texteConfirmation() }}
-        </p>
-        <button
-          matButton="filled"
-          type="button"
-          (click)="confirmer()"
-          data-testid="confirmer-oui"
-        >
-          Confirmer
-        </button>
-        <button matButton type="button" (click)="enAttente.set(null)">
-          Annuler
-        </button>
-      </div>
+    @if (enAttente()) {
+      <ecole-confirmation
+        [titre]="texte().titre"
+        [consequence]="texte().consequence"
+        [action]="texte().action"
+        testId="confirmer"
+        [ouverte]="true"
+        [occupe]="occupe()"
+        [erreur]="erreurConfirmation()"
+        (confirmee)="confirmer()"
+        (annulee)="enAttente.set(null)"
+      />
     }
 
     @if (droits.peutEcrire()) {
@@ -243,9 +256,15 @@ export class PageAnnees {
   protected readonly selection = computed(
     () => this.annees().find((a) => a.id === this.selectionId()) ?? null,
   );
-  protected readonly texteConfirmation = computed(() => {
+  protected readonly erreurConfirmation = signal<string | null>(null);
+  /** Textes de la confirmation, avec le libellé de l'année dans le titre. */
+  protected readonly texte = computed(() => {
     const attente = this.enAttente();
-    return attente ? TEXTES_CONFIRMATION[attente.action] : '';
+    if (!attente) {
+      return { titre: '', consequence: '', action: '' };
+    }
+    const t = CONFIRMATIONS[attente.action];
+    return { ...t, titre: `${t.titre} ${attente.annee.libelle ?? ''}`.trim() };
   });
 
   protected readonly formulaire = inject(NonNullableFormBuilder).group({
@@ -288,6 +307,7 @@ export class PageAnnees {
 
   protected demander(action: Action, annee: AnneeScolaireDto): void {
     this.confirmation.set(null);
+    this.erreurConfirmation.set(null);
     this.enAttente.set({ action, annee });
   }
 
@@ -296,8 +316,10 @@ export class PageAnnees {
     if (!attente) {
       return;
     }
-    this.enAttente.set(null);
-    await this.executer(async () => {
+    // Erreur : la confirmation reste ouverte et l'affiche.
+    this.erreurConfirmation.set(null);
+    this.occupe.set(true);
+    try {
       const { action, annee } = attente;
       if (action === 'ouvrir') {
         await this.service.ouvrir(annee);
@@ -310,8 +332,13 @@ export class PageAnnees {
         this.confirmation.set(`Année ${annee.libelle} supprimée.`);
         this.selectionId.set(null);
       }
+      this.enAttente.set(null);
       await this.charger(action === 'supprimer' ? undefined : annee.id);
-    });
+    } catch (e) {
+      this.erreurConfirmation.set(messageErreur(e));
+    } finally {
+      this.occupe.set(false);
+    }
   }
 
   protected async creer(): Promise<void> {
