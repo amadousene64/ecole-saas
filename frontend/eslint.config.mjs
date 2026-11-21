@@ -69,6 +69,24 @@ export default [
     files: ['**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
+      // Une seule famille de modales : ecole-modale / ecole-confirmation (@ecole/ui), sur <dialog>.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@angular/material/dialog',
+              message:
+                'Modales : ecole-modale et ecole-confirmation (@ecole/ui), jamais MatDialog.',
+            },
+            {
+              name: '@angular/cdk/dialog',
+              message:
+                'Modales : ecole-modale et ecole-confirmation (@ecole/ui), jamais le Dialog de la CDK.',
+            },
+          ],
+        },
+      ],
       'no-restricted-syntax': [
         'error',
         {

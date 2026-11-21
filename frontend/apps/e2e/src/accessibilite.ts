@@ -10,6 +10,35 @@ export async function verifierAccessibilite(
   page: Page,
   nomPage: string,
 ): Promise<void> {
+  // Rendu stabilisé : le titre de la page s'affiche avant le formulaire, et un champ Material ne
+  // relie son libellé (label for, aria-*) qu'au rendu suivant. Sans cette attente, axe analysait
+  // parfois un formulaire à moitié initialisé (« label », « aria-required-attr »). On attend
+  // que le DOM ne bouge plus pendant 300 ms (5 s au plus), puis deux images.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        let fini = false;
+        let calme: ReturnType<typeof setTimeout>;
+        const terminer = () => {
+          if (fini) return;
+          fini = true;
+          observateur.disconnect();
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        };
+        const observateur = new MutationObserver(() => {
+          clearTimeout(calme);
+          calme = setTimeout(terminer, 300);
+        });
+        observateur.observe(document.body, {
+          subtree: true,
+          childList: true,
+          attributes: true,
+          characterData: true,
+        });
+        calme = setTimeout(terminer, 300);
+        setTimeout(terminer, 5000);
+      }),
+  );
   // Polices chargées : le rendu analysé est le rendu final.
   await page.evaluate(() => document.fonts.ready);
   // Animations finies (ouverture d'un dialogue : fondu) : sinon axe mesure des couleurs à

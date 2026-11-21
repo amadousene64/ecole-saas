@@ -104,9 +104,14 @@ public class Inscription extends TenantAwareEntity {
       throw Saisies.invalide(
           "DATE_SORTIE_INVALIDE", "La date de sortie est obligatoire et suit la date d'entrée.");
     }
+    String motifPropre = Saisies.optionnel(motif, "Le motif", 200);
+    if (sortie == StatutInscription.RADIE && motifPropre == null) {
+      // Décision disciplinaire : le motif est conservé au dossier, il n'est jamais facultatif.
+      throw Saisies.invalide("MOTIF_REQUIS", "La radiation exige un motif.");
+    }
     this.statut = sortie;
     this.dateSortie = date;
-    this.motifSortie = Saisies.optionnel(motif, "Le motif", 200);
+    this.motifSortie = motifPropre;
   }
 
   public boolean active() {
