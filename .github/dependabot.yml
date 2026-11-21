@@ -1,4 +1,7 @@
 version: 2
+# Règle commune : par écosystème, UN seul groupe pour les mises à jour mineures et correctives
+# (une PR par semaine et par écosystème) ; une montée majeure n'entre dans aucun groupe et arrive
+# seule, dans sa propre PR, pour être analysée (exemple : POI 6, PR #55).
 updates:
   - package-ecosystem: maven
     directory: /backend
@@ -6,10 +9,9 @@ updates:
     open-pull-requests-limit: 5
     commit-message: { prefix: "chore(deps)" }
     groups:
-      spring:
-        patterns: ["org.springframework*"]
-      testcontainers:
-        patterns: ["org.testcontainers*"]
+      maven-mineures-correctifs:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       # Montées majeures de Spring Boot : décision manuelle.
       - dependency-name: "org.springframework.boot:*"
@@ -21,29 +23,25 @@ updates:
     open-pull-requests-limit: 5
     commit-message: { prefix: "chore(deps)" }
     groups:
-      angular:
-        patterns: ["@angular/*", "@angular-devkit/*", "angular-eslint", "@angular-eslint/*"]
-      nx:
-        patterns: ["nx", "@nx/*"]
-      playwright:
-        patterns: ["@playwright/*", "playwright*"]
-      # eslint, ses configurations et typescript-eslint se montent ensemble (dépendances pairs : une
-      # majeure d'eslint exige @eslint/js de même majeure). Les plugins angular-eslint restent dans
-      # le groupe angular, @nx/eslint* dans nx.
-      eslint:
-        patterns: ["eslint", "@eslint/*", "typescript-eslint", "@typescript-eslint/*"]
-      # vitest et @vitest/* sont publiés ensemble et exigent la même version (dépendances pairs) :
-      # les monter séparément casse npm ci.
-      vitest:
-        patterns: ["vitest", "@vitest/*"]
+      # Un seul groupe : les familles qui exigent des versions alignées (Angular, Nx, eslint et
+      # typescript-eslint, vitest et @vitest/*) montent ainsi ensemble, sans npm ci cassé.
+      npm-mineures-correctifs:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # Les types suivent le Node d'exécution (24, voir les workflows) : pas de majeure de
+      # @types/node tant que Node reste en 24 (PR #61 fermée).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly, day: monday, timezone: Africa/Dakar }
     commit-message: { prefix: "chore(ci)" }
     groups:
-      actions:
+      actions-mineures-correctifs:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
 
   # Pas de Dockerfile : seules les images de infra/docker-compose.yml sont suivies. Si un
   # Dockerfile apparaît, ajouter aussi l'écosystème « docker ».
@@ -51,6 +49,10 @@ updates:
     directory: /infra
     schedule: { interval: weekly, day: monday, timezone: Africa/Dakar }
     commit-message: { prefix: "chore(deps)" }
+    groups:
+      images-mineures-correctifs:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       # Le projet est calé sur PostgreSQL 17 (CLAUDE.md).
       - dependency-name: "postgres"
