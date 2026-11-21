@@ -1,0 +1,16 @@
+.profil {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--ecole-espace-2) var(--ecole-espace-5);
+}
+dt {
+  color: var(--ecole-texte-secondaire);
+  font-weight: 600;
+}
+dd {
+  margin: 0;
+}
+ul {
+  margin: 0;
+  padding-left: var(--ecole-espace-5);
+}

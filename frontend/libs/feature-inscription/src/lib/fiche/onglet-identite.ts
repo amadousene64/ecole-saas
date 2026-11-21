@@ -15,7 +15,6 @@ import {
 } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceDossier } from '../services/service-dossier';
 import { ServiceEleves } from '../services/service-eleves';
 import { ChampMasque } from './champ-masque';
@@ -56,7 +55,7 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
     <form
       [formGroup]="formulaire"
       (ngSubmit)="enregistrer()"
-      class="grille"
+      class="formulaire"
       data-testid="form-identite"
     >
       <mat-form-field appearance="outline">
@@ -74,7 +73,7 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
           <mat-option value="M">Masculin</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="champ-court">
         <mat-label>Date de naissance</mat-label>
         <input
           matInput
@@ -157,7 +156,7 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
           <form
             [formGroup]="saisie"
             (ngSubmit)="saisir()"
-            class="grille"
+            class="formulaire"
             data-testid="form-sensibles"
           >
             @for (c of champs; track c.cle) {
@@ -187,7 +186,7 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
       </section>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class OngletIdentite {
   readonly eleve = input.required<EleveDto>();

@@ -89,6 +89,7 @@
       "options": {
         "command": "node tools/serveur-statique.mjs --dossier dist/apps/vie-scolaire/browser --port 4202"
       }
-    }
+    },
+    "stylelint": {}
   }
 }

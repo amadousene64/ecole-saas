@@ -11,20 +11,40 @@ Prérequis : JDK 25, Docker, `curl` et `jq` (pour le script de vérification).
 # 1. Infra : PostgreSQL 17, Keycloak, RabbitMQ, Redis, MinIO, ClamAV
 docker compose -f infra/docker-compose.yml up -d --wait
 
-# 2. Backend (profil dev : données fictives, école choisie par l'en-tête X-Tenant-Id).
-#    Clés de chiffrement et HMAC : obligatoires, générées pour la session (jamais versionnées).
-eval "$(infra/scripts/generer-cles-dev.sh)"
-cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # PowerShell : .\mvnw.cmd ...
+# 2. Backend (profil dev : données fictives, école choisie par l'en-tête X-Tenant-Id),
+#    avec les clés de dev du poste (voir « Clés de dev » ci-dessous).
+sh infra/scripts/backend-dev.sh
 
 # 3. Vérification de bout en bout (Git Bash)
 ./infra/scripts/verifier-connexion.sh
 ```
 
+### Clés de dev
+
+Le backend exige une clé de chiffrement des données sensibles et une clé HMAC des codes
+(`ECOLE_CLE_CHIFFREMENT`, `ECOLE_CLE_HMAC_CODES`). En local, elles sont propres au poste et
+**stables** : `infra/scripts/backend-dev.sh` les crée au premier lancement dans
+`%USERPROFILE%\.ecole-saas\cles-dev.env` (`~/.ecole-saas/cles-dev.env` sous Linux et macOS), hors
+du dépôt, puis source ce fichier à chaque démarrage. Ne jamais afficher, copier ni versionner ce
+fichier. Sans Git Bash (PowerShell) : définir `$env:ECOLE_CLE_CHIFFREMENT` et
+`$env:ECOLE_CLE_HMAC_CODES` à partir de ce fichier, puis
+`.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev` dans `backend`.
+
+Perdre ou régénérer ce fichier rend illisibles les données sensibles déjà chiffrées et invalide
+les codes d'activation émis : réinitialiser alors les données de dev (ci-dessous). La CI, elle,
+génère des clés éphémères à chaque exécution.
+
+### Réinitialiser les données de dev
+
+`docker compose -f infra/docker-compose.yml down -v` efface les volumes (base de l'école, Keycloak,
+MinIO) ; au redémarrage (`up -d --wait`, puis le backend), l'import du realm et l'amorçage du
+profil dev recréent écoles, comptes fictifs, élèves et responsables de démo.
+
 | Service | URL locale | Identifiants (dev) |
 | --- | --- | --- |
 | API | http://localhost:8080 (Swagger : `/swagger-ui.html`) | jeton Keycloak |
 | Keycloak | http://localhost:8180 (realm `ecole`) | admin / admin-dev |
+| Mailpit (courrier de dev) | http://localhost:8025 | — (Keycloak y envoie vérification d'adresse et mot de passe oublié) |
 | RabbitMQ | http://localhost:15672 | ecole / rabbit-dev |
 | MinIO | http://localhost:9001 | ecole / minio-dev-123 |
 | ClamAV (clamd) | localhost:3310 | — |
@@ -57,6 +77,10 @@ Les clients du realm de dev (`backoffice`, `parent`, `vie-scolaire`, `dev-cli`) 
 désactivé : un jeton ne porte que ce que le client demande (audience `ecole-api`, identité), jamais
 tous les rôles de l'utilisateur ; l'API lit les rôles dans sa table d'appartenances. Sur un Keycloak
 déjà démarré : `bash infra/scripts/durcir-clients-dev.sh` (idempotent).
+
+Les pages de connexion utilisent le thème Keycloak « ecole » (marque de l'école, deux colonnes, bandeau sur
+téléphone ; voir `docs/theme-keycloak.md`). Sur un Keycloak déjà démarré :
+`bash infra/scripts/configurer-realm-dev.sh` (thème du realm et des clients, serveur d'e-mails Mailpit).
 
 ## Commandes backend
 

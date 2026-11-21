@@ -107,23 +107,7 @@ export function presenterCode(brut: string): string {
       </button>
     </form>
   `,
-  styles: `
-    .champ {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 16px;
-    }
-    input {
-      font: inherit;
-      padding: 10px 12px;
-      border: 1px solid var(--ecole-bordure-champ);
-      border-radius: 8px;
-      background: var(--ecole-surface);
-      color: inherit;
-      letter-spacing: 0.08em;
-    }
-  `,
+  styleUrl: './activation.scss',
 })
 export class PageActivation {
   private readonly api = inject(Api);

@@ -215,9 +215,13 @@ test('recherche globale (Ctrl+K) : pages et élèves selon le rôle', async ({
   // Les élèves : le terme part dans le corps d'un POST, jamais dans une URL.
   const urls: string[] = [];
   page.on('request', (r) => urls.push(r.url()));
+  // La requête de CE terme : celle du terme précédent (« param », différée) peut partir après.
   const requete = page.waitForRequest(
     (r) =>
-      r.url().endsWith('/api/v1/eleves/recherche') && r.method() === 'POST',
+      r.url().endsWith('/api/v1/eleves/recherche') &&
+      r.method() === 'POST' &&
+      (r.postDataJSON() as { recherche?: string } | null)?.recherche ===
+        'Fictif Un',
   );
   await champ.fill('Fictif Un');
   expect((await requete).postDataJSON()).toMatchObject({
@@ -230,4 +234,31 @@ test('recherche globale (Ctrl+K) : pages et élèves selon le rôle', async ({
 
   await page.getByText('Fictif Un Élève Démo').first().click();
   await expect(page).toHaveURL(/\/eleves\/[0-9a-f-]{36}$/);
+});
+
+test('menu du compte : ouvert au clavier, focus sur le premier élément, Échap le referme', async ({
+  page,
+}) => {
+  await seConnecter(page, 'directeur.a');
+  // Le menu se referme à chaque navigation : on attend la fin des redirections de connexion.
+  await expect(page.getByTestId('moi-roles')).toBeVisible();
+  const compte = page.getByTestId('menu-compte');
+  await expect(compte).toBeVisible();
+  await compte.focus();
+  await page.keyboard.press('Enter');
+
+  await expect(compte).toHaveAttribute('aria-expanded', 'true');
+  const sortie = page.getByRole('menuitem', { name: 'Se déconnecter' });
+  await expect(sortie).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(compte).toBeFocused();
+  await expect(compte).toHaveAttribute('aria-expanded', 'false');
+
+  // Un clic ailleurs referme aussi le menu.
+  await compte.click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.getByRole('heading', { level: 1 }).click();
+  await expect(page.getByRole('menu')).toHaveCount(0);
 });

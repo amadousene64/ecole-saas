@@ -89,6 +89,7 @@
       "options": {
         "command": "node tools/serveur-statique.mjs --dossier dist/apps/backoffice/browser --port 4200"
       }
-    }
+    },
+    "stylelint": {}
   }
 }

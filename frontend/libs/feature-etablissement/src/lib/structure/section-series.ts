@@ -11,7 +11,6 @@ import { MatInputModule } from '@angular/material/input';
 import { SerieDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceStructure } from '../services/service-structure';
 
 /** Séries du lycée (L1, S2…), modifiables par l'école. Les niveaux qui les proposent : voir Niveaux. */
@@ -71,7 +70,7 @@ import { ServiceStructure } from '../services/service-structure';
       <form
         [formGroup]="formulaire"
         (ngSubmit)="enregistrer()"
-        class="grille"
+        class="formulaire"
         data-testid="form-serie"
       >
         <mat-form-field appearance="outline">
@@ -109,7 +108,7 @@ import { ServiceStructure } from '../services/service-structure';
       </form>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class SectionSeries {
   private readonly service = inject(ServiceStructure);

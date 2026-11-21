@@ -19,7 +19,6 @@ import {
   LIBELLES_PIECE,
   libellePiece,
 } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceDossier, TypePiece } from '../services/service-dossier';
 
 /** Taille maximale d'une pièce (octets), comme côté serveur. */
@@ -131,7 +130,7 @@ export function controlerFichier(fichier: File): string | null {
 
     @if (droits.peutEcrire()) {
       <h2>Déposer une pièce</h2>
-      <div class="grille" data-testid="depot-piece">
+      <div class="formulaire" data-testid="depot-piece">
         <mat-form-field appearance="outline">
           <mat-label>Type de pièce</mat-label>
           <mat-select
@@ -169,15 +168,9 @@ export function controlerFichier(fichier: File): string | null {
       </div>
     }
   `,
-  styles: [
-    STYLES_COMMUNS,
-    `
-      .champ-fichier {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-    `,
+  styleUrls: [
+    '../../../../ui/src/lib/styles/ecran.scss',
+    './onglet-pieces.scss',
   ],
 })
 export class OngletPieces {

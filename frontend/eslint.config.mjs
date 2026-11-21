@@ -63,4 +63,39 @@ export default [
     // Override or add rules here
     rules: {},
   },
+  {
+    // Styles des composants dans un .scss (styleUrl) : stylelint ne lit pas les .ts, et l'échelle
+    // d'espacement (ecole/espacements-echelle) doit s'appliquer partout.
+    files: ['**/*.ts'],
+    ignores: ['**/*.spec.ts'],
+    rules: {
+      // Une seule famille de modales : ecole-modale / ecole-confirmation (@ecole/ui), sur <dialog>.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@angular/material/dialog',
+              message:
+                'Modales : ecole-modale et ecole-confirmation (@ecole/ui), jamais MatDialog.',
+            },
+            {
+              name: '@angular/cdk/dialog',
+              message:
+                'Modales : ecole-modale et ecole-confirmation (@ecole/ui), jamais le Dialog de la CDK.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "Decorator[expression.callee.name='Component'] Property[key.name='styles']",
+          message:
+            'Styles du composant dans un fichier .scss (styleUrl), contrôlé par stylelint.',
+        },
+      ],
+    },
+  },
 ];

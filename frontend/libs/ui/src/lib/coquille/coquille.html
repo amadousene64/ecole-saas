@@ -31,38 +31,61 @@
     <kbd class="raccourci" aria-hidden="true">{{ ' Ctrl K' }}</kbd>
   </button>
   } @if (utilisateur(); as nom) {
-  <button
-    type="button"
-    class="compte"
-    [attr.aria-label]="nom + (role() ? ' ' + role() : '') + ' (menu du compte)'"
-    [matMenuTriggerFor]="menuCompte"
-    data-testid="menu-compte"
-  >
-    <ecole-icone nom="compte" />
-    <span class="identite">
-      <span class="nom">{{ nom }}</span>
-      @if (role(); as libelleRole) {
-      <span class="role">{{ ' ' + libelleRole }}</span>
+  <div class="compte-conteneur" #conteneurCompte>
+    <button
+      type="button"
+      class="compte"
+      #boutonCompte
+      [attr.aria-label]="nom + (role() ? ' ' + role() : '') + ' (menu du compte)'"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuCompteOuvert()"
+      aria-controls="menu-compte"
+      (click)="basculerMenuCompte()"
+      data-testid="menu-compte"
+    >
+      <ecole-icone nom="compte" />
+      <span class="identite">
+        <span class="nom">{{ nom }}</span>
+        @if (role(); as libelleRole) {
+        <span class="role">{{ ' ' + libelleRole }}</span>
+        }
+      </span>
+      <ecole-icone nom="bas" [taille]="18" />
+    </button>
+    @if (menuCompteOuvert()) {
+    <div
+      id="menu-compte"
+      class="menu-compte"
+      role="menu"
+      [attr.aria-label]="textes.menuCompte"
+    >
+      <div class="entete-menu-compte" role="presentation">
+        <strong>{{ nom }}</strong>
+        @if (role(); as libelleRole) {
+        <span>{{ libelleRole }}</span>
+        }
+      </div>
+      @if (plusieursEcoles()) {
+      <button
+        type="button"
+        role="menuitem"
+        class="element-menu"
+        (click)="choisirDansMenu('ecole')"
+      >
+        {{ textes.changerEcole }}
+      </button>
       }
-    </span>
-    <ecole-icone nom="bas" [taille]="18" />
-  </button>
-  <mat-menu #menuCompte="matMenu">
-    <div class="entete-menu-compte">
-      <strong>{{ nom }}</strong>
-      @if (role(); as libelleRole) {
-      <span>{{ libelleRole }}</span>
-      }
+      <button
+        type="button"
+        role="menuitem"
+        class="element-menu"
+        (click)="choisirDansMenu('deconnexion')"
+      >
+        {{ textes.deconnexion }}
+      </button>
     </div>
-    @if (plusieursEcoles()) {
-    <button mat-menu-item type="button" (click)="changerEcole.emit()">
-      {{ textes.changerEcole }}
-    </button>
     }
-    <button mat-menu-item type="button" (click)="deconnexion.emit()">
-      {{ textes.deconnexion }}
-    </button>
-  </mat-menu>
+  </div>
   }
 </header>
 

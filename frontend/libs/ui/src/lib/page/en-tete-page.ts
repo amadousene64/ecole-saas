@@ -20,28 +20,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       </div>
     </header>
   `,
-  styles: `
-    .en-tete {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px 16px;
-      margin-bottom: 16px;
-    }
-    h1 {
-      margin: 0;
-    }
-    .sous-titre {
-      margin: 4px 0 0;
-    }
-    .actions-page {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-    }
-  `,
+  styleUrl: './en-tete-page.scss',
 })
 export class EnTetePage {
   readonly titre = input.required<string>();

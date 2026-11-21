@@ -1,0 +1,115 @@
+// Styles partagés par les écrans : mise en page, formulaires en grille, tableaux. Titres, messages
+// (.message.erreur/.ok…), pastilles et textes d'aide viennent du thème global (libs/ui/theme).
+// Partagé par les écrans des libs feature (styleUrls), compilé dans chaque composant.
+
+:host {
+  display: block;
+  max-width: 1100px;
+}
+h1 {
+  margin-top: 0;
+}
+// --- Formulaires : 720 px au plus, une colonne, deux à partir de 900 px de large ---
+// Les champs (mat-form-field, .champ) occupent une colonne ; tout autre enfant (actions, messages,
+// titres, groupes) prend toute la largeur. Largeur adaptée au contenu : .champ-court (date, code,
+// nombre), .champ-moyen, .champ-plein (adresse, observations : les deux colonnes).
+.formulaire {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ecole-espace-champs);
+  max-width: 720px;
+}
+@media (min-width: 900px) {
+  .formulaire {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.formulaire > :not(mat-form-field, .champ, .champ-court, .champ-moyen),
+.formulaire > .champ-plein {
+  grid-column: 1 / -1;
+}
+.formulaire > .actions {
+  margin: 0;
+}
+.formulaire > button,
+.formulaire > a {
+  justify-self: start;
+}
+.champ-court {
+  max-width: 16rem;
+}
+.champ-moyen {
+  max-width: 24rem;
+}
+// Groupe de champs (fieldset) : mêmes colonnes que le formulaire, 32 px (24 sur téléphone)
+// entre deux groupes.
+.groupe-champs {
+  display: grid;
+  grid-template-columns: subgrid;
+  gap: var(--ecole-espace-champs);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.groupe-champs + .groupe-champs {
+  margin-top: calc(var(--ecole-espace-groupes) - var(--ecole-espace-champs));
+}
+.groupe-champs > legend {
+  grid-column: 1 / -1;
+  padding: 0;
+  margin-bottom: var(--ecole-espace-libelle);
+}
+// --- Grilles qui ne sont pas des formulaires (filtres, cartes) ---
+.grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--ecole-espace-champs);
+}
+.grille-cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--ecole-espace-sections);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ecole-espace-boutons);
+  margin: var(--ecole-espace-2) 0 var(--ecole-espace-sections);
+  align-items: center;
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: var(--ecole-espace-sections);
+  background: var(--ecole-surface);
+  border: 1px solid var(--ecole-bordure);
+  border-radius: var(--ecole-rayon-carte);
+  overflow: hidden;
+}
+th {
+  color: var(--ecole-texte-secondaire);
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+  font-weight: var(--ecole-libelle-graisse);
+  background: var(--ecole-fond);
+}
+th,
+td {
+  text-align: left;
+  padding: var(--ecole-espace-2) var(--ecole-espace-3);
+  border-bottom: 1px solid var(--ecole-bordure);
+  vertical-align: middle;
+}
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+tr[aria-selected='true'] td {
+  background: var(--ecole-primaire-doux);
+}
+.aide {
+  color: var(--ecole-texte-secondaire);
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+}

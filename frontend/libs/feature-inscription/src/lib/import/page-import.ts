@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { RapportImportDto, ResultatImportDto } from '@ecole/api-client';
 import { Pastille, TonStatut, EnTetePage } from '@ecole/ui';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceImport } from '../services/service-import';
 
 /** Taille maximale d'un fichier d'import (octets), comme côté serveur. */
@@ -144,17 +143,7 @@ const LIBELLES: Record<string, string> = {
       </div>
     }
   `,
-  styles: [
-    STYLES_COMMUNS,
-    `
-      .champ-fichier {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        max-width: 480px;
-      }
-    `,
-  ],
+  styleUrls: ['../../../../ui/src/lib/styles/ecran.scss', './page-import.scss'],
 })
 export class PageImport {
   private readonly service = inject(ServiceImport);

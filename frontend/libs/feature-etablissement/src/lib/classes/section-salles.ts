@@ -11,7 +11,6 @@ import { MatInputModule } from '@angular/material/input';
 import { SalleDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceClasses } from '../services/service-classes';
 
 /** Salles de l'école (nom unique, capacité). */
@@ -75,14 +74,14 @@ import { ServiceClasses } from '../services/service-classes';
       <form
         [formGroup]="formulaire"
         (ngSubmit)="enregistrer()"
-        class="grille"
+        class="formulaire"
         data-testid="form-salle"
       >
         <mat-form-field appearance="outline">
           <mat-label>Nom</mat-label>
           <input matInput formControlName="nom" data-testid="champ-salle-nom" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Capacité</mat-label>
           <input
             matInput
@@ -112,7 +111,7 @@ import { ServiceClasses } from '../services/service-classes';
       </form>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class SectionSalles {
   private readonly service = inject(ServiceClasses);

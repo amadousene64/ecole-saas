@@ -14,3 +14,7 @@ export * from './lib/page/en-tete-page';
 export * from './lib/page/action-principale';
 export * from './lib/page/etat-vide';
 export * from './lib/page/squelette';
+export * from './lib/formulaires/champs-formulaire';
+export * from './lib/modales/modales';
+export * from './lib/modales/modale';
+export * from './lib/modales/confirmation';

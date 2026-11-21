@@ -20,14 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
       }
     </section>
   `,
-  styles: `
-    .etat {
-      max-width: 520px;
-      margin: 48px auto;
-      padding: 0 16px;
-      text-align: center;
-    }
-  `,
+  styleUrl: './etat-page.scss',
 })
 export class EtatPage {
   readonly titre = input.required<string>();

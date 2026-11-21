@@ -10,6 +10,7 @@ import {
   creerUtilisateurSansEcole,
   ECOLE_A_ID,
   exigerInfra,
+  garantirClasseE2E,
   seConnecter,
   URL_API,
   lienMenu,
@@ -92,7 +93,10 @@ async function ouvrirFiche(page: Page): Promise<void> {
 
 test("le secrétariat inscrit un élève et génère un code d'activation", async ({
   page,
+  request: apiRequest,
 }) => {
+  // La classe d'accueil est créée au besoin : le test ne dépend d'aucune classe du jeu de données.
+  const classe = await garantirClasseE2E(apiRequest);
   surveillerUrls(page);
   await seConnecter(page, 'secretariat.a');
   await lienMenu(page, 'Élèves', false).click();
@@ -115,7 +119,7 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await page.getByRole('tab', { name: 'Scolarité' }).click();
   await page.getByTestId('action-inscrire').click();
   await page.getByTestId('champ-classe').click();
-  await page.getByRole('option').first().click();
+  await page.getByRole('option', { name: classe, exact: true }).click();
   await page.getByTestId('confirmer-inscription').click();
   await expect(page.getByText('Élève inscrit.')).toBeVisible();
   await expect(page.getByTestId('table-inscriptions')).toContainText('Inscrit');
@@ -136,9 +140,29 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
 
   // Responsable, puis code d'activation affiché une seule fois.
   await page.getByRole('tab', { name: 'Responsables' }).click();
+  await page.getByTestId('ouvrir-ajout-responsable').click();
+  await expect(
+    page.getByRole('dialog', { name: 'Ajouter un responsable' }),
+  ).toBeVisible();
+  await verifierAccessibilite(page, 'Modale « Ajouter un responsable »');
   await page.getByTestId('resp-prenoms').fill('Mame');
   await page.getByTestId('resp-nom').fill(NOM_RESPONSABLE);
+  // Doublons : le numéro part dans le corps d'un POST, jamais dans une URL (journaux d'accès).
+  const urls: string[] = [];
+  page.on('request', (r) => urls.push(decodeURIComponent(r.url())));
+  const recherche = page.waitForRequest(
+    (r) =>
+      r.url().endsWith('/api/v1/responsables/recherche') &&
+      r.method() === 'POST',
+  );
   await page.getByTestId('resp-telephone').fill('+221700000099');
+  expect((await recherche).postDataJSON()).toEqual({
+    telephone: '+221700000099',
+  });
+  expect(
+    urls.filter((u) => u.includes('700000099')),
+    'téléphone dans une URL',
+  ).toEqual([]);
   await page.getByTestId('ajouter-responsable').click();
   await expect(page.getByTestId(`lien-${NOM_RESPONSABLE}`)).toBeVisible();
   await verifierAccessibilite(page, 'Fiche élève, onglet Responsables');

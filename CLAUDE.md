@@ -21,7 +21,7 @@ espace parent. Le dossier de conception complet est dans `docs/conception/`.
 ./mvnw spotless:apply              # formatage Java
 # Frontend (dossier frontend/)
 npx nx test <projet>               # tests unitaires
-npx nx lint <projet>
+npx nx lint <projet>               # lance d'abord stylelint (échelle d'espacement)
 npx nx e2e <projet>-e2e            # Playwright
 # Infra locale
 docker compose -f infra/docker-compose.yml up -d   # postgres, keycloak, rabbitmq, redis, minio
@@ -81,5 +81,6 @@ est fournie, le contrat OpenAPI est à jour, et l'agent `revue-securite` n'a rie
 ## Où trouver quoi
 
 - Règles des bulletins et cas de test réels : `docs/bulletins/`
+- Espacements (jetons `--ecole-espace-*`), formulaires, règle stylelint : `docs/interface.md`
 - Créer un module : skill `/nouveau-module` · une migration : skill `/nouvelle-migration`
 - Revues : agents `revue-architecture`, `revue-securite`, `expert-bulletins`

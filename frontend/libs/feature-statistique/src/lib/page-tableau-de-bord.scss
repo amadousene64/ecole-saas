@@ -1,0 +1,123 @@
+:host {
+  display: block;
+}
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ecole-espace-3) var(--ecole-espace-4);
+  margin-bottom: var(--ecole-espace-sections);
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--ecole-espace-sections);
+  margin-bottom: var(--ecole-espace-sections);
+}
+.kpi {
+  padding: var(--ecole-espace-carte);
+}
+.kpi h2,
+.graphique h2 {
+  margin: 0;
+  font-size: var(--ecole-libelle-taille, 13px);
+  line-height: var(--ecole-libelle-interligne, 18px);
+  font-weight: 600;
+  color: var(--ecole-texte-secondaire);
+}
+.graphique h2 {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ecole-texte);
+}
+.valeur {
+  margin: var(--ecole-espace-1) 0 var(--ecole-espace-2);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+}
+.detail {
+  margin: var(--ecole-espace-2) 0 0;
+}
+progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--ecole-primaire);
+}
+.cycles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ecole-espace-1) var(--ecole-espace-4);
+}
+.point-cycle {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: var(--ecole-espace-1);
+}
+.graphiques {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: var(--ecole-espace-sections);
+}
+.graphique {
+  padding: var(--ecole-espace-carte);
+  min-width: 0;
+}
+.graphique.large {
+  grid-column: 1 / -1;
+}
+.graphique header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ecole-espace-1) var(--ecole-espace-3);
+  margin-bottom: var(--ecole-espace-2);
+}
+.voir-donnees {
+  min-height: 44px;
+  padding: 0 var(--ecole-espace-2);
+  border: 0;
+  background: none;
+  color: var(--ecole-primaire);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.zone {
+  height: 280px;
+  width: 100%;
+}
+.defilement {
+  overflow-x: auto;
+  margin-top: var(--ecole-espace-3);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: var(--ecole-espace-2);
+  text-align: left;
+  border-bottom: 1px solid var(--ecole-bordure);
+}
+thead th {
+  color: var(--ecole-texte-secondaire);
+  font-weight: 600;
+}
+tbody th {
+  font-weight: 400;
+}
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.erreur {
+  padding: var(--ecole-espace-4);
+}

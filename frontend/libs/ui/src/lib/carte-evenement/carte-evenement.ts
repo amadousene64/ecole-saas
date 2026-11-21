@@ -45,55 +45,7 @@ import { TonStatut } from '../pastille/pastille';
       }
     </article>
   `,
-  styles: `
-    .evenement {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 4px 14px;
-      align-items: start;
-    }
-    .pictogramme {
-      grid-row: span 2;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      border-radius: var(--ecole-rayon-controle);
-      background: var(--ecole-fond);
-      color: var(--ecole-texte-secondaire);
-    }
-    .pictogramme.primaire {
-      background: var(--ecole-primaire-doux);
-      color: var(--ecole-primaire);
-    }
-    .pictogramme.safran {
-      background: var(--ecole-safran-fond);
-      color: var(--ecole-safran);
-    }
-    .pictogramme.bissap {
-      background: var(--ecole-bissap-fond);
-      color: var(--ecole-bissap);
-    }
-    .pictogramme.fleuve {
-      background: var(--ecole-fleuve-fond);
-      color: var(--ecole-fleuve);
-    }
-    .titre {
-      margin: 0;
-      font-size: inherit;
-      font-weight: 600;
-    }
-    .detail,
-    .moment {
-      margin: 2px 0 0;
-    }
-    .bouton {
-      grid-column: 2;
-      justify-self: start;
-      margin-top: 8px;
-    }
-  `,
+  styleUrl: './carte-evenement.scss',
 })
 export class CarteEvenement {
   readonly icone = input.required<NomIcone>();

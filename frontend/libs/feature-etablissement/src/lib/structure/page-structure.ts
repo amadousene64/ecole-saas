@@ -1,8 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
-import { EnTetePage } from '@ecole/ui';
+import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
 import { Droits } from '../commun/droits';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { SectionCycles } from './section-cycles';
 import { SectionNiveaux } from './section-niveaux';
 import { SectionSeries } from './section-series';
@@ -14,6 +13,7 @@ import { SectionSeries } from './section-series';
  */
 @Component({
   selector: 'ecole-page-structure',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [
     EnTetePage,
     MatTabsModule,
@@ -25,7 +25,9 @@ import { SectionSeries } from './section-series';
     <ecole-en-tete-page
       titre="Structure pédagogique"
       [sousTitre]="
-        droits.estDirecteur() ? 'Cycles, niveaux et séries' : 'Niveaux et séries'
+        droits.estDirecteur()
+          ? 'Cycles, niveaux et séries'
+          : 'Niveaux et séries'
       "
     />
     <mat-tab-group animationDuration="0ms">
@@ -42,7 +44,7 @@ import { SectionSeries } from './section-series';
       </mat-tab>
     </mat-tab-group>
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageStructure {
   protected readonly droits = inject(Droits);

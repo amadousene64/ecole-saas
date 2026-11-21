@@ -18,7 +18,6 @@ import {
 } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceAnnees } from '../services/service-annees';
 import { ServiceClasses } from '../services/service-classes';
 import { ServiceStructure } from '../services/service-structure';
@@ -112,7 +111,7 @@ import { ServiceStructure } from '../services/service-structure';
       <form
         [formGroup]="formulaire"
         (ngSubmit)="enregistrer()"
-        class="grille"
+        class="formulaire"
         data-testid="form-classe"
       >
         <mat-form-field appearance="outline">
@@ -154,7 +153,7 @@ import { ServiceStructure } from '../services/service-structure';
             </mat-select>
           </mat-form-field>
         }
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Capacité</mat-label>
           <input
             matInput
@@ -193,7 +192,7 @@ import { ServiceStructure } from '../services/service-structure';
       </form>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class SectionClasses {
   private readonly service = inject(ServiceClasses);

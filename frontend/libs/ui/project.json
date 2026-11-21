@@ -6,5 +6,7 @@
   "projectType": "library",
   "tags": ["type:ui"],
   "// targets": "to see all targets run: nx show project ui --web",
-  "targets": {}
+  "targets": {
+    "stylelint": {}
+  }
 }

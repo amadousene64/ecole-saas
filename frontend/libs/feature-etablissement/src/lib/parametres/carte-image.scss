@@ -1,0 +1,28 @@
+.carte {
+  padding: var(--ecole-espace-carte);
+}
+h3 {
+  margin: 0 0 var(--ecole-espace-2);
+}
+img {
+  display: block;
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  margin-bottom: var(--ecole-espace-2);
+}
+.fichier {
+  display: block;
+  margin: var(--ecole-espace-2) 0;
+}
+.fichier span {
+  display: block;
+  margin-bottom: var(--ecole-espace-libelle);
+}
+.aide {
+  color: var(--mat-sys-on-surface-variant, #555);
+  font-size: 0.85rem;
+}
+.message.erreur {
+  color: var(--mat-sys-error, #b00020);
+}

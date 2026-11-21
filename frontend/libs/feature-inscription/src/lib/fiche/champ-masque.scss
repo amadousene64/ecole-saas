@@ -1,0 +1,8 @@
+.champ {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--ecole-espace-1);
+}
+.valeur {
+  white-space: pre-wrap;
+}

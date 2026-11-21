@@ -1,4 +1,4 @@
-import { EnTetePage } from '@ecole/ui';
+import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
 import { Component, effect, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -16,7 +16,6 @@ import {
   STATUTS_ETABLISSEMENT,
   StatutEtablissement,
 } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import {
   ServiceEtablissement,
   TypeImage,
@@ -26,6 +25,7 @@ import { CarteImage } from './carte-image';
 /** Profil de l'école et images officielles. Lecture seule sans le droit d'écriture. */
 @Component({
   selector: 'ecole-page-parametres',
+  providers: [CHAMPS_FORMULAIRE],
   imports: [
     EnTetePage,
     ReactiveFormsModule,
@@ -60,7 +60,7 @@ import { CarteImage } from './carte-image';
     <form
       [formGroup]="formulaire"
       (ngSubmit)="enregistrer()"
-      class="grille"
+      class="formulaire"
       data-testid="profil"
     >
       <mat-form-field appearance="outline">
@@ -108,6 +108,29 @@ import { CarteImage } from './carte-image';
         <input matInput formControlName="adresse" />
       </mat-form-field>
       <mat-form-field appearance="outline">
+        <mat-label>Ville</mat-label>
+        <input
+          matInput
+          formControlName="ville"
+          maxlength="100"
+          data-testid="champ-ville"
+        />
+        <mat-hint>Affichée sur la page de connexion.</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="champ-plein">
+        <mat-label>Phrase d'accueil</mat-label>
+        <input
+          matInput
+          formControlName="phraseAccueil"
+          maxlength="200"
+          data-testid="champ-phrase-accueil"
+        />
+        <mat-hint
+          >Une courte phrase sous le nom de l'école, sur la page de
+          connexion.</mat-hint
+        >
+      </mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Téléphone</mat-label>
         <input
           matInput
@@ -149,7 +172,7 @@ import { CarteImage } from './carte-image';
     </form>
 
     <h2>Images officielles</h2>
-    <div class="grille" data-testid="images">
+    <div class="grille-cartes" data-testid="images">
       <ecole-carte-image
         type="LOGO"
         titre="Logo"
@@ -181,7 +204,7 @@ import { CarteImage } from './carte-image';
       <p class="aide">Le cachet et la signature sont réservés au directeur.</p>
     }
   `,
-  styles: [STYLES_COMMUNS],
+  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageParametres {
   private readonly service = inject(ServiceEtablissement);
@@ -207,6 +230,8 @@ export class PageParametres {
     ia: [''],
     ief: [''],
     adresse: [''],
+    ville: ['', Validators.maxLength(100)],
+    phraseAccueil: ['', Validators.maxLength(200)],
     telephone: [''],
     email: ['', Validators.email],
     fuseau: ['Africa/Dakar'],
@@ -241,6 +266,8 @@ export class PageParametres {
       ia: e.ia ?? '',
       ief: e.ief ?? '',
       adresse: e.adresse ?? '',
+      ville: e.ville ?? '',
+      phraseAccueil: e.phraseAccueil ?? '',
       telephone: e.telephone ?? '',
       email: e.email ?? '',
       fuseau: e.fuseau ?? 'Africa/Dakar',

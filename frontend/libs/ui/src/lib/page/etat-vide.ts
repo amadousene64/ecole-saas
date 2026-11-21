@@ -13,21 +13,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       <div class="action"><ng-content /></div>
     </section>
   `,
-  styles: `
-    .vide {
-      text-align: center;
-      padding: 32px 16px;
-    }
-    h2 {
-      margin: 0 0 8px;
-    }
-    .action {
-      margin-top: 16px;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-    }
-  `,
+  styleUrl: './etat-vide.scss',
 })
 export class EtatVide {
   readonly titre = input.required<string>();

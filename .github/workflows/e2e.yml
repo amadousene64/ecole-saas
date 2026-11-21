@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: '25'
@@ -59,6 +59,15 @@ jobs:
           CI: 'true'
           E2E_MOT_DE_PASSE: ${{ secrets.E2E_MOT_DE_PASSE }}
         run: npx nx e2e e2e
+      # Captures 390 / 768 / 1440 px, à relire à chaque exécution (réussie ou non).
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-captures
+          # Relatif au dossier de Playwright (apps/e2e), d'où le chemin.
+          path: frontend/apps/e2e/dist/.playwright/captures
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Diagnostics
         if: failure()
         run: docker compose -f infra/docker-compose.yml logs --no-color > "$RUNNER_TEMP/compose.log" 2>&1 || true

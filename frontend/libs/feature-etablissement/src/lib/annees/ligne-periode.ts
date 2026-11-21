@@ -58,39 +58,7 @@ import { ServiceAnnees } from '../services/service-annees';
       <span class="probleme" role="alert">{{ message }}</span>
     }
   `,
-  styles: `
-    :host {
-      display: grid;
-      grid-template-columns: 2rem minmax(140px, 1fr) 160px 160px auto;
-      gap: 8px;
-      align-items: center;
-      padding: 4px 0;
-      border-bottom: 1px solid var(--ecole-bordure);
-    }
-    .champ {
-      font: inherit;
-      min-height: var(--ecole-hauteur-controle);
-      box-sizing: border-box;
-      padding: 0 10px;
-      min-width: 0;
-      color: var(--ecole-texte);
-      background: var(--ecole-surface);
-      border: 1px solid var(--ecole-bordure-champ);
-      border-radius: var(--ecole-rayon-controle);
-    }
-    .champ:hover {
-      border-color: var(--ecole-texte-secondaire);
-    }
-    .champ:disabled {
-      color: var(--ecole-texte-secondaire);
-      background: var(--ecole-fond);
-    }
-    .probleme {
-      grid-column: 1 / -1;
-      color: var(--ecole-bissap);
-      font-size: var(--ecole-libelle-taille);
-    }
-  `,
+  styleUrl: './ligne-periode.scss',
 })
 export class LignePeriode {
   private readonly service = inject(ServiceAnnees);

@@ -14,7 +14,6 @@ import { CycleDto, NiveauDto, SerieDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { baseCompatible, LIBELLES_CYCLE } from '../commun/etiquettes';
-import { STYLES_COMMUNS } from '../commun/styles';
 import { ServiceStructure } from '../services/service-structure';
 
 /** Niveaux d'études (CI à Terminale), leur base de moyenne éventuelle et leurs séries. */
@@ -87,7 +86,7 @@ import { ServiceStructure } from '../services/service-structure';
       <form
         [formGroup]="formulaire"
         (ngSubmit)="enregistrer()"
-        class="grille"
+        class="formulaire"
         data-testid="form-niveau"
       >
         @if (!edition()) {
@@ -119,7 +118,7 @@ import { ServiceStructure } from '../services/service-structure';
             data-testid="champ-niveau-libelle"
           />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="champ-court">
           <mat-label>Ordre</mat-label>
           <input matInput type="number" min="1" formControlName="ordre" />
         </mat-form-field>
@@ -174,17 +173,9 @@ import { ServiceStructure } from '../services/service-structure';
       </form>
     }
   `,
-  styles: [
-    STYLES_COMMUNS,
-    `
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-      }
-    `,
+  styleUrls: [
+    '../../../../ui/src/lib/styles/ecran.scss',
+    './section-niveaux.scss',
   ],
 })
 export class SectionNiveaux {

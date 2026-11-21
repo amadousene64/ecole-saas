@@ -1,0 +1,25 @@
+.cycle {
+  background: var(--ecole-surface);
+  border: 1px solid var(--ecole-bordure);
+  border-radius: var(--ecole-rayon-carte);
+  padding: var(--ecole-espace-carte);
+  margin-bottom: var(--ecole-espace-sections);
+}
+h3 {
+  margin: 0 0 var(--ecole-espace-3);
+}
+.champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--ecole-espace-champs);
+}
+.message {
+  padding: var(--ecole-espace-2) var(--ecole-espace-3);
+  border-radius: 4px;
+}
+.message.erreur {
+  background: var(--mat-sys-error-container, #fdd);
+}
+.message.ok {
+  background: var(--mat-sys-secondary-container, #dfd);
+}

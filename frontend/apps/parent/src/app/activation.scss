@@ -1,0 +1,15 @@
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecole-espace-libelle);
+  margin-bottom: var(--ecole-espace-champs);
+}
+input {
+  font: inherit;
+  padding: var(--ecole-espace-3) var(--ecole-espace-3);
+  border: 1px solid var(--ecole-bordure-champ);
+  border-radius: 8px;
+  background: var(--ecole-surface);
+  color: inherit;
+  letter-spacing: 0.08em;
+}
