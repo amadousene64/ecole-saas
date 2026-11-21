@@ -12,6 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import sn.ecole.inscription.domain.BrouillonInscriptionRepository;
 import sn.ecole.inscription.domain.ControlePiece;
 import sn.ecole.inscription.domain.EleveRepository;
 import sn.ecole.inscription.domain.PieceDossier;
@@ -49,6 +50,7 @@ public class PieceService implements UtilisationEleve {
 
   private final PieceDossierRepository pieces;
   private final EleveRepository eleves;
+  private final BrouillonInscriptionRepository brouillons;
   private final StockageFichiers stockage;
   private final OutboxPublisher outbox;
   private final JournalAudit journal;
@@ -57,12 +59,14 @@ public class PieceService implements UtilisationEleve {
   public PieceService(
       PieceDossierRepository pieces,
       EleveRepository eleves,
+      BrouillonInscriptionRepository brouillons,
       StockageFichiers stockage,
       OutboxPublisher outbox,
       JournalAudit journal,
       PlatformTransactionManager transactions) {
     this.pieces = pieces;
     this.eleves = eleves;
+    this.brouillons = brouillons;
     this.stockage = stockage;
     this.outbox = outbox;
     this.journal = journal;
@@ -224,7 +228,95 @@ public class PieceService implements UtilisationEleve {
   private PieceDossier charger(UUID eleveId, UUID pieceId) {
     return pieces
         .findById(pieceId)
-        .filter(p -> p.getEleveId().equals(eleveId))
+        // Une pièce encore rattachée à un brouillon n'a pas d'élève : jamais trouvée ici.
+        .filter(p -> eleveId.equals(p.getEleveId()))
         .orElseThrow(() -> Erreurs.introuvable("PIECE_INTROUVABLE", "Pièce introuvable."));
+  }
+
+  // --- Pièces d'un brouillon d'inscription (assistant) ---
+
+  /**
+   * Dépôt pendant l'assistant : mêmes contrôles et même analyse antivirus qu'un dépôt au dossier,
+   * la pièce étant rattachée au brouillon jusqu'à sa finalisation.
+   */
+  @PreAuthorize(Droits.ECRITURE)
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public PieceDossier deposerDansBrouillon(
+      UUID brouillonId, PieceDossier.Type type, byte[] contenu) {
+    if (type == null) {
+      throw Erreurs.invalide("CHAMP_INVALIDE", "Le type de pièce est obligatoire.");
+    }
+    ControlePiece.PieceValidee validee = ControlePiece.controler(contenu);
+    String sha256Depose = ControlePiece.sha256(contenu);
+    return transaction.execute(
+        statut -> {
+          // Verrou : une finalisation ou un abandon simultané attend la fin de ce dépôt.
+          brouillons.verrouiller(brouillonId).orElseThrow(Erreurs::brouillonIntrouvable);
+          String cle =
+              ContexteTenant.exiger()
+                  + "/brouillons/"
+                  + brouillonId
+                  + "/pieces/"
+                  + Identifiants.uuidV7();
+          stockage.deposer(cle, validee.octets(), validee.contentType());
+          ApresTransaction.siAnnulee(() -> stockage.supprimer(cle));
+          PieceDossier piece =
+              pieces.save(PieceDossier.deposerPourBrouillon(brouillonId, type, cle, validee));
+          outbox.publier(
+              "PieceDossier", piece.getId(), ANALYSE_DEMANDEE, Map.of("piece", piece.getId()));
+          journal.consigner(
+              "PIECE_DEPOSEE",
+              "BrouillonInscription",
+              brouillonId,
+              Map.of(
+                  "piece",
+                  piece.getId(),
+                  "type",
+                  type,
+                  "sha256",
+                  validee.sha256(),
+                  "sha256Depose",
+                  sha256Depose));
+          return piece;
+        });
+  }
+
+  @PreAuthorize(Droits.ECRITURE)
+  @Transactional(readOnly = true)
+  public List<PieceDossier> listerDuBrouillon(UUID brouillonId) {
+    brouillons.findById(brouillonId).orElseThrow(Erreurs::brouillonIntrouvable);
+    return pieces.findByBrouillonIdOrderByCreeLeDesc(brouillonId);
+  }
+
+  @PreAuthorize(Droits.ECRITURE)
+  public void supprimerDuBrouillon(UUID brouillonId, UUID pieceId) {
+    PieceDossier piece =
+        pieces
+            .findById(pieceId)
+            .filter(p -> brouillonId.equals(p.getBrouillonId()))
+            .orElseThrow(() -> Erreurs.introuvable("PIECE_INTROUVABLE", "Pièce introuvable."));
+    retirer(piece);
+    journal.consigner(
+        "PIECE_SUPPRIMEE", "BrouillonInscription", brouillonId, Map.of("piece", pieceId));
+  }
+
+  /** Finalisation : les pièces du brouillon passent au dossier de l'élève créé. */
+  void rattacherAuDossier(UUID brouillonId, UUID eleveId) {
+    for (PieceDossier piece : pieces.findByBrouillonIdOrderByCreeLeDesc(brouillonId)) {
+      piece.rattacherA(eleveId);
+      pieces.save(piece);
+    }
+  }
+
+  /** Abandon : pièces supprimées, fichiers retirés du stockage une fois l'abandon validé. */
+  void abandonnerDuBrouillon(UUID brouillonId) {
+    pieces.findByBrouillonIdOrderByCreeLeDesc(brouillonId).forEach(this::retirer);
+  }
+
+  private void retirer(PieceDossier piece) {
+    piece.supprimer(Instant.now());
+    pieces.save(piece);
+    String cle = piece.getCle();
+    ApresTransaction.siValidee(() -> stockage.supprimer(cle));
   }
 }

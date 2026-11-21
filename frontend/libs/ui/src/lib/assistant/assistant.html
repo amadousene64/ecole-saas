@@ -1,0 +1,105 @@
+<div class="assistant">
+  <header class="entete">
+    <button
+      type="button"
+      class="fermer"
+      [attr.aria-label]="libelleFermer()"
+      (click)="fermer.emit()"
+      data-testid="fermer-assistant"
+    >
+      <ecole-icone nom="fermer" />
+    </button>
+    <div class="titres">
+      <p class="titre">{{ titre() }}</p>
+      @if (sousTitre(); as texte) {
+      <p class="sous-titre" data-testid="etat-brouillon">{{ texte }}</p>
+      }
+    </div>
+    <div class="actions-entete">
+      <ng-content select="[actions-entete]" />
+    </div>
+  </header>
+
+  <nav class="etapes" aria-label="Étapes">
+    <ol>
+      @for (etape of etapes(); track $index; let i = $index) {
+      <li
+        [class]="etat(i + 1)"
+        [attr.aria-current]="i + 1 === courante() ? 'step' : null"
+      >
+        @if (etat(i + 1) === 'faite') {
+        <button
+          type="button"
+          class="etape"
+          (click)="allerA.emit(i + 1)"
+          [attr.data-testid]="'aller-etape-' + (i + 1)"
+        >
+          <span class="marque" aria-hidden="true"
+            ><ecole-icone nom="coche"
+          /></span>
+          <span class="libelles">
+            <span class="libelle">{{ etape.libelle }}</span>
+            @if (etape.detail; as detail) {
+            <span class="detail">{{ detail }}</span>
+            }
+          </span>
+          <span class="sr-only">(faite, revenir à cette étape)</span>
+        </button>
+        } @else {
+        <span class="etape">
+          <span class="marque" aria-hidden="true">{{ i + 1 }}</span>
+          <span class="libelles">
+            <span class="libelle">{{ etape.libelle }}</span>
+            @if (i + 1 === courante()) {
+            <span class="detail">En cours</span>
+            }
+          </span>
+        </span>
+        }
+      </li>
+      }
+    </ol>
+  </nav>
+
+  <div class="progression" aria-hidden="true">
+    <div class="ligne">
+      <span class="position"
+        >Étape {{ courante() }} sur {{ total() }} · {{ libelleCourant() }}</span
+      >
+      @if (suivante(); as s) {
+      <span class="suivante">Suivante : {{ s }}</span>
+      }
+    </div>
+    <div class="barre"><span [style.width.%]="progression()"></span></div>
+  </div>
+
+  <div class="corps">
+    <div class="colonne">
+      <div class="entete-etape">
+        <h1
+          class="titre-etape"
+          #titreEtapeH1
+          tabindex="-1"
+          data-testid="titre-etape"
+        >
+          {{ titreEtape() }}
+        </h1>
+        @if (sousTitreEtape(); as texte) {
+        <p class="sous-titre-etape">{{ texte }}</p>
+        }
+      </div>
+      <ng-content />
+    </div>
+  </div>
+
+  <footer class="pied">
+    <div class="colonne">
+      <span class="position-pied"
+        >Étape {{ courante() }} sur {{ total() }}</span
+      >
+      <div class="boutons">
+        <ng-content select="[pied]" />
+      </div>
+    </div>
+  </footer>
+</div>

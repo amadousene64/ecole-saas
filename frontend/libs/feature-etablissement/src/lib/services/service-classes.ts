@@ -4,12 +4,14 @@ import {
   Api,
   ClasseDto,
   ClasseRequete,
+  RemplissageClasseDto,
   SalleDto,
   SalleRequete,
   classeCreer,
   classeLister,
   classeModifier,
   classeSupprimer,
+  inscriptionRemplissage,
   salleCreer,
   salleLister,
   salleModifier,
@@ -25,6 +27,11 @@ export class ServiceClasses {
   /** Sans année : celle en cours (liste vide s'il n'y en a pas). */
   classes(anneeId?: string, niveauId?: string): Promise<ClasseDto[]> {
     return this.api.invoke(classeLister, { annee: anneeId, niveau: niveauId });
+  }
+
+  /** Inscrits (pré-inscrits compris) et capacité de chaque classe de l'année. */
+  remplissage(anneeId: string): Promise<RemplissageClasseDto[]> {
+    return this.api.invoke(inscriptionRemplissage, { anneeId });
   }
 
   creerClasse(corps: ClasseRequete): Promise<ClasseDto> {

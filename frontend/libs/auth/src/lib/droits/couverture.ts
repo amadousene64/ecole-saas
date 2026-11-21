@@ -211,6 +211,43 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
   'EleveService.rechercher': { page: 'eleves' },
   'EleveService.lire': { page: 'eleves' },
   'EleveService.creer': { page: 'eleves-nouveau', action: 'eleves.creer' },
+  // Assistant d'inscription (page « Nouvel élève ») : brouillon enregistré à chaque étape.
+  'BrouillonInscriptionService.ouvrir': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'BrouillonInscriptionService.lister': {
+    page: 'eleves',
+    action: 'eleves.creer',
+  },
+  'BrouillonInscriptionService.lire': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'BrouillonInscriptionService.enregistrer': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'BrouillonInscriptionService.abandonner': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'BrouillonInscriptionService.finaliser': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'PieceService.deposerDansBrouillon': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'PieceService.listerDuBrouillon': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
+  'PieceService.supprimerDuBrouillon': {
+    page: 'eleves-nouveau',
+    action: 'eleves.creer',
+  },
   'EleveService.modifier': { page: 'eleves', action: 'eleves.ecrire' },
   'EleveService.deposerPhoto': {
     exception: {
@@ -252,6 +289,11 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
     action: 'eleves.scolarite.voir',
   },
   'InscriptionService.elevesDeLaClasse': {
+    page: 'eleves',
+    action: 'eleves.scolarite.voir',
+  },
+  // Étape Scolarité de l'assistant et colonne « Inscrits » de la liste des classes.
+  'InscriptionService.remplissage': {
     page: 'eleves',
     action: 'eleves.scolarite.voir',
   },

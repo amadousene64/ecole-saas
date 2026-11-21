@@ -15,6 +15,7 @@ import {
   CHAMPS_FORMULAIRE,
   Champ,
 } from '@ecole/ui';
+import { BrouillonsEnCours } from '../assistant/brouillons-en-cours';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import {
@@ -36,6 +37,7 @@ const DELAI_RECHERCHE_MS = 300;
   selector: 'ecole-page-eleves',
   providers: [CHAMPS_FORMULAIRE],
   imports: [
+    BrouillonsEnCours,
     Champ,
     FormsModule,
     RouterLink,
@@ -71,6 +73,10 @@ const DELAI_RECHERCHE_MS = 300;
         </ecole-action-principale>
       }
     </ecole-en-tete-page>
+
+    @if (droits.peutCreer()) {
+      <ecole-brouillons-en-cours />
+    }
 
     <form
       class="filtres-liste"

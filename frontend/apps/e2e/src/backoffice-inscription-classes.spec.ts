@@ -5,6 +5,7 @@ import {
   lienMenu,
   seConnecter,
   COMPTES_E2E,
+  creerEleveE2E,
 } from './support';
 
 /**
@@ -25,14 +26,11 @@ test('classes indisponibles : le message reste affiché, puis « Réessayer » c
     .toUpperCase()
     .replace(/\d/g, (c) => 'GHIJKLMNOP'[Number(c)]);
 
+  // Élève existant sans inscription (l'assistant, lui, inscrit dès la création).
+  const eleve = await creerEleveE2E(request, `Classe${suffixe}`);
   await seConnecter(page, COMPTES_E2E.secretariat);
   await lienMenu(page, 'Élèves', false).click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
-  await page.getByTestId('nouvel-eleve').click();
-  await page.getByTestId('champ-prenoms').fill(`Classe${suffixe}`);
-  await page.getByTestId('champ-nom').fill('Testeur-Fictif');
-  await page.getByTestId('champ-naissance').fill('2012-05-14');
-  await page.getByTestId('champ-lieu').fill('Ville Fictive');
 
   // Le serveur des classes tombe en panne.
   let panne = true;
@@ -47,7 +45,7 @@ test('classes indisponibles : le message reste affiché, puis « Réessayer » c
       await route.continue();
     }
   });
-  await page.getByTestId('creer-eleve').click();
+  await page.goto(`/eleves/${eleve}`);
   await expect(page.getByTestId('titre-fiche')).toContainText(
     `Classe${suffixe}`,
   );

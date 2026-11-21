@@ -14,17 +14,33 @@ export const ROUTES_INSCRIPTION: Route[] = [
     loadComponent: () =>
       import('./eleves/page-eleves').then((m) => m.PageEleves),
   },
+  // Assistant d'inscription en écran plein : `nouveau` ouvre un brouillon, puis l'adresse devient
+  // `brouillons/:brouillonId` (reprise après rechargement ou depuis « Brouillons en cours »).
   {
     path: 'nouveau',
-    title: 'Nouvel élève',
+    title: 'Nouvelle inscription',
     canActivate: [gardePage('eleves-nouveau')],
+    data: { pleinEcran: true },
     loadComponent: () =>
-      import('./eleves/page-nouvel-eleve').then((m) => m.PageNouvelEleve),
+      import('./assistant/page-assistant-inscription').then(
+        (m) => m.PageAssistantInscription,
+      ),
+  },
+  {
+    path: 'brouillons/:brouillonId',
+    title: 'Nouvelle inscription',
+    canActivate: [gardePage('eleves-nouveau')],
+    data: { pleinEcran: true },
+    loadComponent: () =>
+      import('./assistant/page-assistant-inscription').then(
+        (m) => m.PageAssistantInscription,
+      ),
   },
   {
     path: 'import',
     title: "Import d'élèves",
     canActivate: [gardePage('import')],
+    data: { pleinEcran: true },
     loadComponent: () =>
       import('./import/page-import').then((m) => m.PageImport),
   },

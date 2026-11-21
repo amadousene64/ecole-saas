@@ -242,18 +242,10 @@ export function lienMenu(page: Page, nom: string, exact = true) {
     .getByRole('link', { name: nom, exact });
 }
 
-/** Classe réservée au parcours d'inscription (école E2E) : toujours la même, créée si elle manque. */
-export const CLASSE_E2E_INSCRIPTION = 'E2E Inscription';
-
-/**
- * Garantit l'existence, dans l'année en cours de l'école E2E, d'une classe dédiée à l'e2e (grande
- * capacité). Le parcours d'inscription ne dépend ainsi ni des classes du jeu de données de dev, ni de
- * leur remplissage (chaque exécution inscrit un élève de plus). Idempotent : une seule classe, jamais
- * de doublon. Utilise le compte directeur.e2e avec le client de dev `dev-cli`.
- */
-export async function garantirClasseE2E(
+/** En-têtes d'appel à l'API comme directeur.e2e, dans l'école E2E (client de dev `dev-cli`). */
+async function entetesDirecteurE2E(
   request: APIRequestContext,
-): Promise<string> {
+): Promise<Record<string, string>> {
   const jeton = await request.post(
     `${KEYCLOAK}/realms/ecole/protocol/openid-connect/token`,
     {
@@ -270,10 +262,45 @@ export async function garantirClasseE2E(
   const { access_token: acces } = (await jeton.json()) as {
     access_token: string;
   };
-  const entetes = {
-    Authorization: `Bearer ${acces}`,
-    'X-Tenant-Id': ECOLE_E2E_ID,
-  };
+  return { Authorization: `Bearer ${acces}`, 'X-Tenant-Id': ECOLE_E2E_ID };
+}
+
+/**
+ * Crée par l'API, dans l'école E2E, un élève fictif sans inscription (pour les scénarios qui
+ * partent d'une fiche existante). Renvoie son identifiant.
+ */
+export async function creerEleveE2E(
+  request: APIRequestContext,
+  prenoms: string,
+): Promise<string> {
+  const creation = await request.post(`${API}/api/v1/eleves`, {
+    headers: await entetesDirecteurE2E(request),
+    data: {
+      prenoms,
+      nom: 'Testeur-Fictif',
+      sexe: 'F',
+      dateNaissance: '2012-05-14',
+      lieuNaissance: 'Ville Fictive',
+      nationalite: 'SN',
+    },
+  });
+  expect(creation.status(), "Création de l'élève fictif").toBe(201);
+  return ((await creation.json()) as { id: string }).id;
+}
+
+/** Classe réservée au parcours d'inscription (école E2E) : toujours la même, créée si elle manque. */
+export const CLASSE_E2E_INSCRIPTION = 'E2E Inscription';
+
+/**
+ * Garantit l'existence, dans l'année en cours de l'école E2E, d'une classe dédiée à l'e2e (grande
+ * capacité). Le parcours d'inscription ne dépend ainsi ni des classes du jeu de données de dev, ni de
+ * leur remplissage (chaque exécution inscrit un élève de plus). Idempotent : une seule classe, jamais
+ * de doublon. Utilise le compte directeur.e2e avec le client de dev `dev-cli`.
+ */
+export async function garantirClasseE2E(
+  request: APIRequestContext,
+): Promise<string> {
+  const entetes = await entetesDirecteurE2E(request);
 
   const classes = await request.get(`${API}/api/v1/classes`, {
     headers: entetes,

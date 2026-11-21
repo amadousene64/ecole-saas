@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import {
   AnneeScolaireDto,
   anneeScolaireCloturer,
-  anneeScolaireCreer,
   anneeScolaireLister,
   anneeScolaireOuvrir,
   calendrierLister,
@@ -45,15 +45,6 @@ async function creer(roles: string[], annees: AnneeScolaireDto[]) {
       [anneeScolaireOuvrir, { ...PREPARATION, statut: 'EN_COURS' }],
       [anneeScolaireCloturer, { ...ENCOURS, statut: 'CLOTUREE' }],
       [
-        anneeScolaireCreer,
-        (p: unknown) => ({
-          id: 'a3',
-          version: 0,
-          statut: 'PREPARATION',
-          ...(p as { body: object }).body,
-        }),
-      ],
-      [
         cycleLister,
         [{ id: 'c1', code: 'ELEMENTAIRE', libelle: 'Élémentaire' }],
       ],
@@ -61,7 +52,9 @@ async function creer(roles: string[], annees: AnneeScolaireDto[]) {
       [calendrierLister, []],
     ]),
   );
-  TestBed.configureTestingModule({ providers });
+  TestBed.configureTestingModule({
+    providers: [...providers, provideRouter([])],
+  });
   const fixture = TestBed.createComponent(PageAnnees);
   await stabiliser(fixture);
   return {
@@ -97,10 +90,10 @@ describe('PageAnnees', () => {
     const secretariat = await creer(['SECRETARIAT'], [PREPARATION, ENCOURS]);
     expect(bouton(secretariat.racine, 'ouvrir')).toBeNull();
     expect(bouton(secretariat.racine, 'cloturer')).toBeNull();
-    // Il peut en revanche supprimer une année en préparation et en créer une.
+    // Il peut en revanche supprimer une année en préparation et en préparer une (assistant).
     expect(bouton(secretariat.racine, 'supprimer-annee')).not.toBeNull();
     expect(
-      secretariat.racine.querySelector('[data-testid="form-annee"]'),
+      secretariat.racine.querySelector('[data-testid="preparer-annee"]'),
     ).not.toBeNull();
   });
 
@@ -110,7 +103,7 @@ describe('PageAnnees', () => {
     expect(bouton(racine, 'ouvrir')).toBeNull();
     expect(bouton(racine, 'cloturer')).toBeNull();
     expect(bouton(racine, 'supprimer-annee')).toBeNull();
-    expect(racine.querySelector('[data-testid="form-annee"]')).toBeNull();
+    expect(racine.querySelector('[data-testid="preparer-annee"]')).toBeNull();
   });
 
   it("demande confirmation avant d'ouvrir, puis appelle le serveur", async () => {
@@ -171,20 +164,5 @@ describe('PageAnnees', () => {
     expect(bouton(racine, 'ouvrir')).toBeNull();
     expect(bouton(racine, 'cloturer')).toBeNull();
     expect(bouton(racine, 'supprimer-annee')).toBeNull();
-  });
-
-  it("refuse un libellé d'année mal formé sans appeler le serveur", async () => {
-    const { fixture, invoke, racine } = await creer(['DIRECTEUR'], [ENCOURS]);
-    const libelle = racine.querySelector<HTMLInputElement>(
-      '[data-testid="champ-annee-libelle"]',
-    )!;
-    libelle.value = '2027/2028';
-    libelle.dispatchEvent(new Event('input'));
-    bouton(racine, 'creer-annee')!.click();
-    await stabiliser(fixture);
-
-    expect(invoke.mock.calls.some(([fn]) => fn === anneeScolaireCreer)).toBe(
-      false,
-    );
   });
 });

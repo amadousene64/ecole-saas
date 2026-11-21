@@ -482,6 +482,42 @@ class InscriptionsApiTest extends TestInscription {
   }
 
   @Test
+  void leRemplissageCompteLesPreInscritsEtLesInscritsSeulement() throws Exception {
+    inscrit(awa, sixieme);
+    assertThat(
+            inscrire(SECRETARIAT_A, creerEleve(A, "Binta"), sixieme, "PRE_INSCRIT", List.of())
+                .statut())
+        .isEqualTo(201);
+    UUID sortie = inscrit(creerEleve(A, "Coumba"), ci);
+    assertThat(sortir(SECRETARIAT_A, sortie, "ABANDON").statut()).isEqualTo(200);
+
+    Reponse r = get(SECRETARIAT_A, A, "/api/v1/annees/" + annee + "/remplissage-classes");
+    assertThat(r.statut()).isEqualTo(200);
+    Map<String, String> parClasse = new java.util.HashMap<>();
+    r.corps()
+        .forEach(
+            c ->
+                parClasse.put(
+                    c.path("classeId").asText(),
+                    c.path("inscrits").asLong() + "/" + c.path("capacite").asInt()));
+    assertThat(parClasse)
+        .containsOnly(Map.entry(sixieme.toString(), "2/2"), Map.entry(ci.toString(), "0/30"));
+  }
+
+  @Test
+  void leRemplissageResteDansLEcoleEtAuPersonnelDeScolarite() throws Exception {
+    inscrit(awa, sixieme);
+    String chemin = "/api/v1/annees/" + annee + "/remplissage-classes";
+    // L'école B ne voit aucune classe de l'année de A : liste vide, aucun effectif.
+    Reponse b = get(DIRECTEUR_B, B, chemin);
+    assertThat(b.statut()).isEqualTo(200);
+    assertThat(b.corps().size()).isZero();
+    assertThat(get(SURVEILLANT_A, A, chemin).statut()).isEqualTo(200);
+    assertThat(get(COMPTABLE_A, A, chemin).statut()).isEqualTo(403);
+    assertThat(get(ELEVE_A, A, chemin).statut()).isEqualTo(403);
+  }
+
+  @Test
   void lEcoleBNeVoitPasLesInscriptionsDeLEcoleANiSesClasses() throws Exception {
     UUID inscription = inscrit(awa, sixieme);
     assertThat(get(DIRECTEUR_B, B, INSCRIPTIONS + "/" + inscription).code())

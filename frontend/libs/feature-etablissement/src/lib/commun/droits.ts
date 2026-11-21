@@ -14,4 +14,7 @@ export class Droits {
 
   /** Cachet, signature, ouverture/clôture d'année, cycles et bases de moyenne : directeur seul. */
   readonly estDirecteur = this.acces.signalPour('etablissement.direction');
+
+  /** Inscrits par classe : le personnel de scolarité (pas le comptable ni l'enseignant). */
+  readonly voitRemplissage = this.acces.signalPour('eleves.scolarite.voir');
 }

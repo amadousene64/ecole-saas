@@ -72,6 +72,9 @@ import { ServiceStructure } from '../services/service-structure';
           <th>Niveau</th>
           <th>Série</th>
           <th>Capacité</th>
+          @if (droits.voitRemplissage()) {
+            <th>Inscrits</th>
+          }
           <th>Salle</th>
           @if (modifiable()) {
             <th></th>
@@ -85,6 +88,14 @@ import { ServiceStructure } from '../services/service-structure';
             <td data-label="Niveau">{{ nomNiveau(c.niveauId) }}</td>
             <td data-label="Série">{{ codeSerie(c.serieId) }}</td>
             <td data-label="Capacité">{{ c.capacite }}</td>
+            @if (droits.voitRemplissage()) {
+              <td
+                data-label="Inscrits"
+                [attr.data-testid]="'inscrits-' + c.nom"
+              >
+                {{ texteInscrits(c) }}
+              </td>
+            }
             <td data-label="Salle">{{ nomSalle(c.salleId) }}</td>
             @if (modifiable()) {
               <td data-label="Actions">
@@ -99,7 +110,7 @@ import { ServiceStructure } from '../services/service-structure';
           </tr>
         } @empty {
           <tr>
-            <td colspan="6" class="aide">Aucune classe pour cette année.</td>
+            <td colspan="7" class="aide">Aucune classe pour cette année.</td>
           </tr>
         }
       </tbody>
@@ -194,7 +205,9 @@ import { ServiceStructure } from '../services/service-structure';
             {{ edition() ? 'Enregistrer' : 'Ajouter' }}
           </button>
           @if (edition()) {
-            <button matButton="outlined" type="button" (click)="annuler()">Annuler</button>
+            <button matButton="outlined" type="button" (click)="annuler()">
+              Annuler
+            </button>
           }
         </div>
       </form>
@@ -211,6 +224,8 @@ export class SectionClasses {
   protected readonly annees = signal<AnneeScolaireDto[]>([]);
   protected readonly anneeId = signal<string | undefined>(undefined);
   protected readonly classes = signal<ClasseDto[]>([]);
+  /** Inscrits par classe (PRE_INSCRIT + INSCRIT), pour le personnel de scolarité. */
+  protected readonly inscrits = signal<Record<string, number>>({});
   protected readonly niveaux = signal<NiveauDto[]>([]);
   protected readonly series = signal<SerieDto[]>([]);
   protected readonly salles = signal<SalleDto[]>([]);
@@ -280,6 +295,14 @@ export class SectionClasses {
     return this.niveaux().find((n) => n.id === id)?.libelle ?? '';
   }
 
+  /** « 31 », ou « 35 · complète » quand la capacité est atteinte. */
+  protected texteInscrits(c: ClasseDto): string {
+    const n = this.inscrits()[c.id ?? ''] ?? 0;
+    return c.capacite !== undefined && n >= c.capacite
+      ? `${n} · complète`
+      : `${n}`;
+  }
+
   protected codeSerie(id: string | undefined): string {
     return this.series().find((s) => s.id === id)?.code ?? '—';
   }
@@ -312,7 +335,18 @@ export class SectionClasses {
 
   private async chargerClasses(): Promise<void> {
     const annee = this.anneeId();
-    this.classes.set(annee ? await this.service.classes(annee) : []);
+    const [classes, remplissage] = await Promise.all([
+      annee ? this.service.classes(annee) : Promise.resolve([]),
+      annee && this.droits.voitRemplissage()
+        ? this.service.remplissage(annee)
+        : Promise.resolve([]),
+    ]);
+    this.classes.set(classes);
+    this.inscrits.set(
+      Object.fromEntries(
+        remplissage.map((r) => [r.classeId ?? '', r.inscrits ?? 0]),
+      ),
+    );
   }
 
   protected async changerAnnee(id: string): Promise<void> {

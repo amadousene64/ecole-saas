@@ -22,6 +22,9 @@ public interface InscriptionRepository {
 
   long countByClasseIdAndStatutIn(UUID classeId, Collection<StatutInscription> statuts);
 
+  /** Inscriptions de ces statuts par classe de l'année ; une classe sans inscrit est absente. */
+  List<EffectifClasse> compterParClasse(UUID anneeId, Collection<StatutInscription> statuts);
+
   boolean existsByClasseId(UUID classeId);
 
   boolean existsByEleveId(UUID eleveId);
@@ -30,4 +33,11 @@ public interface InscriptionRepository {
 
   /** Enregistre et écrit tout de suite (la contrainte d'unicité joue avant la suite). */
   Inscription saveAndFlush(Inscription inscription);
+
+  /** Projection du comptage par classe. */
+  interface EffectifClasse {
+    UUID getClasseId();
+
+    long getNombre();
+  }
 }

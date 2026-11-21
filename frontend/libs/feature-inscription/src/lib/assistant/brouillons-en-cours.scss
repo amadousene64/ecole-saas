@@ -1,0 +1,27 @@
+.brouillons {
+  margin-bottom: var(--ecole-espace-sections);
+
+  h2 {
+    margin: 0 0 var(--ecole-espace-3);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ecole-espace-boutons);
+    padding: var(--ecole-espace-2) 0;
+    border-top: 1px solid var(--ecole-bordure);
+  }
+}
+
+.libelle {
+  flex: 1 1 16rem;
+  min-width: 0;
+}

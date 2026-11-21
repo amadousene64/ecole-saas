@@ -43,9 +43,14 @@ class PieceController {
       @RequestPart("type") String type,
       @RequestPart("fichier") MultipartFile fichier)
       throws IOException {
-    PieceDossier.Type t;
+    PieceDossier piece = service.deposer(eleveId, type(type), fichier.getBytes());
+    return Reponses.cree("/api/v1/eleves/" + eleveId + "/pieces/" + piece.getId(), versDto(piece));
+  }
+
+  /** Type de pièce reçu en partie de formulaire ; partagé avec l'assistant d'inscription. */
+  static PieceDossier.Type type(String type) {
     try {
-      t = PieceDossier.Type.valueOf(type.strip());
+      return PieceDossier.Type.valueOf(type.strip());
     } catch (IllegalArgumentException e) {
       throw new sn.ecole.shared.domain.ErreurMetier(
           "CHAMP_INVALIDE",
@@ -53,8 +58,6 @@ class PieceController {
           "Type de pièce : ACTE_NAISSANCE, CERTIFICAT_SCOLARITE, CERTIFICAT_MEDICAL ou"
               + " PHOTO_IDENTITE.");
     }
-    PieceDossier piece = service.deposer(eleveId, t, fichier.getBytes());
-    return Reponses.cree("/api/v1/eleves/" + eleveId + "/pieces/" + piece.getId(), versDto(piece));
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,7 +85,7 @@ class PieceController {
     service.supprimer(eleveId, pieceId);
   }
 
-  private static PieceDto versDto(PieceDossier p) {
+  static PieceDto versDto(PieceDossier p) {
     return new PieceDto(
         p.getId(),
         p.getType(),

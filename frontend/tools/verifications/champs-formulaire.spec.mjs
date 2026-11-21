@@ -15,12 +15,14 @@ describe('CHAMPS_FORMULAIRE sur les pages à formulaires (dépôt réel)', () =>
   it('analyse réellement les écrans (garde-fou contre un analyseur aveugle)', () => {
     const aChamps = [...composants.values()].filter((c) => c.champs);
     expect(aChamps.length).toBeGreaterThanOrEqual(10);
-    expect(racines).toContain('PageNouvelEleve');
+    expect(racines).toContain('PageAssistantInscription');
     expect(racines).toContain('PageFiche');
     // La fiche n'a pas de champ elle-même : ce sont ses onglets, atteints par ses imports.
     const parNom = (nom) => [...composants.values()].find((c) => c.nom === nom);
     expect(parNom('OngletIdentite')?.champs).toBe(true);
     expect(parNom('PageFiche')?.fournit).toBe(true);
+    // Assistant d'inscription : gabarit dans un fichier à part (templateUrl), lu aussi.
+    expect(parNom('PageAssistantInscription')?.champs).toBe(true);
   });
 });
 

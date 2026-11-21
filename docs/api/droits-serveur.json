@@ -78,6 +78,48 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "BrouillonInscriptionService.abandonner" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "BrouillonInscriptionService.enregistrer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "BrouillonInscriptionService.finaliser" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "BrouillonInscriptionService.lire" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "BrouillonInscriptionService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "BrouillonInscriptionService.ouvrir" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
     "CalendrierService.ajouter" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
       "ecriture" : true,
@@ -323,6 +365,13 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "InscriptionService.remplissage" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT')"
+    },
     "InscriptionService.sortir" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
       "ecriture" : true,
@@ -512,6 +561,13 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "PieceService.deposerDansBrouillon" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
     "PieceService.lister" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
       "ecriture" : false,
@@ -519,7 +575,21 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR')"
     },
+    "PieceService.listerDuBrouillon" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
     "PieceService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "PieceService.supprimerDuBrouillon" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
       "ecriture" : true,
       "conditionnel" : false,

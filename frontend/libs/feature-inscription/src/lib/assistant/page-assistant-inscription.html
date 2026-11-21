@@ -1,0 +1,437 @@
+<ecole-assistant
+  titre="Nouvelle inscription"
+  [sousTitre]="sousTitre()"
+  [etapes]="etapes()"
+  [courante]="etape()"
+  [atteinte]="atteinte()"
+  [titreEtape]="texteEtape().titre"
+  [sousTitreEtape]="texteEtape().sousTitre || null"
+  libelleFermer="Enregistrer et fermer l'assistant"
+  (fermer)="quitter()"
+  (allerA)="allerA($event)"
+>
+  <button
+    actions-entete
+    matButton="outlined"
+    type="button"
+    [disabled]="occupe() || !brouillon()"
+    (click)="quitter()"
+    data-testid="enregistrer-quitter"
+  >
+    Enregistrer et quitter
+  </button>
+
+  @if (erreur(); as message) {
+  <p class="message erreur" role="alert" data-testid="erreur-assistant">
+    {{ message }}
+  </p>
+  } @switch (etape()) { @case (1) {
+  <form
+    [formGroup]="formEleve"
+    class="formulaire carte"
+    data-testid="etape-eleve"
+    (ngSubmit)="continuer()"
+  >
+    <ecole-champ libelle="Prénoms">
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="prenoms" data-testid="champ-prenoms" />
+      </mat-form-field>
+    </ecole-champ>
+    <ecole-champ libelle="Nom">
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="nom" data-testid="champ-nom" />
+      </mat-form-field>
+    </ecole-champ>
+    <ecole-champ libelle="Sexe">
+      <mat-form-field appearance="outline">
+        <mat-select formControlName="sexe" data-testid="champ-sexe">
+          <mat-option value="F">Féminin</mat-option>
+          <mat-option value="M">Masculin</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ecole-champ>
+    <ecole-champ libelle="Date de naissance" class="champ-court">
+      <mat-form-field appearance="outline">
+        <input
+          matInput
+          type="date"
+          formControlName="dateNaissance"
+          data-testid="champ-naissance"
+        />
+      </mat-form-field>
+    </ecole-champ>
+    <ecole-champ libelle="Lieu de naissance">
+      <mat-form-field appearance="outline">
+        <input
+          matInput
+          formControlName="lieuNaissance"
+          data-testid="champ-lieu"
+        />
+      </mat-form-field>
+    </ecole-champ>
+    <ecole-champ libelle="Nationalité">
+      <mat-form-field appearance="outline">
+        <mat-select
+          formControlName="nationalite"
+          data-testid="champ-nationalite"
+        >
+          @for (n of nationalites; track n.code) {
+          <mat-option [value]="n.code">{{ n.libelle }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </ecole-champ>
+    <ecole-champ libelle="Identifiant national">
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="identifiantNational" />
+      </mat-form-field>
+    </ecole-champ>
+    <!-- Entrée valide l'étape, comme « Continuer ». -->
+    <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+  </form>
+  } @case (2) {
+  <div class="liste-responsables" data-testid="etape-responsables">
+    @for (r of responsables(); track $index; let i = $index) {
+    <article class="carte responsable" [attr.data-testid]="'responsable-' + i">
+      <span class="initiales" aria-hidden="true">{{ initiales(r) }}</span>
+      <div class="identite">
+        <p class="nom-responsable">
+          <strong>{{ r.nom?.toUpperCase() }} {{ r.prenoms }}</strong> · {{
+          libelleLien(r.type) }}
+        </p>
+        @if (r.telephone) {
+        <p class="texte-secondaire">{{ r.telephone }}</p>
+        }
+        <p class="roles">
+          @for (role of roles(r); track role) {
+          <ecole-pastille
+            [ton]="role.startsWith('Responsable') ? 'primaire' : 'neutre'"
+            >{{ role }}</ecole-pastille
+          >
+          }
+        </p>
+      </div>
+      <div class="actions-responsable">
+        <button
+          matButton="outlined"
+          type="button"
+          (click)="modifierResponsable(i)"
+          [attr.aria-label]="'Modifier ' + r.prenoms + ' ' + r.nom"
+        >
+          Modifier
+        </button>
+        <button
+          matButton
+          type="button"
+          class="danger"
+          (click)="retirerResponsable(i)"
+          [attr.aria-label]="'Retirer ' + r.prenoms + ' ' + r.nom"
+        >
+          Retirer
+        </button>
+      </div>
+    </article>
+    }
+    <button
+      type="button"
+      class="ajouter-responsable"
+      (click)="ajouterResponsable()"
+      data-testid="ouvrir-ajout-responsable"
+    >
+      <span aria-hidden="true">+</span> Ajouter un responsable
+    </button>
+    @if (responsableLegal()) {
+    <p class="message ok" role="status" data-testid="responsable-legal-ok">
+      Un responsable légal est renseigné.
+    </p>
+    } @else {
+    <p class="aide">
+      Au moins un responsable légal est obligatoire pour continuer.
+    </p>
+    }
+  </div>
+  @if (modale() !== null) {
+  <ecole-modale-responsable
+    [pourBrouillon]="true"
+    [saisie]="saisieModale()"
+    [lies]="idsExistants()"
+    (saisi)="surSaisi($event)"
+    (fermee)="modale.set(null)"
+  />
+  } } @case (3) {
+  <form
+    [formGroup]="formScolarite"
+    class="formulaire carte"
+    data-testid="etape-scolarite"
+  >
+    <ecole-champ libelle="Classe" class="champ-plein">
+      <mat-form-field appearance="outline">
+        <mat-select formControlName="classeId" data-testid="champ-classe">
+          @for (c of classes(); track c.id) {
+          <mat-option [value]="c.id">{{ c.nom }}</mat-option>
+          }
+        </mat-select>
+        @if (remplissageChoisi(); as r) {
+        <mat-hint data-testid="remplissage-classe"
+          >{{ texteRemplissage(r) }}</mat-hint
+        >
+        }
+      </mat-form-field>
+    </ecole-champ>
+    @for (g of groupesOptions(); track g.groupe) {
+    <fieldset class="groupe-options champ-plein">
+      <legend class="libelle">{{ g.groupe }}</legend>
+      <div class="choix-options" role="radiogroup" [attr.aria-label]="g.groupe">
+        @for (o of g.liste; track o.id) {
+        <label
+          class="option"
+          [class.choisie]="choixOptions()[g.groupe] === o.id"
+        >
+          <input
+            type="radio"
+            [name]="'option-' + g.groupe"
+            [checked]="choixOptions()[g.groupe] === o.id"
+            (change)="choisirOption(g.groupe, o.id!)"
+          />
+          {{ o.libelle }}
+        </label>
+        }
+      </div>
+    </fieldset>
+    }
+    <mat-checkbox
+      formControlName="redoublant"
+      class="champ-plein"
+      data-testid="champ-redoublant"
+      >Redouble cette classe</mat-checkbox
+    >
+  </form>
+  } @case (4) {
+  <ul class="pieces carte" data-testid="etape-pieces">
+    @for (p of typesPieces; track p.type) {
+    <li class="piece">
+      <div class="libelle-piece">
+        <span>{{ libellesPiece[p.type] }}</span>
+        @if (!p.exigee) {
+        <span class="mention">(facultatif)</span>
+        }
+      </div>
+      @if (pieceDe(p.type); as depose) {
+      <ecole-pastille [ton]="analyse[depose.statut!].ton"
+        >{{ analyse[depose.statut!].libelle }}</ecole-pastille
+      >
+      <button
+        matButton
+        type="button"
+        (click)="retirerPiece(depose)"
+        [attr.aria-label]="'Retirer : ' + libellesPiece[p.type]"
+      >
+        Retirer
+      </button>
+      } @else {
+      <label class="deposer" [class.occupe]="depot() === p.type">
+        <input
+          type="file"
+          accept="application/pdf,image/jpeg,image/png"
+          (change)="deposer(p.type, $event)"
+          [attr.data-testid]="'deposer-' + p.type"
+          [disabled]="depot() !== null"
+        />
+        {{ depot() === p.type ? 'Envoi…' : 'Déposer' }}
+        <span class="sr-only">: {{ libellesPiece[p.type] }}</span>
+      </label>
+      }
+    </li>
+    }
+  </ul>
+  <p class="aide">PDF, JPEG ou PNG, 5 Mo au plus.</p>
+  } @case (5) {
+  <div class="recap" data-testid="etape-verification">
+    <section class="carte">
+      <header class="entete-recap">
+        <h2>Élève</h2>
+        <button type="button" class="lien" (click)="allerA(1)">
+          Modifier<span class="sr-only"> : élève</span>
+        </button>
+      </header>
+      <dl class="grille-recap">
+        <div>
+          <dt>Nom complet</dt>
+          <dd>
+            {{ formEleve.value.nom?.toUpperCase() }} {{ formEleve.value.prenoms
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>{{ formEleve.value.sexe === 'F' ? 'Née le' : 'Né le' }}</dt>
+          <dd>
+            {{ formEleve.value.dateNaissance | date: 'd MMMM y' : '' : 'fr' }} à
+            {{ formEleve.value.lieuNaissance }}
+          </dd>
+        </div>
+        <div>
+          <dt>Nationalité</dt>
+          <dd>{{ nationalite(formEleve.value.nationalite ?? '') }}</dd>
+        </div>
+      </dl>
+    </section>
+    <section class="carte">
+      <header class="entete-recap">
+        <h2>Responsables</h2>
+        <button type="button" class="lien" (click)="allerA(2)">
+          Modifier<span class="sr-only"> : responsables</span>
+        </button>
+      </header>
+      <ul class="lignes-recap">
+        @for (r of responsables(); track $index) {
+        <li>
+          <span
+            ><strong>{{ r.nom?.toUpperCase() }} {{ r.prenoms }}</strong> · {{
+            libelleLien(r.type) }}</span
+          >
+          <span class="texte-secondaire"
+            >{{ roles(r).join(', ').toLowerCase() }}</span
+          >
+        </li>
+        }
+      </ul>
+    </section>
+    <section class="carte">
+      <header class="entete-recap">
+        <h2>Scolarité</h2>
+        <button type="button" class="lien" (click)="allerA(3)">
+          Modifier<span class="sr-only"> : scolarité</span>
+        </button>
+      </header>
+      <dl class="grille-recap trois">
+        <div>
+          <dt>Classe</dt>
+          <dd>
+            {{ classeNom() }}@if (remplissageChoisi(); as r) { @if (r.inscrits
+            !== null) { · {{ r.inscrits }} / {{ r.capacite }} places } }
+          </dd>
+        </div>
+        @if (optionsChoisies(); as o) {
+        <div>
+          <dt>Options</dt>
+          <dd>{{ o }}</dd>
+        </div>
+        }
+        <div>
+          <dt>
+            {{ formEleve.value.sexe === 'F' ? 'Redoublante' : 'Redoublant' }}
+          </dt>
+          <dd>{{ formScolarite.value.redoublant ? 'Oui' : 'Non' }}</dd>
+        </div>
+      </dl>
+    </section>
+    <section class="carte">
+      <header class="entete-recap">
+        <h2>Pièces du dossier</h2>
+        <button type="button" class="lien" (click)="allerA(4)">
+          Modifier<span class="sr-only"> : pièces</span>
+        </button>
+      </header>
+      <ul class="lignes-recap">
+        @for (p of typesPieces; track p.type) { @if (pieceDe(p.type); as depose)
+        {
+        <li>
+          <span>{{ libellesPiece[p.type] }}</span>
+          <span [class]="'statut-' + analyse[depose.statut!].ton"
+            >{{ analyse[depose.statut!].libelle }}</span
+          >
+        </li>
+        } @else if (p.exigee) {
+        <li>
+          <span>{{ libellesPiece[p.type] }}</span>
+          <span class="statut-bissap">Manquante</span>
+        </li>
+        } }
+      </ul>
+    </section>
+    <form [formGroup]="formFinal" class="carte">
+      <fieldset class="enregistrer-comme">
+        <legend class="libelle">Enregistrer comme</legend>
+        <mat-radio-group
+          formControlName="statut"
+          class="statuts"
+          data-testid="champ-statut-final"
+        >
+          <mat-radio-button value="INSCRIT">
+            {{ formEleve.value.sexe === 'F' ? 'Inscrite' : 'Inscrit' }}
+          </mat-radio-button>
+          <mat-radio-button value="PRE_INSCRIT">
+            {{ formEleve.value.sexe === 'F' ? 'Pré-inscrite' : 'Pré-inscrit' }}
+            (à valider plus tard)
+          </mat-radio-button>
+        </mat-radio-group>
+      </fieldset>
+      @if (responsables().length) {
+      <div class="code-final">
+        <mat-checkbox
+          [checked]="genererCode()"
+          (change)="genererCode.set($event.checked)"
+          data-testid="generer-code"
+        >
+          Générer ensuite le code d'activation de {{
+          nomResponsable(responsables()[rangCode()]) }}
+        </mat-checkbox>
+        @if (genererCode() && responsables().length > 1) {
+        <ecole-champ libelle="Responsable qui reçoit le code">
+          <mat-form-field appearance="outline">
+            <mat-select
+              [value]="rangCode()"
+              (selectionChange)="codePour.set($event.value)"
+              data-testid="champ-code-pour"
+            >
+              @for (r of responsables(); track $index) {
+              <mat-option [value]="$index">{{ nomResponsable(r) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        }
+      </div>
+      }
+    </form>
+  </div>
+  } }
+
+  <div pied>
+    @if (etape() > 1) {
+    <button
+      matButton="outlined"
+      type="button"
+      [disabled]="occupe()"
+      (click)="precedent()"
+      data-testid="etape-precedente"
+    >
+      Précédent
+    </button>
+    } @if (etape() < 5) {
+    <button
+      matButton="filled"
+      type="button"
+      [disabled]="occupe() || !brouillon()"
+      (click)="continuer()"
+      data-testid="etape-suivante"
+    >
+      Continuer
+    </button>
+    } @else {
+    <button
+      matButton="filled"
+      type="button"
+      [disabled]="occupe()"
+      (click)="inscrire()"
+      data-testid="inscrire-eleve"
+    >
+      Inscrire l'élève
+    </button>
+    }
+  </div>
+</ecole-assistant>
+
+@if (code(); as c) {
+<ecole-modale-code [donnees]="c" (fermee)="fermerCode()" />
+}

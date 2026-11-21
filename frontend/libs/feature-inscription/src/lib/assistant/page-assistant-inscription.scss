@@ -1,0 +1,304 @@
+// Assistant d'inscription : contenu des étapes (maquettes 08, 09, 10). L'en-tête, les étapes et le
+// pied viennent de ecole-assistant.
+
+:host {
+  display: block;
+  // Écran plein : pas la largeur maximale des écrans ordinaires (ecran.scss).
+  max-width: none;
+}
+
+.formulaire.carte {
+  max-width: none;
+}
+
+// --- Étape 2 : responsables en cartes (maquette 08) ---
+.liste-responsables {
+  display: grid;
+  gap: var(--ecole-espace-sections);
+}
+
+.responsable {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ecole-espace-4);
+}
+
+.initiales {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ecole-primaire-doux);
+  color: var(--ecole-primaire-survol);
+  font-weight: 700;
+}
+
+.identite {
+  flex: 1;
+  min-width: 0;
+
+  p {
+    margin: 0 0 var(--ecole-espace-1);
+  }
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ecole-espace-2);
+  margin-top: var(--ecole-espace-2);
+}
+
+.actions-responsable {
+  display: flex;
+  align-items: center;
+  gap: var(--ecole-espace-boutons);
+}
+
+.danger {
+  color: var(--ecole-bissap);
+}
+
+// Bouton « + Ajouter un responsable » en pointillés, sur toute la largeur.
+.ajouter-responsable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ecole-espace-3);
+  min-height: 56px;
+  border: 1px dashed var(--ecole-bordure-champ);
+  border-radius: var(--ecole-rayon-carte);
+  background: transparent;
+  color: var(--ecole-primaire);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  span {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  &:hover {
+    background: var(--ecole-primaire-doux);
+  }
+}
+
+// --- Étape 3 : options en cartes à cocher (maquette 10) ---
+.groupe-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: var(--ecole-espace-libelle);
+  }
+}
+
+.choix-options {
+  display: grid;
+  gap: var(--ecole-espace-2);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--ecole-espace-3);
+  min-height: 48px;
+  padding: 0 var(--ecole-espace-4);
+  border: 1px solid var(--ecole-bordure-champ);
+  border-radius: var(--ecole-rayon-controle);
+  background: var(--ecole-surface);
+  cursor: pointer;
+
+  input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--ecole-primaire);
+  }
+
+  &.choisie {
+    border: 2px solid var(--ecole-primaire);
+    background: var(--ecole-primaire-doux);
+    font-weight: 600;
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--ecole-primaire);
+    outline-offset: 2px;
+  }
+}
+
+// --- Étape 4 : pièces ---
+.pieces {
+  margin: 0;
+  padding: 0 var(--ecole-espace-carte);
+  list-style: none;
+}
+
+.piece {
+  display: flex;
+  align-items: center;
+  gap: var(--ecole-espace-3);
+  min-height: 64px;
+  border-bottom: 1px solid var(--ecole-bordure);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.libelle-piece {
+  flex: 1;
+}
+
+.mention {
+  margin-left: var(--ecole-espace-1);
+  color: var(--ecole-texte-secondaire);
+}
+
+// Champ fichier natif masqué, déclenché par son libellé (bouton contour).
+.deposer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--ecole-espace-4);
+  border: 1px solid var(--ecole-bordure-champ);
+  border-radius: var(--ecole-rayon-controle);
+  color: var(--ecole-primaire);
+  font-weight: 600;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--ecole-primaire);
+    outline-offset: 2px;
+  }
+
+  &.occupe {
+    opacity: 0.6;
+  }
+}
+
+// --- Étape 5 : récapitulatif (maquette 09) ---
+.recap {
+  display: grid;
+  gap: var(--ecole-espace-sections);
+}
+
+.entete-recap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0 0 var(--ecole-espace-3);
+  }
+}
+
+.lien {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ecole-primaire);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.grille-recap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ecole-espace-4);
+  margin: 0;
+
+  &.trois {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  dt {
+    color: var(--ecole-texte-secondaire);
+    font-size: var(--ecole-libelle-taille);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.lignes-recap {
+  display: grid;
+  gap: var(--ecole-espace-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--ecole-espace-4);
+  }
+}
+
+.statut-primaire {
+  color: var(--ecole-primaire);
+  font-weight: 600;
+}
+
+.statut-safran {
+  color: var(--ecole-safran);
+  font-weight: 600;
+}
+
+.statut-bissap {
+  color: var(--ecole-bissap);
+  font-weight: 600;
+}
+
+.enregistrer-comme {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: var(--ecole-espace-2);
+  }
+}
+
+.statuts {
+  display: grid;
+  gap: var(--ecole-espace-2);
+}
+
+@media (max-width: 599.98px) {
+  .responsable {
+    flex-wrap: wrap;
+  }
+
+  .actions-responsable {
+    width: 100%;
+  }
+
+  .grille-recap,
+  .grille-recap.trois {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// Case du code d'activation, sous « Enregistrer comme » (maquette 09).
+.code-final {
+  margin-top: var(--ecole-espace-4);
+  padding-top: var(--ecole-espace-4);
+  border-top: 1px solid var(--ecole-bordure);
+}

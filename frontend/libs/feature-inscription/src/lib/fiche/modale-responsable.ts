@@ -24,10 +24,12 @@ import {
   LienParentalDto,
   LienParentalRequete,
   ResponsableResumeDto,
+  ResponsableSaisiDto,
 } from '@ecole/api-client';
 import { Modale, Champ } from '@ecole/ui';
 import { map } from 'rxjs';
 import { messageErreur } from '../commun/erreurs';
+import { requis } from '../commun/requis';
 import { TYPES_LIEN } from '../commun/etiquettes';
 import { ServiceResponsables } from '../services/service-responsables';
 
@@ -59,7 +61,11 @@ let suivant = 0;
   ],
   template: `
     <ecole-modale
-      [titre]="lien() ? 'Modifier le responsable' : 'Ajouter un responsable'"
+      [titre]="
+        lien() || saisie()
+          ? 'Modifier le responsable'
+          : 'Ajouter un responsable'
+      "
       [sousTitre]="
         lien()
           ? 'Identité, lien avec l’élève et rôles'
@@ -209,7 +215,7 @@ let suivant = 0;
           [disabled]="occupe()"
           data-testid="ajouter-responsable"
         >
-          {{ lien() ? 'Enregistrer' : 'Ajouter' }}
+          {{ lien() || saisie() ? 'Enregistrer' : 'Ajouter' }}
         </button>
       </div>
     </ecole-modale>
@@ -220,12 +226,21 @@ let suivant = 0;
   ],
 })
 export class ModaleResponsable implements OnInit {
-  readonly eleveId = input.required<string>();
+  /** Élève de la fiche ; absent dans l'assistant d'inscription (l'élève n'existe pas encore). */
+  readonly eleveId = input<string | null>(null);
   /** Lien à modifier ; absent : ajout d'un responsable. */
   readonly lien = input<LienParentalDto | null>(null);
   /** Responsables déjà liés à l'élève (identifiants), pour ne pas les proposer. */
   readonly lies = input<readonly string[]>([]);
+  /**
+   * Assistant d'inscription : rien n'est envoyé au serveur (sauf la recherche par téléphone), la
+   * saisie est rendue par `saisi` et enregistrée dans le brouillon.
+   */
+  readonly pourBrouillon = input(false);
+  /** Responsable du brouillon à modifier (assistant) ; absent : ajout. */
+  readonly saisie = input<ResponsableSaisiDto | null>(null);
   readonly enregistre = output<void>();
+  readonly saisi = output<ResponsableSaisiDto>();
   readonly fermee = output<void>();
 
   private readonly service = inject(ServiceResponsables);
@@ -272,6 +287,25 @@ export class ModaleResponsable implements OnInit {
   }
 
   ngOnInit(): void {
+    const s = this.saisie();
+    if (s) {
+      this.formulaire.reset({
+        prenoms: s.prenoms ?? '',
+        nom: s.nom ?? '',
+        telephone: s.telephone ?? '',
+        email: s.email ?? '',
+        type: s.type ?? 'MERE',
+        responsableLegal: !!s.responsableLegal,
+        payeur: !!s.payeur,
+        contactUrgence: !!s.contactUrgence,
+        autoriseRecuperer: !!s.autoriseRecuperer,
+        recoitNotifications: !!s.recoitNotifications,
+      });
+      if (s.responsableId) {
+        this.choisir({ id: s.responsableId, prenoms: s.prenoms, nom: s.nom });
+      }
+      return;
+    }
     const l = this.lien();
     const r = l?.responsable;
     if (l && r) {
@@ -361,23 +395,36 @@ export class ModaleResponsable implements OnInit {
       telephone: v.telephone,
       email: v.email || undefined,
     };
+    if (this.pourBrouillon()) {
+      // Responsable existant : l'identité affichée est la sienne ; le serveur ne garde que l'id.
+      const existant = this.existant();
+      this.saisi.emit({
+        ...roles,
+        ...identite,
+        responsableId: existant?.id,
+        prenoms: existant ? existant.prenoms : identite.prenoms,
+        nom: existant ? existant.nom : identite.nom,
+      });
+      return;
+    }
     this.erreur.set(null);
     this.occupe.set(true);
     try {
       const lien = this.lien();
+      const eleveId = requis(this.eleveId());
       if (lien?.responsable) {
         await this.service.modifier(lien.responsable, {
           ...identite,
           profession: lien.responsable.profession,
         });
-        await this.service.modifierLien(this.eleveId(), lien, {
+        await this.service.modifierLien(eleveId, lien, {
           ...roles,
           responsableId: lien.responsable.id,
         });
       } else {
         const responsable =
           this.existant() ?? (await this.service.creer(identite));
-        await this.service.lier(this.eleveId(), {
+        await this.service.lier(eleveId, {
           ...roles,
           responsableId: responsable.id,
         });

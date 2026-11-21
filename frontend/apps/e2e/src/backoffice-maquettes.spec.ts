@@ -1,10 +1,12 @@
 import { expect as expectBase, Page, test } from '@playwright/test';
 import { BUREAU, capturerMaquette, TELEPHONE } from './maquettes';
-import { exigerInfra, lienMenu, seConnecter } from './support';
+import { COMPTES_E2E, exigerInfra, lienMenu, seConnecter } from './support';
 
 /**
  * Écrans du back-office mis en regard des maquettes (docs/maquettes/, voir maquettes.ts). LECTURE
- * SEULE : on ouvre les formulaires et les confirmations sans jamais les envoyer, rien n'est créé.
+ * SEULE dans les écoles A et B : on ouvre les formulaires et les confirmations sans les envoyer.
+ * Les assistants, qui enregistrent un brouillon à chaque étape, sont capturés dans l'école E2E et
+ * leur brouillon est abandonné à la fin.
  */
 exigerInfra();
 
@@ -35,7 +37,7 @@ test('16 · connexion (téléphone)', async ({ page }) => {
   await capturerMaquette(page, '16-connexion-telephone');
 });
 
-test('03, 04, 06, 08 · secrétariat : liste, fiche, responsable, nouvel élève', async ({
+test('03, 04, 06 · secrétariat : liste, fiche, responsable', async ({
   page,
 }) => {
   await page.setViewportSize(BUREAU);
@@ -53,22 +55,110 @@ test('03, 04, 06, 08 · secrétariat : liste, fiche, responsable, nouvel élève
   await capturerMaquette(page, '06-modale-responsable');
   await page.keyboard.press('Escape');
 
-  await page.goto('/eleves/nouveau');
-  await expect(page.getByTestId('champ-prenoms')).toBeVisible();
-  await capturerMaquette(page, '08-nouvel-eleve');
+  await page.goto('/eleves/import');
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    'Importer des élèves',
+  );
+  await capturerMaquette(page, 'import-assistant');
 });
 
-test('05, 10 · secrétariat sur téléphone : liste et nouvel élève', async ({
-  page,
-}) => {
+test('05 · secrétariat sur téléphone : liste', async ({ page }) => {
   await page.setViewportSize(TELEPHONE);
   await seConnecter(page, 'secretariat.a');
   await page.goto('/eleves');
   await expect(page.locator('[data-testid^="eleve-"]').first()).toBeVisible();
   await capturerMaquette(page, '05-liste-eleves-telephone');
+});
+
+/** Assistant d'inscription : étape 1 remplie, un responsable ajouté, puis étape 3 atteinte. */
+async function assistantJusquaScolarite(page: Page): Promise<void> {
   await page.goto('/eleves/nouveau');
-  await expect(page.getByTestId('champ-prenoms')).toBeVisible();
-  await capturerMaquette(page, '10-nouvel-eleve-telephone');
+  await expect(page).toHaveURL(/\/eleves\/brouillons\//);
+  await page.getByTestId('champ-prenoms').fill('Aminata');
+  await page.getByTestId('champ-nom').fill('Fictive');
+  await page.getByTestId('champ-naissance').fill('2013-03-14');
+  await page.getByTestId('champ-lieu').fill('Thiès');
+  await page.getByTestId('etape-suivante').click();
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Responsables de l'élève",
+  );
+  await page.getByTestId('ouvrir-ajout-responsable').click();
+  await page.getByTestId('resp-telephone').fill('+221700000088');
+  await page.getByTestId('resp-prenoms').fill('Fatou');
+  await page.getByTestId('resp-nom').fill('Fictive');
+  await page.getByTestId('ajouter-responsable').click();
+  await expect(page.getByTestId('responsable-0')).toBeVisible();
+}
+
+/**
+ * Nettoyage : « Enregistrer et quitter », puis abandon du brouillon ouvert par CE test seulement
+ * (les captures tournent en parallèle dans l'école E2E : un autre brouillon peut être en cours).
+ */
+async function abandonnerBrouillons(page: Page): Promise<void> {
+  const id = page.url().split('/').pop() ?? '';
+  expect(id).toMatch(/^[0-9a-f-]{36}$/);
+  await page.getByTestId('enregistrer-quitter').click();
+  await expect(page.getByTestId('table-eleves')).toBeVisible();
+  const ligne = page
+    .getByTestId('brouillons-en-cours')
+    .locator('li')
+    .filter({ has: page.locator(`a[href$="/eleves/brouillons/${id}"]`) });
+  await ligne.getByRole('button', { name: /Abandonner/ }).click();
+  await page.getByTestId('confirmer-action').click();
+  await expect(page.getByTestId('confirmer-abandon')).toHaveCount(0);
+  await expect(ligne).toHaveCount(0);
+}
+
+test("08, 09 · assistant d'inscription (bureau, école E2E)", async ({
+  page,
+}) => {
+  await page.setViewportSize(BUREAU);
+  await seConnecter(page, COMPTES_E2E.secretariat);
+  await assistantJusquaScolarite(page);
+  await capturerMaquette(page, '08-assistant-etape2');
+  await page.getByTestId('etape-suivante').click();
+  await page.getByTestId('champ-classe').click();
+  await page.getByRole('option').first().click();
+  await page.getByTestId('etape-suivante').click();
+  await expect(page.getByTestId('titre-etape')).toHaveText('Pièces du dossier');
+  await page.getByTestId('etape-suivante').click();
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Vérifiez avant d'inscrire",
+  );
+  await page.getByTestId('generer-code').click();
+  await capturerMaquette(page, '09-assistant-verification');
+  await abandonnerBrouillons(page);
+});
+
+test("10 · assistant d'inscription (téléphone, école E2E)", async ({
+  page,
+}) => {
+  await page.setViewportSize(TELEPHONE);
+  await seConnecter(page, COMPTES_E2E.secretariat);
+  await assistantJusquaScolarite(page);
+  await page.getByTestId('etape-suivante').click();
+  await expect(page.getByTestId('titre-etape')).toHaveText('Classe et options');
+  await page.getByTestId('champ-classe').click();
+  await page.getByRole('option').first().click();
+  await capturerMaquette(page, '10-assistant-telephone');
+  // Sur téléphone, « Enregistrer et quitter » est dans l'en-tête masqué : la croix fait de même.
+  const brouillon = page.url();
+  await page.getByTestId('fermer-assistant').click();
+  await expect(page.getByTestId('table-eleves')).toBeVisible();
+  await page.setViewportSize(BUREAU);
+  await page.goto(brouillon);
+  await expect(page.getByTestId('titre-etape')).toHaveText('Classe et options');
+  await abandonnerBrouillons(page);
+});
+
+test("préparation d'une année : première étape (école E2E, rien n'est créé)", async ({
+  page,
+}) => {
+  await page.setViewportSize(BUREAU);
+  await seConnecter(page, COMPTES_E2E.directeur);
+  await page.goto('/etablissement/annees/preparation');
+  await expect(page.getByTestId('titre-etape')).toHaveText("L'année scolaire");
+  await capturerMaquette(page, 'annees-preparation');
 });
 
 test('11, 07 · direction : tableau de bord, changement de statut, classes et salles, paramètres', async ({

@@ -20,3 +20,4 @@ export * from './lib/modales/modale';
 export * from './lib/modales/confirmation';
 export * from './lib/formulaires/champ';
 export * from './lib/formats/nationalites';
+export * from './lib/assistant/assistant';

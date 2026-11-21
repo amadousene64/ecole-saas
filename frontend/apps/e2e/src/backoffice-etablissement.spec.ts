@@ -1,4 +1,5 @@
 import { expect as expectBase, Page, test } from '@playwright/test';
+import { verifierAccessibilite } from './accessibilite';
 import {
   COMPTES_E2E,
   exigerInfra,
@@ -131,17 +132,65 @@ test('l’ouverture et la clôture d’une année sont proposées au directeur s
   await seConnecter(page, 'secretariat.a');
   await allerA(page, 'Années, périodes et calendrier');
   await expect(page.getByTestId('annee-2026-2027')).toBeVisible();
-  await expect(page.getByTestId('form-annee')).toBeVisible();
+  await expect(page.getByTestId('preparer-annee')).toBeVisible();
   await expect(page.getByTestId('ouvrir')).toHaveCount(0);
   await expect(page.getByTestId('cloturer')).toHaveCount(0);
 });
 
-test('le directeur voit les années avec leur formulaire', async ({ page }) => {
+test('le directeur voit les années et peut en préparer une', async ({
+  page,
+}) => {
   await seConnecter(page, 'directeur.a');
   await allerA(page, 'Années et périodes');
   await expect(page.getByTestId('annee-2026-2027')).toBeVisible();
-  await expect(page.getByTestId('form-annee')).toBeVisible();
+  await expect(page.getByTestId('preparer-annee')).toBeVisible();
   await expect(
     page.getByTestId('ouvrir').or(page.getByTestId('cloturer')).first(),
   ).toBeVisible();
+});
+
+test("l'assistant de préparation crée une année, ses périodes et son calendrier (école E2E)", async ({
+  page,
+}) => {
+  // Libellé unique par exécution ; l'année est supprimée à la fin (rien ne reste).
+  const an = 2100 + (Date.now() % 800);
+  const libelle = `${an}-${an + 1}`;
+  await seConnecter(page, COMPTES_E2E.directeur);
+  await page.goto('/etablissement/annees');
+  await page.getByTestId('preparer-annee').click();
+  await expect(page.getByTestId('titre-etape')).toHaveText("L'année scolaire");
+  await expect(
+    page.getByRole('navigation', { name: 'Navigation principale' }),
+  ).toHaveCount(0);
+  await page.getByTestId('champ-annee-libelle').fill(libelle);
+  await page.getByTestId('champ-annee-debut').fill(`${an}-10-05`);
+  await page.getByTestId('champ-annee-fin').fill(`${an + 1}-07-02`);
+  await verifierAccessibilite(page, 'Préparation de l’année : année');
+  await page.getByTestId('etape-suivante').click();
+
+  await expect(page.getByTestId('titre-etape')).toHaveText('Périodes');
+  await expect(page).toHaveURL(
+    /\/etablissement\/annees\/preparation\/[0-9a-f-]{36}$/,
+  );
+  await verifierAccessibilite(page, 'Préparation de l’année : périodes');
+  await page.getByTestId('etape-suivante').click();
+
+  await expect(page.getByTestId('titre-etape')).toHaveText('Calendrier');
+  await verifierAccessibilite(page, 'Préparation de l’année : calendrier');
+  await page.getByTestId('etape-suivante').click();
+
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Ouverture de l'année",
+  );
+  await expect(page.getByTestId('recap-annee')).toContainText(libelle);
+  await expect(page.getByTestId('ouvrir-annee')).toBeVisible();
+  await verifierAccessibilite(page, 'Préparation de l’année : ouverture');
+  await page.getByTestId('garder-preparation').click();
+
+  // L'année reste en préparation ; nettoyage : suppression.
+  const ligne = page.getByTestId(`annee-${libelle}`);
+  await expect(ligne).toContainText('En préparation');
+  await ligne.getByTestId('supprimer-annee').click();
+  await page.getByTestId('confirmer-action').click();
+  await expect(ligne).toHaveCount(0);
 });

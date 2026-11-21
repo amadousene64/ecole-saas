@@ -146,3 +146,25 @@ Les scénarios qui créent ou modifient des données travaillent dans l'**École
 B utilisées à la main. Les comptes Keycloak qu'ils créent sont supprimés à la fin ; la marque de la
 page de connexion est simulée (`simulerLogoEcole`) au lieu de déposer un logo. Sur un poste déjà
 installé : `bash infra/scripts/creer-comptes-dev.sh`, puis redémarrer le backend (profil dev).
+
+## Assistants (`ecole-assistant`, maquettes 08, 09, 10)
+
+Une création longue, en étapes (inscrire un élève, importer une liste, préparer une année) passe
+par `ecole-assistant` (`@ecole/ui`), en **écran plein** : la route déclare
+`data: { pleinEcran: true }`, la coquille retire alors sa barre du haut et sa navigation (le
+contenu reste dans le même `<main>`, rien n'est recréé).
+
+- En-tête : « × », titre, sous-titre (« brouillon enregistré à 10:42 »), actions projetées
+  `[actions-entete]` (« Enregistrer et quitter ») ; masquées sur téléphone, où « × » fait de même.
+- Étapes numérotées (coche quand faite, « En cours » sur la courante) ; les étapes déjà atteintes
+  sont des boutons (`allerA`). Sur téléphone : barre de progression « Étape 3 sur 5 · Scolarité /
+  Suivante : Pièces ».
+- Contenu : colonne de 720 px centrée, titre de l'étape en `h1` (focus à chaque changement
+  d'étape, annoncé par les lecteurs d'écran), sous-titre facultatif.
+- Pied collé en bas de la fenêtre : « Étape n sur N », puis les boutons projetés `<div pied>`
+  (Précédent en contour, action principale en dernier ; pleine largeur sur téléphone).
+
+Assistant d'inscription : brouillon **enregistré côté serveur et chiffré** à chaque passage
+d'étape (`/api/v1/brouillons-inscription`), pièces rattachées au brouillon, inscription finale tout
+ou rien. Les inscriptions commencées apparaissent sur la liste des élèves (« Inscriptions en
+cours » : reprendre ou abandonner).
