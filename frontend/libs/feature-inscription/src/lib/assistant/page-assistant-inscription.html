@@ -395,7 +395,12 @@
       }
     </form>
   </div>
-  } }
+  } } @if (brouillon()?.expireLe; as expire) {
+  <p class="aide expiration" data-testid="expiration-brouillon">
+    Ce brouillon sera supprimé le {{ expire | date: 'dd/MM' }} s'il n'est pas
+    terminé.
+  </p>
+  }
 
   <div pied>
     @if (etape() > 1) {

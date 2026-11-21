@@ -29,8 +29,15 @@ public final class BrouillonInscriptionRequetes {
   public record FinalisationBrouillon(
       @NotNull StatutInscription statut, @Min(0) @Max(3) Integer codePour) {}
 
+  /** {@code expireLe} : supprimé automatiquement à cette date s'il n'est pas terminé. */
   public record BrouillonResumeDto(
-      UUID id, String libelle, int etape, UUID auteurId, Instant modifieLe, int version) {}
+      UUID id,
+      String libelle,
+      int etape,
+      UUID auteurId,
+      Instant modifieLe,
+      Instant expireLe,
+      int version) {}
 
   /** {@code codeActivation} : présent si demandé ; affiché une seule fois, jamais relisible. */
   public record BrouillonFinaliseDto(

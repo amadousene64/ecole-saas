@@ -173,8 +173,9 @@ class BrouillonsInscriptionApiTest extends TestInscription {
     assertThat(lu.corps().path("contenu").path("eleve").path("prenoms").asText()).isEqualTo("Awa");
 
     Reponse liste = get(SECRETARIAT_A, A, BROUILLONS);
-    assertThat(liste.corps()).hasSize(1);
-    assertThat(liste.corps().get(0).path("libelle").asText()).isEqualTo("Awa Fictif");
+    assertThat(liste.corps().path("elements")).hasSize(1);
+    assertThat(liste.corps().path("elements").get(0).path("libelle").asText())
+        .isEqualTo("Awa Fictif");
   }
 
   @Test
@@ -413,7 +414,7 @@ class BrouillonsInscriptionApiTest extends TestInscription {
             A);
     assertThat(abandon.statut()).isEqualTo(204);
     assertThat(stockage.objets()).isEmpty();
-    assertThat(get(SECRETARIAT_A, A, BROUILLONS).corps()).isEmpty();
+    assertThat(get(SECRETARIAT_A, A, BROUILLONS).corps().path("elements")).isEmpty();
     assertThat(
             superUtilisateur()
                 .queryForObject(
@@ -428,7 +429,7 @@ class BrouillonsInscriptionApiTest extends TestInscription {
     UUID id = ouvert();
     enregistrer(SECRETARIAT_A, id, 0, 2, corps("eleve", eleve()));
     assertThat(get(DIRECTEUR_B, B, BROUILLONS + "/" + id).statut()).isEqualTo(404);
-    assertThat(get(DIRECTEUR_B, B, BROUILLONS).corps()).isEmpty();
+    assertThat(get(DIRECTEUR_B, B, BROUILLONS).corps().path("elements")).isEmpty();
     assertThat(
             put(DIRECTEUR_B, B, BROUILLONS + "/" + id, 1, corps("etape", 3, "contenu", corps()))
                 .statut())

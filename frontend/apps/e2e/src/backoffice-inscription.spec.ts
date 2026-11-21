@@ -118,6 +118,13 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await expect(page.getByTestId('titre-etape')).toHaveText(
     "Identité de l'élève",
   );
+  // Suppression automatique 30 jours après la dernière modification (ici : à l'instant).
+  const dans30Jours = new Date(
+    Date.now() + 30 * 24 * 3600 * 1000,
+  ).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  await expect(page.getByTestId('expiration-brouillon')).toHaveText(
+    `Ce brouillon sera supprimé le ${dans30Jours} s'il n'est pas terminé.`,
+  );
   // Écran plein : ni barre du haut ni navigation.
   await expect(
     page.getByRole('navigation', { name: 'Navigation principale' }),

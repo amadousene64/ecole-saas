@@ -21,6 +21,7 @@ public record BrouillonInscriptionDto(
     @Valid ContenuDto contenu,
     UUID auteurId,
     Instant modifieLe,
+    Instant expireLe,
     int version) {
 
   /** Contenu saisi : identité, responsables, scolarité. */

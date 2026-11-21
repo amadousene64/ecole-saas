@@ -103,6 +103,15 @@ async function abandonnerBrouillons(page: Page): Promise<void> {
     .getByTestId('brouillons-en-cours')
     .locator('li')
     .filter({ has: page.locator(`a[href$="/eleves/brouillons/${id}"]`) });
+  // Liste paginée : on charge la suite tant que ce brouillon n'est pas affiché.
+  const suite = page.getByTestId('brouillons-suite');
+  await expect(page.getByTestId('brouillons-en-cours')).toBeVisible();
+  const lignes = page.getByTestId('brouillons-en-cours').locator('li');
+  while ((await ligne.count()) === 0 && (await suite.count()) > 0) {
+    const avant = await lignes.count();
+    await suite.click();
+    await expect(lignes).not.toHaveCount(avant);
+  }
   await ligne.getByRole('button', { name: /Abandonner/ }).click();
   await page.getByTestId('confirmer-action').click();
   await expect(page.getByTestId('confirmer-abandon')).toHaveCount(0);

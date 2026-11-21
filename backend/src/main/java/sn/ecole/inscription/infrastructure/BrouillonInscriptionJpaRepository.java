@@ -12,7 +12,7 @@ import sn.ecole.inscription.domain.BrouillonInscriptionRepository;
 
 /** Implémentation Spring Data du port {@link BrouillonInscriptionRepository}. */
 interface BrouillonInscriptionJpaRepository
-    extends Repository<BrouillonInscription, UUID>, BrouillonInscriptionRepository {
+    extends Repository<BrouillonInscription, UUID>, BrouillonInscriptionRepository, PageBrouillons {
 
   @Override
   @Lock(LockModeType.PESSIMISTIC_WRITE)

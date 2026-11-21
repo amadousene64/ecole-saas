@@ -25,6 +25,7 @@ import sn.ecole.shared.application.ChiffrementDonnees;
 import sn.ecole.shared.application.JournalAudit;
 import sn.ecole.shared.domain.ContexteTenant;
 import sn.ecole.shared.domain.ErreurMetier;
+import sn.ecole.shared.domain.PageCurseur;
 import sn.ecole.shared.domain.TypeErreur;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
@@ -127,11 +128,18 @@ public class BrouillonInscriptionService {
       Contenu contenu,
       UUID auteurId,
       Instant modifieLe,
+      Instant expireLe,
       int version) {}
 
   /** Ligne de la liste « Brouillons en cours » : le nom seul, pour reprendre la saisie. */
   public record Resume(
-      UUID id, String libelle, int etape, UUID auteurId, Instant modifieLe, int version) {}
+      UUID id,
+      String libelle,
+      int etape,
+      UUID auteurId,
+      Instant modifieLe,
+      Instant expireLe,
+      int version) {}
 
   /**
    * Résultat de la finalisation : l'élève créé, les avertissements (capacité…) et le code
@@ -187,7 +195,16 @@ public class BrouillonInscriptionService {
   @PreAuthorize(Droits.ECRITURE)
   public Vue ouvrir(UUID anneeId) {
     UUID annee = anneeId != null ? anneeOuverte(anneeId) : anneeEnCours();
-    BrouillonInscription b = BrouillonInscription.ouvrir(annee, Erreurs.utilisateurCourant());
+    UUID auteur = Erreurs.utilisateurCourant();
+    if (brouillons.countByAuteurId(auteur) >= BrouillonInscription.MAX_PAR_AUTEUR) {
+      throw Erreurs.conflit(
+          "BROUILLONS_TROP_NOMBREUX",
+          "Vous avez déjà "
+              + BrouillonInscription.MAX_PAR_AUTEUR
+              + " inscriptions en cours. Terminez-en ou abandonnez-en une (liste des élèves,"
+              + " « Inscriptions en cours ») avant d'en commencer une autre.");
+    }
+    BrouillonInscription b = BrouillonInscription.ouvrir(annee, auteur);
     b.remplacer(chiffrer(b.getId(), Contenu.vide()), 1);
     b = brouillons.saveAndFlush(b);
     journal.consigner("BROUILLON_OUVERT", "BrouillonInscription", b.getId(), Map.of());
@@ -196,22 +213,46 @@ public class BrouillonInscriptionService {
 
   @PreAuthorize(Droits.ECRITURE)
   @Transactional(readOnly = true)
-  public List<Resume> lister() {
-    return brouillons.findTop50ByOrderByModifieLeDesc().stream()
-        .map(
-            b -> {
-              EleveSaisi e = dechiffrer(b).eleve();
-              String libelle =
-                  e == null ? "" : (nonVide(e.prenoms()) + " " + nonVide(e.nom())).strip();
-              return new Resume(
-                  b.getId(),
-                  libelle.isEmpty() ? "Élève sans nom" : libelle,
-                  b.getEtape(),
-                  b.getAuteurId(),
-                  b.getModifieLe(),
-                  b.getVersion());
-            })
-        .toList();
+  public PageCurseur<Resume> lister(String curseur, Integer taille) {
+    int n = PageCurseur.taille(taille);
+    Instant apresModifieLe = null;
+    UUID apresId = null;
+    if (curseur != null && !curseur.isBlank()) {
+      // Clé opaque : date de modification et identifiant du dernier brouillon, jamais un nom.
+      String[] cle = PageCurseur.decoder(curseur, 2);
+      try {
+        apresModifieLe = Instant.parse(cle[0]);
+        apresId = UUID.fromString(cle[1]);
+      } catch (RuntimeException e) {
+        throw Erreurs.invalide("CURSEUR_INVALIDE", "Curseur de page invalide.");
+      }
+    }
+    PageCurseur<BrouillonInscription> page =
+        PageCurseur.depuis(
+            brouillons.page(apresModifieLe, apresId, n + 1),
+            n,
+            b -> new String[] {b.getModifieLe().toString(), b.getId().toString()});
+    return page.map(this::resume);
+  }
+
+  private Resume resume(BrouillonInscription b) {
+    String libelle;
+    try {
+      EleveSaisi e = dechiffrer(b).eleve();
+      libelle = e == null ? "" : (nonVide(e.prenoms()) + " " + nonVide(e.nom())).strip();
+      libelle = libelle.isEmpty() ? "Élève sans nom" : libelle;
+    } catch (ErreurMetier illisible) {
+      // Un brouillon illisible reste listé : on peut toujours l'abandonner.
+      libelle = "Brouillon illisible";
+    }
+    return new Resume(
+        b.getId(),
+        libelle,
+        b.getEtape(),
+        b.getAuteurId(),
+        b.getModifieLe(),
+        b.expireLe(),
+        b.getVersion());
   }
 
   @PreAuthorize(Droits.ECRITURE)
@@ -434,6 +475,7 @@ public class BrouillonInscriptionService {
         contenu,
         b.getAuteurId(),
         b.getModifieLe(),
+        b.expireLe(),
         b.getVersion());
   }
 

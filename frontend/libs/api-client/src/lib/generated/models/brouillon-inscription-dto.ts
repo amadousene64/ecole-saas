@@ -7,6 +7,7 @@ export interface BrouillonInscriptionDto {
   auteurId?: string;
   contenu?: ContenuDto;
   etape?: number;
+  expireLe?: string;
   id?: string;
   modifieLe?: string;
   version?: number;

@@ -51,6 +51,7 @@ export type { NiveauDto } from './models/niveau-dto';
 export type { OptionEnseignementDto } from './models/option-enseignement-dto';
 export type { OptionEnseignementRequete } from './models/option-enseignement-requete';
 export type { OuvertureBrouillon } from './models/ouverture-brouillon';
+export type { PageDtoBrouillonResumeDto } from './models/page-dto-brouillon-resume-dto';
 export type { PageDtoEleveListeDto } from './models/page-dto-eleve-liste-dto';
 export type { ParametresInscriptionDto } from './models/parametres-inscription-dto';
 export type { ParametresInscriptionRequete } from './models/parametres-inscription-requete';
