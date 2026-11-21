@@ -16,6 +16,10 @@ updates:
       # Montées majeures de Spring Boot : décision manuelle.
       - dependency-name: "org.springframework.boot:*"
         update-types: ["version-update:semver-major"]
+      # POI 6.0.0 seule : on reste en 5.x pour l'instant (PR #55, analyse de l'import XLSX) ;
+      # 6.0.1 et suivantes seront proposées.
+      - dependency-name: "org.apache.poi:*"
+        versions: ["6.0.0"]
 
   - package-ecosystem: npm
     directory: /frontend
