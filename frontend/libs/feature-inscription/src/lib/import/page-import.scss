@@ -1,6 +1,25 @@
+// Écran plein : pas la largeur maximale des écrans ordinaires (ecran.scss).
+:host {
+  max-width: none;
+}
+
 .champ-fichier {
   display: flex;
   flex-direction: column;
   gap: var(--ecole-espace-libelle);
-  max-width: 480px;
+  max-width: none;
+}
+
+// Bouton du champ fichier natif aux couleurs des boutons contour (maquettes 01 et 08).
+input[type='file']::file-selector-button {
+  min-height: 40px;
+  margin-right: var(--ecole-espace-3);
+  padding: 0 var(--ecole-espace-4);
+  border: 1px solid var(--ecole-bordure-champ);
+  border-radius: var(--ecole-rayon-controle);
+  background: var(--ecole-surface);
+  color: var(--ecole-primaire);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }

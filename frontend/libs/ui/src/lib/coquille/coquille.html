@@ -1,3 +1,4 @@
+@if (!pleinEcran()) {
 <a class="saut" href="#contenu">{{ textes.allerAuContenu }}</a>
 <header class="barre-haute">
   @if (liens().length > 0 && mode() === 'tiroir') {
@@ -88,13 +89,17 @@
   </div>
   }
 </header>
+}
 
 <mat-sidenav-container class="conteneur">
   <mat-sidenav
     id="navigation-principale"
     [class.reduite]="mode() === 'icones'"
     [mode]="mode() === 'tiroir' ? 'over' : 'side'"
-    [opened]="mode() === 'tiroir' ? menuOuvert() : liens().length > 0"
+    [opened]="
+      !pleinEcran() &&
+      (mode() === 'tiroir' ? menuOuvert() : liens().length > 0)
+    "
     (closedStart)="menuOuvert.set(false)"
   >
     <nav [attr.aria-label]="textes.navigationPrincipale">
@@ -126,7 +131,14 @@
     </nav>
   </mat-sidenav>
   <mat-sidenav-content>
-    <main id="contenu" tabindex="-1">
+    <!-- Écran plein (assistants) : toute la fenêtre, sans marge ni largeur maximale ; la navigation,
+       fermée, est masquée par Material (hors tabulation et lecteurs d'écran). -->
+    <main
+      id="contenu"
+      tabindex="-1"
+      [style.max-width]="pleinEcran() ? 'none' : null"
+      [style.padding]="pleinEcran() ? 0 : null"
+    >
       <ng-content />
     </main>
   </mat-sidenav-content>

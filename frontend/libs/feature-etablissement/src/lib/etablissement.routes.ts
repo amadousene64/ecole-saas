@@ -27,6 +27,27 @@ export const ROUTES_ETABLISSEMENT: Route[] = [
     loadComponent: () =>
       import('./annees/page-annees').then((m) => m.PageAnnees),
   },
+  // Assistant de préparation d'une année, en écran plein (création, puis reprise par son id).
+  {
+    path: 'annees/preparation',
+    title: 'Préparer une année scolaire',
+    canActivate: [gardePage('annees')],
+    data: { pleinEcran: true },
+    loadComponent: () =>
+      import('./annees/page-preparation-annee').then(
+        (m) => m.PagePreparationAnnee,
+      ),
+  },
+  {
+    path: 'annees/preparation/:anneeId',
+    title: 'Préparer une année scolaire',
+    canActivate: [gardePage('annees')],
+    data: { pleinEcran: true },
+    loadComponent: () =>
+      import('./annees/page-preparation-annee').then(
+        (m) => m.PagePreparationAnnee,
+      ),
+  },
   {
     path: 'classes',
     title: 'Classes et salles',

@@ -79,6 +79,8 @@ export const ICONES = {
   ajouter: 'M450-450H200v-60h250v-250h60v250h250v60H510v250h-60v-250Z',
   /** Material Symbols « keyboard_arrow_down » (outlined, 400). */
   bas: 'M480-344 240-584l43-43 197 197 197-197 43 43-240 240Z',
+  /** Material Symbols « check » (outlined, 400) : étape faite d'un assistant. */
+  coche: 'M378-246 154-470l43-43 181 181 384-384 43 43-427 427Z',
 } as const;
 
 export type NomIcone = keyof typeof ICONES;

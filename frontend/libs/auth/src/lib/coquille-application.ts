@@ -7,7 +7,9 @@ import {
   signal,
   Type,
 } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { Coquille, LienNavigation, TEXTES } from '@ecole/ui';
 import { Acces } from './acces';
 import { Session } from './session';
@@ -29,7 +31,8 @@ import { Session } from './session';
       [utilisateur]="session.utilisateur()"
       [role]="acces.libelleRole() || null"
       [plusieursEcoles]="session.plusieursEcoles()"
-      [recherche]="true"
+      [recherche]="!pleinEcran()"
+      [pleinEcran]="pleinEcran()"
       (rechercher)="ouvrirRecherche()"
       (changerEcole)="changerEcole()"
       (deconnexion)="session.deconnecter()"
@@ -53,6 +56,24 @@ export class CoquilleApplication {
   protected readonly fermerRecherche = () => this.recherche.set(null);
 
   readonly titre = input<string>(TEXTES.nomPlateforme);
+
+  /**
+   * Route en écran plein (`data: { pleinEcran: true }`, assistants) : lue à l'activation, avant le
+   * premier rendu de la page, sur la route la plus profonde.
+   */
+  protected readonly pleinEcran = toSignal(
+    this.router.events.pipe(
+      filter((e): e is ActivationEnd => e instanceof ActivationEnd),
+      map(() => {
+        let route = this.router.routerState.snapshot.root;
+        while (route.firstChild) {
+          route = route.firstChild;
+        }
+        return route.data['pleinEcran'] === true;
+      }),
+    ),
+    { initialValue: false },
+  );
 
   protected readonly liens = computed<LienNavigation[]>(() =>
     this.acces.menu().map((e) => ({

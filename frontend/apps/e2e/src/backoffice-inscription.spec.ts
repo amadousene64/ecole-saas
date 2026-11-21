@@ -109,43 +109,35 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await expect(page.getByTestId('table-eleves')).toBeVisible();
   await verifierAccessibilite(page, 'Liste des élèves');
 
-  // Création de l'élève.
+  // Assistant d'inscription (maquettes 08 à 10) : brouillon enregistré côté serveur à chaque étape.
   await page.getByTestId('nouvel-eleve').click();
+  // Navigation interne (replaceUrl) : pas d'événement load, on attend l'adresse elle-même.
+  await expect(page).toHaveURL(/\/eleves\/brouillons\/[0-9a-f-]{36}$/);
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Identité de l'élève",
+  );
+  // Écran plein : ni barre du haut ni navigation.
+  await expect(
+    page.getByRole('navigation', { name: 'Navigation principale' }),
+  ).toHaveCount(0);
   await page.getByTestId('champ-prenoms').fill(PRENOM_ELEVE);
   await page.getByTestId('champ-nom').fill(NOM_ELEVE);
   await page.getByTestId('champ-naissance').fill('2012-05-14');
   await page.getByTestId('champ-lieu').fill('Ville Fictive');
-  await verifierAccessibilite(page, 'Nouvel élève');
-  await page.getByTestId('creer-eleve').click();
-  await expect(page.getByTestId('titre-fiche')).toContainText(PRENOM_ELEVE);
-  eleveId = page.url().split('/').pop() ?? '';
-  expect(eleveId).toMatch(/^[0-9a-f-]{36}$/);
+  await verifierAccessibilite(page, 'Assistant : élève');
+  await page.getByTestId('etape-suivante').click();
 
-  // Inscription dans une classe de l'année en cours.
-  await page.getByRole('tab', { name: 'Scolarité' }).click();
-  await page.getByTestId('action-inscrire').click();
-  await page.getByTestId('champ-classe').click();
-  await page.getByRole('option', { name: classe, exact: true }).click();
-  await page.getByTestId('confirmer-inscription').click();
-  await expect(page.getByText('Élève inscrit.')).toBeVisible();
-  await expect(page.getByTestId('table-inscriptions')).toContainText('Inscrit');
-
-  // Données sensibles : le secrétariat saisit mais ne peut pas relire.
-  await page.getByRole('tab', { name: 'Identité' }).click();
-  await expect(page.getByTestId('afficher-sante')).toHaveCount(0);
-  await page.getByTestId('saisie-sante').fill(SANTE);
-  await page.getByTestId('enregistrer-sensibles').click();
-  await expect(page.getByTestId('etat-sensibles')).toContainText(
-    'Santé : renseigné',
+  // Étape 2 : un rechargement reprend le brouillon là où il en est.
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Responsables de l'élève",
   );
-  await expect(page.getByText(SANTE)).toHaveCount(0);
-  await verifierAccessibilite(
-    page,
-    'Fiche élève, onglet Identité (secrétariat)',
+  await page.reload();
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Responsables de l'élève",
   );
-
-  // Responsable, puis code d'activation affiché une seule fois.
-  await page.getByRole('tab', { name: 'Responsables' }).click();
+  await expect(page.getByTestId('etat-brouillon')).toContainText(
+    'brouillon enregistré à',
+  );
   await page.getByTestId('ouvrir-ajout-responsable').click();
   await expect(
     page.getByRole('dialog', { name: 'Ajouter un responsable' }),
@@ -170,6 +162,69 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
     'téléphone dans une URL',
   ).toEqual([]);
   await page.getByTestId('ajouter-responsable').click();
+  await expect(page.getByTestId('responsable-0')).toContainText(
+    NOM_RESPONSABLE,
+  );
+  await expect(page.getByTestId('responsable-legal-ok')).toBeVisible();
+  await verifierAccessibilite(page, 'Assistant : responsables');
+  await page.getByTestId('etape-suivante').click();
+
+  // Étape 3 : classe.
+  await expect(page.getByTestId('titre-etape')).toHaveText('Classe et options');
+  await page.getByTestId('champ-classe').click();
+  await page.getByRole('option', { name: classe, exact: true }).click();
+  await verifierAccessibilite(page, 'Assistant : scolarité');
+  await page.getByTestId('etape-suivante').click();
+
+  // Étape 4 : une pièce déposée dans le brouillon, analysée par l'antivirus.
+  await expect(page.getByTestId('titre-etape')).toHaveText('Pièces du dossier');
+  await page.getByTestId('deposer-ACTE_NAISSANCE').setInputFiles({
+    name: 'acte.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4\n% acte fictif\n%%EOF'),
+  });
+  await expect(page.getByTestId('etape-pieces')).toContainText(
+    /Analyse en cours|Vérifiée/,
+  );
+  await verifierAccessibilite(page, 'Assistant : pièces');
+  await page.getByTestId('etape-suivante').click();
+
+  // Étape 5 : vérification, puis inscription (tout est créé en une fois).
+  await expect(page.getByTestId('titre-etape')).toHaveText(
+    "Vérifiez avant d'inscrire",
+  );
+  const recap = page.getByTestId('etape-verification');
+  await expect(recap).toContainText(PRENOM_ELEVE);
+  await expect(recap).toContainText(NOM_RESPONSABLE);
+  await expect(recap).toContainText(classe);
+  await verifierAccessibilite(page, 'Assistant : vérification');
+  await page.getByTestId('inscrire-eleve').click();
+  await expect(page.getByTestId('titre-fiche')).toContainText(PRENOM_ELEVE);
+  eleveId = page.url().split('/').pop() ?? '';
+  expect(eleveId).toMatch(/^[0-9a-f-]{36}$/);
+
+  // L'inscription, le responsable et la pièce sont sur la fiche.
+  await page.getByRole('tab', { name: 'Scolarité' }).click();
+  await expect(page.getByTestId('table-inscriptions')).toContainText('Inscrit');
+  await page.getByRole('tab', { name: 'Pièces' }).click();
+  await expect(page.getByText('Acte de naissance')).toBeVisible();
+
+  // Données sensibles : le secrétariat saisit mais ne peut pas relire.
+  await page.getByRole('tab', { name: 'Identité' }).click();
+  await expect(page.getByTestId('afficher-sante')).toHaveCount(0);
+  await page.getByTestId('saisie-sante').fill(SANTE);
+  await page.getByTestId('enregistrer-sensibles').click();
+  await expect(page.getByTestId('etat-sensibles')).toContainText(
+    'Santé : renseigné',
+  );
+  await expect(page.getByText(SANTE)).toHaveCount(0);
+  await verifierAccessibilite(
+    page,
+    'Fiche élève, onglet Identité (secrétariat)',
+  );
+
+  // Responsable relié par l'assistant, puis code d'activation affiché une seule fois.
+  await page.getByRole('tab', { name: 'Responsables' }).click();
   await expect(page.getByTestId(`lien-${NOM_RESPONSABLE}`)).toBeVisible();
   await verifierAccessibilite(page, 'Fiche élève, onglet Responsables');
 

@@ -72,6 +72,11 @@ export class Coquille {
   readonly plusieursEcoles = input(false);
   /** Afficher le bouton de recherche globale. */
   readonly recherche = input(false);
+  /**
+   * Écran plein (assistants, maquettes 08 à 10) : ni barre du haut ni navigation, le contenu prend
+   * toute la fenêtre. Le contenu reste dans le même `<main>` : rien n'est recréé au passage.
+   */
+  readonly pleinEcran = input(false);
 
   readonly changerEcole = output<void>();
   readonly deconnexion = output<void>();

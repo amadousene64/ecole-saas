@@ -43,7 +43,8 @@ test('le rapport détaille chaque ligne, et un fichier en erreur ne peut pas êt
   await expect(page.getByTestId('confirmer-import')).toBeDisabled();
   await verifierAccessibilite(page, "Import d'élèves (rapport avec erreurs)");
 
-  // Un mauvais format est refusé avant tout envoi.
+  // Retour à l'étape « Fichier » : un mauvais format est refusé avant tout envoi.
+  await page.getByTestId('etape-precedente').click();
   await page.getByTestId('champ-fichier-import').setInputFiles({
     name: 'eleves.pdf',
     mimeType: 'application/pdf',

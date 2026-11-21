@@ -1,0 +1,31 @@
+// Écran plein : pas la largeur maximale des écrans ordinaires (ecran.scss).
+:host {
+  max-width: none;
+}
+
+.formulaire.carte {
+  max-width: none;
+}
+
+.recap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ecole-espace-4);
+  margin: 0 0 var(--ecole-espace-4);
+
+  dt {
+    color: var(--ecole-texte-secondaire);
+    font-size: var(--ecole-libelle-taille);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .recap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

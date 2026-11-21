@@ -1,0 +1,299 @@
+// Assistant en écran plein (maquettes 08, 09, 10). Une seule barre de défilement, celle de la page :
+// l'en-tête et les étapes défilent avec le contenu, le pied reste collé en bas de la fenêtre.
+
+:host {
+  display: block;
+}
+
+.assistant {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--ecole-fond);
+}
+
+// --- En-tête : fermer, titre, actions ---
+.entete {
+  display: flex;
+  align-items: center;
+  gap: var(--ecole-espace-4);
+  padding: var(--ecole-espace-3) var(--ecole-espace-page);
+  background: var(--ecole-surface);
+  border-bottom: 1px solid var(--ecole-bordure);
+}
+
+.fermer {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ecole-texte);
+  cursor: pointer;
+}
+
+.titres {
+  flex: 1;
+  min-width: 0;
+}
+
+.titre {
+  margin: 0;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.sous-titre {
+  margin: 0;
+  color: var(--ecole-texte-secondaire);
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+}
+
+.actions-entete {
+  display: flex;
+  gap: var(--ecole-espace-boutons);
+}
+
+// --- Étapes (bureau et tablette) ---
+.etapes {
+  padding: var(--ecole-espace-5) var(--ecole-espace-page) var(--ecole-espace-4);
+  background: var(--ecole-surface);
+  border-bottom: 1px solid var(--ecole-bordure);
+
+  ol {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--ecole-espace-3);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    // Trait de progression au-dessus de chaque étape (vert si faite ou en cours).
+    border-top: 4px solid var(--ecole-bordure);
+    padding-top: var(--ecole-espace-3);
+
+    &.faite,
+    &.courante {
+      border-top-color: var(--ecole-primaire);
+    }
+  }
+}
+
+.etape {
+  display: flex;
+  align-items: center;
+  gap: var(--ecole-espace-2);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ecole-texte-secondaire);
+  font: inherit;
+  text-align: left;
+}
+
+button.etape {
+  cursor: pointer;
+  color: var(--ecole-texte);
+}
+
+.marque {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid currentcolor;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.faite .marque {
+  border-color: var(--ecole-primaire);
+  background: var(--ecole-primaire);
+  color: var(--ecole-sur-primaire);
+
+  ::ng-deep svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.courante .marque {
+  border-width: 2px;
+  border-color: var(--ecole-primaire);
+  color: var(--ecole-primaire);
+}
+
+.libelles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.courante .libelle,
+.faite .libelle {
+  color: var(--ecole-texte);
+  font-weight: 600;
+}
+
+.detail {
+  overflow: hidden;
+  color: var(--ecole-texte-secondaire);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courante .detail {
+  color: var(--ecole-primaire);
+}
+
+// --- Progression (téléphone seulement) ---
+.progression {
+  display: none;
+}
+
+// --- Contenu : colonne de 720 px centrée ---
+.corps {
+  flex: 1;
+  padding: var(--ecole-espace-6) var(--ecole-espace-page) var(--ecole-espace-7);
+}
+
+.colonne {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.titre-etape {
+  margin: 0;
+  outline: none;
+}
+
+.sous-titre-etape {
+  margin: var(--ecole-espace-1) 0 0;
+  color: var(--ecole-texte-secondaire);
+}
+
+// Titre et sous-titre de l'étape, puis le contenu projeté.
+.entete-etape {
+  margin-bottom: var(--ecole-espace-5);
+}
+
+// --- Pied collé en bas : position, puis boutons à droite ---
+.pied {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: var(--ecole-espace-4) var(--ecole-espace-page);
+  background: var(--ecole-surface);
+  border-top: 1px solid var(--ecole-bordure);
+
+  .colonne {
+    display: flex;
+    align-items: center;
+    gap: var(--ecole-espace-4);
+  }
+}
+
+.position-pied {
+  flex: 1;
+  color: var(--ecole-texte-secondaire);
+}
+
+.boutons {
+  display: flex;
+  gap: var(--ecole-espace-boutons);
+
+  // Le pied projeté (<div pied>) aligne ses boutons avec le même écart.
+  ::ng-deep > [pied] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ecole-espace-boutons);
+  }
+}
+
+// --- Téléphone (maquette 10) : barre de progression, pas d'étapes, boutons pleine largeur ---
+@media (max-width: 599.98px) {
+  .entete {
+    padding: var(--ecole-espace-2) var(--ecole-espace-page);
+  }
+
+  .titres {
+    text-align: center;
+  }
+
+  .sous-titre,
+  .actions-entete,
+  .etapes,
+  .position-pied {
+    display: none;
+  }
+
+  .progression {
+    display: block;
+    padding: var(--ecole-espace-3) var(--ecole-espace-page);
+    background: var(--ecole-surface);
+    border-bottom: 1px solid var(--ecole-bordure);
+  }
+
+  .ligne {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--ecole-espace-2);
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
+  }
+
+  .position {
+    font-weight: 600;
+  }
+
+  .suivante {
+    color: var(--ecole-texte-secondaire);
+  }
+
+  .barre {
+    height: 6px;
+    margin-top: var(--ecole-espace-2);
+    border-radius: 3px;
+    background: var(--ecole-primaire-doux);
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 3px;
+      background: var(--ecole-primaire);
+    }
+  }
+
+  .corps {
+    padding: var(--ecole-espace-5) var(--ecole-espace-page);
+  }
+
+  .boutons {
+    flex: 1;
+
+    ::ng-deep > [pied] {
+      flex: 1;
+      flex-wrap: nowrap;
+
+      > * {
+        flex: 1;
+      }
+    }
+  }
+}

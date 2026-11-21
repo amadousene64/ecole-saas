@@ -1,6 +1,5 @@
 import {
   CHAMPS_FORMULAIRE,
-  Champ,
   Confirmation,
   EnTetePage,
   Pastille,
@@ -8,14 +7,8 @@ import {
 } from '@ecole/ui';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { RouterLink } from '@angular/router';
 import { AnneeScolaireDto } from '@ecole/api-client';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
@@ -56,12 +49,9 @@ const CONFIRMATIONS: Record<
   selector: 'ecole-page-annees',
   providers: [CHAMPS_FORMULAIRE],
   imports: [
-    Champ,
     EnTetePage,
     DatePipe,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
+    RouterLink,
     MatButtonModule,
     SectionPeriodes,
     SectionCalendrier,
@@ -72,7 +62,17 @@ const CONFIRMATIONS: Record<
     <ecole-en-tete-page
       titre="Années scolaires et périodes"
       sousTitre="Années, périodes et calendrier"
-    />
+    >
+      @if (droits.peutEcrire()) {
+        <a
+          actions
+          matButton="filled"
+          routerLink="/etablissement/annees/preparation"
+          data-testid="preparer-annee"
+          >Préparer une année</a
+        >
+      }
+    </ecole-en-tete-page>
     @if (erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur-annees">
         {{ message }}
@@ -118,6 +118,17 @@ const CONFIRMATIONS: Record<
               </ecole-pastille>
             </td>
             <td data-label="Actions">
+              @if (droits.peutEcrire() && a.statut === 'PREPARATION') {
+                <a
+                  matButton
+                  [routerLink]="['/etablissement/annees/preparation', a.id]"
+                  [attr.data-testid]="'preparer-' + a.libelle"
+                >
+                  Continuer la préparation<span class="sr-only">
+                    : {{ a.libelle }}</span
+                  >
+                </a>
+              }
               @if (droits.estDirecteur() && a.statut === 'PREPARATION') {
                 <button
                   matButton
@@ -172,66 +183,6 @@ const CONFIRMATIONS: Record<
       />
     }
 
-    @if (droits.peutEcrire()) {
-      <h2>Nouvelle année</h2>
-      <form
-        [formGroup]="formulaire"
-        (ngSubmit)="creer()"
-        class="formulaire"
-        data-testid="form-annee"
-      >
-        <ecole-champ libelle="Année (AAAA-AAAA)">
-          <mat-form-field appearance="outline">
-            <input
-              matInput
-              formControlName="libelle"
-              placeholder="2027-2028"
-              data-testid="champ-annee-libelle"
-            />
-
-            @if (formulaire.controls.libelle.hasError('pattern')) {
-              <mat-error>Format AAAA-AAAA, par exemple 2027-2028.</mat-error>
-            }
-          </mat-form-field>
-        </ecole-champ>
-        <ecole-champ libelle="Début" class="champ-court">
-          <mat-form-field appearance="outline">
-            <input
-              matInput
-              type="date"
-              formControlName="dateDebut"
-              data-testid="champ-annee-debut"
-            />
-          </mat-form-field>
-        </ecole-champ>
-        <ecole-champ libelle="Fin" class="champ-court">
-          <mat-form-field appearance="outline">
-            <input
-              matInput
-              type="date"
-              formControlName="dateFin"
-              data-testid="champ-annee-fin"
-            />
-          </mat-form-field>
-        </ecole-champ>
-        <div class="actions">
-          <button
-            matButton="filled"
-            type="submit"
-            [disabled]="occupe()"
-            data-testid="creer-annee"
-          >
-            Créer l'année
-          </button>
-        </div>
-      </form>
-      <p class="aide">
-        La création génère les périodes de chaque cycle (trimestres ou
-        semestres) et propose les jours fériés fixes et ceux calculés depuis
-        Pâques.
-      </p>
-    }
-
     @if (selection(); as annee) {
       <h2 data-testid="detail-titre">Année {{ annee.libelle }}</h2>
       @if (annee.statut === 'CLOTUREE') {
@@ -271,12 +222,6 @@ export class PageAnnees {
     }
     const t = CONFIRMATIONS[attente.action];
     return { ...t, titre: `${t.titre} ${attente.annee.libelle ?? ''}`.trim() };
-  });
-
-  protected readonly formulaire = inject(NonNullableFormBuilder).group({
-    libelle: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{4}$/)]],
-    dateDebut: ['', Validators.required],
-    dateFin: ['', Validators.required],
   });
 
   constructor() {
@@ -342,31 +287,6 @@ export class PageAnnees {
       await this.charger(action === 'supprimer' ? undefined : annee.id);
     } catch (e) {
       this.erreurConfirmation.set(messageErreur(e));
-    } finally {
-      this.occupe.set(false);
-    }
-  }
-
-  protected async creer(): Promise<void> {
-    if (this.formulaire.invalid) {
-      this.formulaire.markAllAsTouched();
-      return;
-    }
-    await this.executer(async () => {
-      const creee = await this.service.creer(this.formulaire.getRawValue());
-      this.formulaire.reset();
-      this.confirmation.set(`Année ${creee.libelle} créée.`);
-      await this.charger(creee.id);
-    });
-  }
-
-  private async executer(action: () => Promise<void>): Promise<void> {
-    this.erreur.set(null);
-    this.occupe.set(true);
-    try {
-      await action();
-    } catch (e) {
-      this.erreur.set(messageErreur(e));
     } finally {
       this.occupe.set(false);
     }
