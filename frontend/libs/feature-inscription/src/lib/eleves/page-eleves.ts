@@ -13,6 +13,7 @@ import {
   Pastille,
   Squelette,
   CHAMPS_FORMULAIRE,
+  Champ,
 } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
@@ -35,6 +36,7 @@ const DELAI_RECHERCHE_MS = 300;
   selector: 'ecole-page-eleves',
   providers: [CHAMPS_FORMULAIRE],
   imports: [
+    Champ,
     FormsModule,
     RouterLink,
     MatButtonModule,
@@ -53,8 +55,12 @@ const DELAI_RECHERCHE_MS = 300;
       sousTitre="Recherche, inscriptions et dossiers"
     >
       @if (droits.peutImporter()) {
-        <a actions matButton routerLink="import" data-testid="lien-import"
-          >Importer un fichier</a
+        <a
+          actions
+          matButton="outlined"
+          routerLink="import"
+          data-testid="lien-import"
+          >Importer une liste</a
         >
       }
       @if (droits.peutCreer()) {
@@ -66,45 +72,53 @@ const DELAI_RECHERCHE_MS = 300;
       }
     </ecole-en-tete-page>
 
-    <form class="grille" role="search" (submit)="$event.preventDefault()">
-      <mat-form-field appearance="outline">
-        <mat-label>Nom ou matricule</mat-label>
-        <input
-          matInput
-          type="search"
-          [ngModel]="recherche()"
-          (ngModelChange)="rechercher($event)"
-          name="recherche"
-          autocomplete="off"
-          data-testid="filtre-recherche"
-        />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Classe</mat-label>
-        <mat-select
-          [value]="classe()"
-          (selectionChange)="filtrerClasse($event.value)"
-          data-testid="filtre-classe"
-        >
-          <mat-option value="">Toutes les classes</mat-option>
-          @for (c of classes(); track c.id) {
-            <mat-option [value]="c.id">{{ c.nom }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Statut</mat-label>
-        <mat-select
-          [value]="statut()"
-          (selectionChange)="filtrerStatut($event.value)"
-          data-testid="filtre-statut"
-        >
-          <mat-option value="">Tous les statuts</mat-option>
-          @for (s of statuts; track s.valeur) {
-            <mat-option [value]="s.valeur">{{ s.libelle }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+    <form
+      class="filtres-liste"
+      role="search"
+      (submit)="$event.preventDefault()"
+    >
+      <ecole-champ libelle="Rechercher">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            type="search"
+            [ngModel]="recherche()"
+            (ngModelChange)="rechercher($event)"
+            name="recherche"
+            autocomplete="off"
+            placeholder="Nom, prénom ou matricule"
+            data-testid="filtre-recherche"
+          />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Classe">
+        <mat-form-field appearance="outline">
+          <mat-select
+            [value]="classe()"
+            (selectionChange)="filtrerClasse($event.value)"
+            data-testid="filtre-classe"
+          >
+            <mat-option value="">Toutes les classes</mat-option>
+            @for (c of classes(); track c.id) {
+              <mat-option [value]="c.id">{{ c.nom }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Statut">
+        <mat-form-field appearance="outline">
+          <mat-select
+            [value]="statut()"
+            (selectionChange)="filtrerStatut($event.value)"
+            data-testid="filtre-statut"
+          >
+            <mat-option value="">Tous les statuts</mat-option>
+            @for (s of statuts; track s.valeur) {
+              <mat-option [value]="s.valeur">{{ s.libelle }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ecole-champ>
     </form>
 
     @if (erreur(); as message) {

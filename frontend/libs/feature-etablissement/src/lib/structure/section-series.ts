@@ -1,3 +1,4 @@
+import { Champ } from '@ecole/ui';
 import { Component, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -17,6 +18,7 @@ import { ServiceStructure } from '../services/service-structure';
 @Component({
   selector: 'ecole-section-series',
   imports: [
+    Champ,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -73,22 +75,24 @@ import { ServiceStructure } from '../services/service-structure';
         class="formulaire"
         data-testid="form-serie"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Code</mat-label>
-          <input
-            matInput
-            formControlName="code"
-            data-testid="champ-serie-code"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Libellé</mat-label>
-          <input
-            matInput
-            formControlName="libelle"
-            data-testid="champ-serie-libelle"
-          />
-        </mat-form-field>
+        <ecole-champ libelle="Code">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="code"
+              data-testid="champ-serie-code"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Libellé">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="libelle"
+              data-testid="champ-serie-libelle"
+            />
+          </mat-form-field>
+        </ecole-champ>
         @if (edition()) {
           <mat-checkbox formControlName="actif">Série utilisée</mat-checkbox>
         }
@@ -102,7 +106,7 @@ import { ServiceStructure } from '../services/service-structure';
             {{ edition() ? 'Enregistrer' : 'Ajouter' }}
           </button>
           @if (edition()) {
-            <button matButton type="button" (click)="annuler()">Annuler</button>
+            <button matButton="outlined" type="button" (click)="annuler()">Annuler</button>
           }
         </div>
       </form>

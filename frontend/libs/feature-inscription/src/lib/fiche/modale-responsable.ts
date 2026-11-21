@@ -25,7 +25,7 @@ import {
   LienParentalRequete,
   ResponsableResumeDto,
 } from '@ecole/api-client';
-import { Modale } from '@ecole/ui';
+import { Modale, Champ } from '@ecole/ui';
 import { map } from 'rxjs';
 import { messageErreur } from '../commun/erreurs';
 import { TYPES_LIEN } from '../commun/etiquettes';
@@ -48,6 +48,7 @@ let suivant = 0;
 @Component({
   selector: 'ecole-modale-responsable',
   imports: [
+    Champ,
     Modale,
     ReactiveFormsModule,
     MatButtonModule,
@@ -103,23 +104,26 @@ let suivant = 0;
             </button>
           </div>
         } @else {
-          <mat-form-field appearance="outline">
-            <mat-label>Téléphone</mat-label>
-            <input
-              matInput
-              type="tel"
-              autocomplete="off"
-              formControlName="telephone"
-              data-testid="resp-telephone"
-            />
-            <mat-hint
-              >Format international, par exemple +221 77 000 00 00</mat-hint
-            >
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Courriel</mat-label>
-            <input matInput type="email" formControlName="email" />
-          </mat-form-field>
+          <ecole-champ libelle="Téléphone">
+            <mat-form-field appearance="outline">
+              <input
+                matInput
+                type="tel"
+                autocomplete="off"
+                formControlName="telephone"
+                data-testid="resp-telephone"
+              />
+
+              <mat-hint
+                >Format international, par exemple +221 77 000 00 00</mat-hint
+              >
+            </mat-form-field>
+          </ecole-champ>
+          <ecole-champ libelle="Courriel">
+            <mat-form-field appearance="outline">
+              <input matInput type="email" formControlName="email" />
+            </mat-form-field>
+          </ecole-champ>
           @if (doublons().length > 0) {
             <div
               class="message avertissement champ-plein"
@@ -153,27 +157,30 @@ let suivant = 0;
               </p>
             </div>
           }
-          <mat-form-field appearance="outline">
-            <mat-label>Prénoms</mat-label>
-            <input
-              matInput
-              formControlName="prenoms"
-              data-testid="resp-prenoms"
-            />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Nom</mat-label>
-            <input matInput formControlName="nom" data-testid="resp-nom" />
-          </mat-form-field>
+          <ecole-champ libelle="Prénoms">
+            <mat-form-field appearance="outline">
+              <input
+                matInput
+                formControlName="prenoms"
+                data-testid="resp-prenoms"
+              />
+            </mat-form-field>
+          </ecole-champ>
+          <ecole-champ libelle="Nom">
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="nom" data-testid="resp-nom" />
+            </mat-form-field>
+          </ecole-champ>
         }
-        <mat-form-field appearance="outline">
-          <mat-label>Lien avec l'élève</mat-label>
-          <mat-select formControlName="type" data-testid="resp-type">
-            @for (t of types; track t.valeur) {
-              <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <ecole-champ libelle="Lien avec l'élève">
+          <mat-form-field appearance="outline">
+            <mat-select formControlName="type" data-testid="resp-type">
+              @for (t of types; track t.valeur) {
+                <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
         <fieldset class="cases">
           <legend class="libelle">Rôles</legend>
           <mat-checkbox formControlName="responsableLegal"
@@ -192,7 +199,9 @@ let suivant = 0;
         </fieldset>
       </form>
       <div pied>
-        <button matButton type="button" (click)="annuler()">Annuler</button>
+        <button matButton="outlined" type="button" (click)="annuler()">
+          Annuler
+        </button>
         <button
           matButton="filled"
           type="submit"

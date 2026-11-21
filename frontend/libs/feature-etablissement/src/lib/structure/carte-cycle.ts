@@ -1,3 +1,4 @@
+import { Champ } from '@ecole/ui';
 import {
   Component,
   computed,
@@ -35,6 +36,7 @@ import { ServiceStructure } from '../services/service-structure';
 @Component({
   selector: 'ecole-carte-cycle',
   imports: [
+    Champ,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -50,42 +52,46 @@ import { ServiceStructure } from '../services/service-structure';
     >
       <h3>{{ nomCycle() }}</h3>
       <div class="champs">
-        <mat-form-field appearance="outline">
-          <mat-label>Libellé</mat-label>
-          <input matInput formControlName="libelle" required />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Découpage de l'année</mat-label>
-          <mat-select
-            formControlName="typePeriode"
-            data-testid="champ-type-periode"
-          >
-            @for (t of types; track t.valeur) {
-              <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Mode de notation</mat-label>
-          <mat-select
-            formControlName="modeNotation"
-            data-testid="champ-mode-notation"
-          >
-            @for (m of modes; track m.valeur) {
-              <mat-option [value]="m.valeur">{{ m.libelle }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Base de la moyenne</mat-label>
-          <mat-select
-            formControlName="baseMoyenne"
-            data-testid="champ-base-moyenne"
-          >
-            <mat-option [value]="10">Sur 10</mat-option>
-            <mat-option [value]="20">Sur 20</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <ecole-champ libelle="Libellé">
+          <mat-form-field appearance="outline">
+            <input matInput formControlName="libelle" required />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Découpage de l'année">
+          <mat-form-field appearance="outline">
+            <mat-select
+              formControlName="typePeriode"
+              data-testid="champ-type-periode"
+            >
+              @for (t of types; track t.valeur) {
+                <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Mode de notation">
+          <mat-form-field appearance="outline">
+            <mat-select
+              formControlName="modeNotation"
+              data-testid="champ-mode-notation"
+            >
+              @for (m of modes; track m.valeur) {
+                <mat-option [value]="m.valeur">{{ m.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Base de la moyenne">
+          <mat-form-field appearance="outline">
+            <mat-select
+              formControlName="baseMoyenne"
+              data-testid="champ-base-moyenne"
+            >
+              <mat-option [value]="10">Sur 10</mat-option>
+              <mat-option [value]="20">Sur 20</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
       </div>
       @if (incompatible()) {
         <p class="message erreur" role="alert" data-testid="base-incompatible">

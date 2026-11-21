@@ -1,4 +1,4 @@
-import { Pastille } from '@ecole/ui';
+import { Pastille, Champ } from '@ecole/ui';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -20,6 +20,7 @@ import { ServiceStructure } from '../services/service-structure';
 @Component({
   selector: 'ecole-section-niveaux',
   imports: [
+    Champ,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -90,61 +91,67 @@ import { ServiceStructure } from '../services/service-structure';
         data-testid="form-niveau"
       >
         @if (!edition()) {
+          <ecole-champ libelle="Cycle">
+            <mat-form-field appearance="outline">
+              <mat-select
+                formControlName="cycleId"
+                data-testid="champ-niveau-cycle"
+              >
+                @for (c of cycles(); track c.id) {
+                  <mat-option [value]="c.id">{{ nomCycle(c.id) }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </ecole-champ>
+          <ecole-champ libelle="Code">
+            <mat-form-field appearance="outline">
+              <input
+                matInput
+                formControlName="code"
+                data-testid="champ-niveau-code"
+              />
+            </mat-form-field>
+          </ecole-champ>
+        }
+        <ecole-champ libelle="Libellé">
           <mat-form-field appearance="outline">
-            <mat-label>Cycle</mat-label>
+            <input
+              matInput
+              formControlName="libelle"
+              data-testid="champ-niveau-libelle"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Ordre" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input matInput type="number" min="1" formControlName="ordre" />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Base de la moyenne">
+          <mat-form-field appearance="outline">
+            <mat-select formControlName="base" data-testid="champ-niveau-base">
+              <mat-option [value]="0">Suit celle du cycle</mat-option>
+              <mat-option [value]="10">Sur 10</mat-option>
+              <mat-option [value]="20">Sur 20</mat-option>
+            </mat-select>
+            @if (!droits.estDirecteur()) {
+              <mat-hint>Réservé au directeur.</mat-hint>
+            }
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Séries proposées">
+          <mat-form-field appearance="outline">
             <mat-select
-              formControlName="cycleId"
-              data-testid="champ-niveau-cycle"
+              formControlName="serieIds"
+              multiple
+              data-testid="champ-niveau-series"
             >
-              @for (c of cycles(); track c.id) {
-                <mat-option [value]="c.id">{{ nomCycle(c.id) }}</mat-option>
+              @for (s of series(); track s.id) {
+                <mat-option [value]="s.id">{{ s.code }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Code</mat-label>
-            <input
-              matInput
-              formControlName="code"
-              data-testid="champ-niveau-code"
-            />
-          </mat-form-field>
-        }
-        <mat-form-field appearance="outline">
-          <mat-label>Libellé</mat-label>
-          <input
-            matInput
-            formControlName="libelle"
-            data-testid="champ-niveau-libelle"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Ordre</mat-label>
-          <input matInput type="number" min="1" formControlName="ordre" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Base de la moyenne</mat-label>
-          <mat-select formControlName="base" data-testid="champ-niveau-base">
-            <mat-option [value]="0">Suit celle du cycle</mat-option>
-            <mat-option [value]="10">Sur 10</mat-option>
-            <mat-option [value]="20">Sur 20</mat-option>
-          </mat-select>
-          @if (!droits.estDirecteur()) {
-            <mat-hint>Réservé au directeur.</mat-hint>
-          }
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Séries proposées</mat-label>
-          <mat-select
-            formControlName="serieIds"
-            multiple
-            data-testid="champ-niveau-series"
-          >
-            @for (s of series(); track s.id) {
-              <mat-option [value]="s.id">{{ s.code }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        </ecole-champ>
         @if (edition()) {
           <mat-checkbox formControlName="actif">Niveau utilisé</mat-checkbox>
         }
@@ -167,7 +174,7 @@ import { ServiceStructure } from '../services/service-structure';
             {{ edition() ? 'Enregistrer' : 'Ajouter' }}
           </button>
           @if (edition()) {
-            <button matButton type="button" (click)="annuler()">Annuler</button>
+            <button matButton="outlined" type="button" (click)="annuler()">Annuler</button>
           }
         </div>
       </form>

@@ -44,7 +44,7 @@ const LIBELLES: Record<string, string> = {
   selector: 'ecole-page-import',
   imports: [EnTetePage, MatButtonModule, RouterLink, Pastille],
   template: `
-    <p><a routerLink="/eleves">← Retour à la liste</a></p>
+    <a class="retour" routerLink="/eleves">← Retour à la liste</a>
     <ecole-en-tete-page
       titre="Importer des élèves"
       sousTitre="Vérification à blanc, puis confirmation"

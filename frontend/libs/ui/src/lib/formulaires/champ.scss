@@ -1,0 +1,16 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecole-espace-libelle);
+  min-width: 0;
+}
+.libelle-champ {
+  color: var(--ecole-texte);
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+  font-weight: var(--ecole-libelle-graisse);
+}
+.mention {
+  color: var(--ecole-texte-secondaire);
+  font-weight: var(--ecole-corps-graisse);
+}

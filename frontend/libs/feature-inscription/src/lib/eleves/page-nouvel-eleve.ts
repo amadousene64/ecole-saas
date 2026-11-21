@@ -1,4 +1,4 @@
-import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
+import { EnTetePage, CHAMPS_FORMULAIRE, Champ, NATIONALITES } from '@ecole/ui';
 import { Component, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -18,6 +18,7 @@ import { ServiceEleves } from '../services/service-eleves';
   selector: 'ecole-page-nouvel-eleve',
   providers: [CHAMPS_FORMULAIRE],
   imports: [
+    Champ,
     EnTetePage,
     ReactiveFormsModule,
     RouterLink,
@@ -27,69 +28,89 @@ import { ServiceEleves } from '../services/service-eleves';
     MatSelectModule,
   ],
   template: `
-    <p><a routerLink="/eleves">← Retour à la liste</a></p>
-    <ecole-en-tete-page
-      titre="Nouvel élève"
-      sousTitre="Le matricule est attribué à la création"
-    />
-    @if (erreur(); as message) {
-      <p class="message erreur" role="alert" data-testid="erreur-creation">
-        {{ message }}
-      </p>
-    }
-    <form
-      [formGroup]="formulaire"
-      (ngSubmit)="creer()"
-      class="formulaire"
-      data-testid="form-nouvel-eleve"
-    >
-      <mat-form-field appearance="outline">
-        <mat-label>Prénoms</mat-label>
-        <input matInput formControlName="prenoms" data-testid="champ-prenoms" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Nom</mat-label>
-        <input matInput formControlName="nom" data-testid="champ-nom" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Sexe</mat-label>
-        <mat-select formControlName="sexe" data-testid="champ-sexe">
-          <mat-option value="F">Féminin</mat-option>
-          <mat-option value="M">Masculin</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="champ-court">
-        <mat-label>Date de naissance</mat-label>
-        <input
-          matInput
-          type="date"
-          formControlName="dateNaissance"
-          data-testid="champ-naissance"
-        />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Lieu de naissance</mat-label>
-        <input
-          matInput
-          formControlName="lieuNaissance"
-          data-testid="champ-lieu"
-        />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Nationalité (code pays)</mat-label>
-        <input matInput formControlName="nationalite" maxlength="2" />
-      </mat-form-field>
-      <div class="actions">
-        <button
-          matButton="filled"
-          type="submit"
-          [disabled]="occupe()"
-          data-testid="creer-eleve"
-        >
-          Créer l'élève
-        </button>
-      </div>
-    </form>
+    <div class="colonne-formulaire">
+      <a class="retour" routerLink="/eleves">← Retour à la liste</a>
+      <ecole-en-tete-page
+        titre="Nouvel élève"
+        sousTitre="Le matricule est attribué à la création"
+      />
+      @if (erreur(); as message) {
+        <p class="message erreur" role="alert" data-testid="erreur-creation">
+          {{ message }}
+        </p>
+      }
+      <form
+        [formGroup]="formulaire"
+        (ngSubmit)="creer()"
+        class="formulaire carte"
+        data-testid="form-nouvel-eleve"
+      >
+        <ecole-champ libelle="Prénoms">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="prenoms"
+              data-testid="champ-prenoms"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Nom">
+          <mat-form-field appearance="outline">
+            <input matInput formControlName="nom" data-testid="champ-nom" />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Sexe">
+          <mat-form-field appearance="outline">
+            <mat-select formControlName="sexe" data-testid="champ-sexe">
+              <mat-option value="F">Féminin</mat-option>
+              <mat-option value="M">Masculin</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Date de naissance" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="date"
+              formControlName="dateNaissance"
+              data-testid="champ-naissance"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Lieu de naissance">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="lieuNaissance"
+              data-testid="champ-lieu"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Nationalité">
+          <mat-form-field appearance="outline">
+            <mat-select
+              formControlName="nationalite"
+              data-testid="champ-nationalite"
+            >
+              @for (n of nationalites; track n.code) {
+                <mat-option [value]="n.code">{{ n.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        <div class="actions">
+          <a matButton="outlined" routerLink="/eleves">Annuler</a>
+          <button
+            matButton="filled"
+            type="submit"
+            [disabled]="occupe()"
+            data-testid="creer-eleve"
+          >
+            Créer l'élève
+          </button>
+        </div>
+      </form>
+    </div>
   `,
   styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
@@ -97,6 +118,7 @@ export class PageNouvelEleve {
   private readonly service = inject(ServiceEleves);
   private readonly routeur = inject(Router);
 
+  protected readonly nationalites = NATIONALITES;
   protected readonly erreur = signal<string | null>(null);
   protected readonly occupe = signal(false);
   protected readonly formulaire = inject(NonNullableFormBuilder).group({

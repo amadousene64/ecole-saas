@@ -109,6 +109,20 @@
     }
   }
 
+  // --- Lien de retour au-dessus d'un titre (maquette 04) : vert, sans soulignement ---
+  .retour {
+    display: inline-block;
+    margin-bottom: var(--ecole-espace-4);
+    font-size: var(--ecole-libelle-taille);
+    line-height: var(--ecole-libelle-interligne);
+    font-weight: var(--ecole-libelle-graisse);
+    text-decoration: none;
+  }
+
+  .retour:hover {
+    text-decoration: underline;
+  }
+
   // --- Carte : rayon 12, bordure 1 px, sans ombre ---
   .carte {
     background: var(--ecole-surface);

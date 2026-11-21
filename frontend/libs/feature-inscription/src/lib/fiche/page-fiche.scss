@@ -1,0 +1,42 @@
+// En-tête de la fiche (maquette 04) : carte, initiales, nom et matricule, action à droite.
+.en-tete-fiche {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ecole-espace-4) var(--ecole-espace-5);
+  margin-bottom: var(--ecole-espace-sections);
+}
+.initiales {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--ecole-primaire-doux);
+  color: var(--ecole-primaire-survol);
+  font-size: 24px;
+  font-weight: 700;
+}
+.identite {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.identite h1 {
+  margin: 0 0 var(--ecole-espace-1);
+}
+.identite p {
+  margin: 0;
+}
+.actions-fiche {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ecole-espace-boutons);
+}
+@media (max-width: 599.98px) {
+  .initiales {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+}

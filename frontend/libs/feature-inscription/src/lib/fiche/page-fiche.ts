@@ -32,33 +32,43 @@ import { CHAMPS_FORMULAIRE } from '@ecole/ui';
     ModaleCode,
   ],
   template: `
-    <p><a routerLink="/eleves">← Retour à la liste</a></p>
+    <a class="retour" routerLink="/eleves">← Retour à la liste</a>
     @if (erreur(); as message) {
       <p class="message erreur" role="alert" data-testid="erreur-fiche">
         {{ message }}
       </p>
     }
     @if (eleve(); as e) {
-      <h1 data-testid="titre-fiche">{{ e.prenoms }} {{ e.nom }}</h1>
-      <p class="aide">
-        Matricule <span class="mono">{{ e.matricule }}</span>
-        @if (e.compteActive) {
-          · compte élève activé
-        }
-      </p>
-      @if (droits.peutEcrire() && !e.compteActive) {
-        <div class="actions">
-          <button
-            matButton
-            type="button"
-            (click)="codeEleve(e)"
-            data-testid="code-eleve"
-          >
-            Code d'activation de l'élève
-          </button>
+      <header class="carte en-tete-fiche">
+        <span class="initiales" aria-hidden="true">{{ initiales(e) }}</span>
+        <div class="identite">
+          <h1 data-testid="titre-fiche">{{ e.prenoms }} {{ e.nom }}</h1>
+          <p class="texte-secondaire">
+            <span class="mono">{{ e.matricule }}</span>
+            @if (e.compteActive) {
+              · compte élève activé
+            }
+          </p>
         </div>
-      }
-      <mat-tab-group animationDuration="0ms" data-testid="onglets-fiche">
+        @if (droits.peutEcrire() && !e.compteActive) {
+          <div class="actions-fiche">
+            <button
+              matButton="outlined"
+              type="button"
+              (click)="codeEleve(e)"
+              data-testid="code-eleve"
+            >
+              Code d'activation de l'élève
+            </button>
+          </div>
+        }
+      </header>
+      <mat-tab-group
+        mat-stretch-tabs="false"
+        mat-align-tabs="start"
+        animationDuration="0ms"
+        data-testid="onglets-fiche"
+      >
         <mat-tab label="Identité">
           <ng-template matTabContent
             ><ecole-onglet-identite [eleve]="e"
@@ -91,7 +101,7 @@ import { CHAMPS_FORMULAIRE } from '@ecole/ui';
       <ecole-modale-code [donnees]="c" (fermee)="code.set(null)" />
     }
   `,
-  styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
+  styleUrls: ['../../../../ui/src/lib/styles/ecran.scss', './page-fiche.scss'],
 })
 export class PageFiche {
   private readonly service = inject(ServiceEleves);
@@ -115,6 +125,13 @@ export class PageFiche {
     } catch (e) {
       this.erreur.set(messageErreur(e));
     }
+  }
+
+  /** Initiales affichées dans la pastille ronde de l'en-tête (maquette 04). */
+  protected initiales(e: EleveDto): string {
+    return [e.prenoms, e.nom]
+      .map((mot) => (mot ?? '').trim().charAt(0).toUpperCase())
+      .join('');
   }
 
   protected async codeEleve(eleve: EleveDto): Promise<void> {

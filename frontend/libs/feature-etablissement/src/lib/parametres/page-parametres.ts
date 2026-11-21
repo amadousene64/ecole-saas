@@ -1,4 +1,4 @@
-import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
+import { EnTetePage, CHAMPS_FORMULAIRE, Champ } from '@ecole/ui';
 import { Component, effect, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -27,6 +27,7 @@ import { CarteImage } from './carte-image';
   selector: 'ecole-page-parametres',
   providers: [CHAMPS_FORMULAIRE],
   imports: [
+    Champ,
     EnTetePage,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -63,100 +64,114 @@ import { CarteImage } from './carte-image';
       class="formulaire"
       data-testid="profil"
     >
-      <mat-form-field appearance="outline">
-        <mat-label>Nom</mat-label>
-        <input
-          matInput
-          formControlName="nom"
-          required
-          data-testid="champ-nom"
-        />
-        @if (formulaire.controls.nom.hasError('required')) {
-          <mat-error>Le nom est obligatoire.</mat-error>
-        }
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Code</mat-label>
-        <input
-          matInput
-          formControlName="code"
-          required
-          data-testid="champ-code"
-        />
-        @if (formulaire.controls.code.hasError('pattern')) {
-          <mat-error>Lettres, chiffres, points et tirets seulement.</mat-error>
-        }
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Statut</mat-label>
-        <mat-select formControlName="statut" data-testid="champ-statut">
-          @for (s of statuts; track s.valeur) {
-            <mat-option [value]="s.valeur">{{ s.libelle }}</mat-option>
+      <ecole-champ libelle="Nom">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            formControlName="nom"
+            required
+            data-testid="champ-nom"
+          />
+          @if (formulaire.controls.nom.hasError('required')) {
+            <mat-error>Le nom est obligatoire.</mat-error>
           }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Inspection d'académie (IA)</mat-label>
-        <input matInput formControlName="ia" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Inspection de l'éducation (IEF)</mat-label>
-        <input matInput formControlName="ief" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Adresse</mat-label>
-        <input matInput formControlName="adresse" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Ville</mat-label>
-        <input
-          matInput
-          formControlName="ville"
-          maxlength="100"
-          data-testid="champ-ville"
-        />
-        <mat-hint>Affichée sur la page de connexion.</mat-hint>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="champ-plein">
-        <mat-label>Phrase d'accueil</mat-label>
-        <input
-          matInput
-          formControlName="phraseAccueil"
-          maxlength="200"
-          data-testid="champ-phrase-accueil"
-        />
-        <mat-hint
-          >Une courte phrase sous le nom de l'école, sur la page de
-          connexion.</mat-hint
-        >
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Téléphone</mat-label>
-        <input
-          matInput
-          formControlName="telephone"
-          inputmode="tel"
-          data-testid="champ-telephone"
-        />
-        <mat-hint
-          >Format international ; +221 par défaut pour 9 chiffres.</mat-hint
-        >
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>E-mail</mat-label>
-        <input matInput type="email" formControlName="email" />
-        @if (formulaire.controls.email.hasError('email')) {
-          <mat-error>Adresse e-mail invalide.</mat-error>
-        }
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Fuseau horaire</mat-label>
-        <input matInput formControlName="fuseau" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Devise</mat-label>
-        <input matInput formControlName="devise" maxlength="3" />
-      </mat-form-field>
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Code">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            formControlName="code"
+            required
+            data-testid="champ-code"
+          />
+          @if (formulaire.controls.code.hasError('pattern')) {
+            <mat-error
+              >Lettres, chiffres, points et tirets seulement.</mat-error
+            >
+          }
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Statut">
+        <mat-form-field appearance="outline">
+          <mat-select formControlName="statut" data-testid="champ-statut">
+            @for (s of statuts; track s.valeur) {
+              <mat-option [value]="s.valeur">{{ s.libelle }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Inspection d'académie (IA)">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="ia" />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Inspection de l'éducation (IEF)">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="ief" />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Adresse">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="adresse" />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Ville">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            formControlName="ville"
+            maxlength="100"
+            data-testid="champ-ville"
+          />
+          <mat-hint>Affichée sur la page de connexion.</mat-hint>
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Phrase d'accueil" class="champ-plein">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            formControlName="phraseAccueil"
+            maxlength="200"
+            data-testid="champ-phrase-accueil"
+          />
+          <mat-hint
+            >Une courte phrase sous le nom de l'école, sur la page de
+            connexion.</mat-hint
+          >
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Téléphone">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            formControlName="telephone"
+            inputmode="tel"
+            data-testid="champ-telephone"
+          />
+          <mat-hint
+            >Format international ; +221 par défaut pour 9 chiffres.</mat-hint
+          >
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="E-mail">
+        <mat-form-field appearance="outline">
+          <input matInput type="email" formControlName="email" />
+          @if (formulaire.controls.email.hasError('email')) {
+            <mat-error>Adresse e-mail invalide.</mat-error>
+          }
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Fuseau horaire">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="fuseau" />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Devise">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="devise" maxlength="3" />
+        </mat-form-field>
+      </ecole-champ>
       @if (droits.peutEcrire()) {
         <div class="actions">
           <button

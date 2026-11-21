@@ -20,7 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ClasseDto, InscriptionDto } from '@ecole/api-client';
-import { Confirmation, Modale, Pastille } from '@ecole/ui';
+import { Confirmation, Modale, Pastille, Champ } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { libelleStatut, tonStatut } from '../commun/etiquettes';
@@ -38,6 +38,8 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
 @Component({
   selector: 'ecole-onglet-scolarite',
   imports: [
+    Champ,
+    Champ,
     ReactiveFormsModule,
     MatButtonModule,
     MatCheckboxModule,
@@ -188,26 +190,29 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
               Chargement des classes…
             </p>
           }
-          <mat-form-field appearance="outline">
-            <mat-label>Classe</mat-label>
-            <mat-select formControlName="classeId" data-testid="champ-classe">
-              @for (c of classes(); track c.id) {
-                <mat-option [value]="c.id">{{ c.nom }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Statut</mat-label>
-            <mat-select formControlName="statut" data-testid="champ-statut">
-              <mat-option value="INSCRIT">Inscrit</mat-option>
-              <mat-option value="PRE_INSCRIT">Pré-inscrit</mat-option>
-            </mat-select>
-          </mat-form-field>
+          <ecole-champ libelle="Classe">
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="classeId" data-testid="champ-classe">
+                @for (c of classes(); track c.id) {
+                  <mat-option [value]="c.id">{{ c.nom }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </ecole-champ>
+          <ecole-champ libelle="Statut">
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="statut" data-testid="champ-statut">
+                <mat-option value="INSCRIT">Inscrit</mat-option>
+
+                <mat-option value="PRE_INSCRIT">Pré-inscrit</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ecole-champ>
           <mat-checkbox formControlName="redoublant">Redoublant</mat-checkbox>
         </form>
         <div pied>
           <button
-            matButton
+            matButton="outlined"
             type="button"
             (click)="modaleInscrire.demanderFermeture('fermer')"
           >
@@ -247,19 +252,20 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
           class="formulaire"
           data-testid="form-classe"
         >
-          <mat-form-field appearance="outline">
-            <mat-label>Nouvelle classe</mat-label>
-            <mat-select formControlName="classeId" data-testid="champ-classe">
-              @for (c of classes(); track c.id) {
-                <mat-option [value]="c.id">{{ c.nom }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          <ecole-champ libelle="Nouvelle classe">
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="classeId" data-testid="champ-classe">
+                @for (c of classes(); track c.id) {
+                  <mat-option [value]="c.id">{{ c.nom }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </ecole-champ>
           <mat-checkbox formControlName="redoublant">Redoublant</mat-checkbox>
         </form>
         <div pied>
           <button
-            matButton
+            matButton="outlined"
             type="button"
             (click)="modaleClasse.demanderFermeture('fermer')"
           >
@@ -300,32 +306,38 @@ type Action = 'inscrire' | 'classe' | 'sortie' | null;
           class="formulaire"
           data-testid="form-sortie"
         >
-          <mat-form-field appearance="outline">
-            <mat-label>Nouveau statut</mat-label>
-            <mat-select formControlName="statut" data-testid="champ-sortie">
-              <mat-option value="TRANSFERE">Transféré</mat-option>
-              <mat-option value="ABANDON">Abandon</mat-option>
-              @if (droits.peutRadier()) {
-                <mat-option value="RADIE">Radié</mat-option>
+          <ecole-champ libelle="Nouveau statut">
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="statut" data-testid="champ-sortie">
+                <mat-option value="TRANSFERE">Transféré</mat-option>
+
+                <mat-option value="ABANDON">Abandon</mat-option>
+
+                @if (droits.peutRadier()) {
+                  <mat-option value="RADIE">Radié</mat-option>
+                }
+              </mat-select>
+
+              @if (!droits.peutRadier()) {
+                <mat-hint>La radiation est réservée au directeur.</mat-hint>
               }
-            </mat-select>
-            @if (!droits.peutRadier()) {
-              <mat-hint>La radiation est réservée au directeur.</mat-hint>
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="champ-court">
-            <mat-label>Date</mat-label>
-            <input matInput type="date" formControlName="date" />
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="champ-plein">
-            <mat-label>Motif</mat-label>
-            <input matInput formControlName="motif" maxlength="200" />
-          </mat-form-field>
+            </mat-form-field>
+          </ecole-champ>
+          <ecole-champ libelle="Date" class="champ-court">
+            <mat-form-field appearance="outline">
+              <input matInput type="date" formControlName="date" />
+            </mat-form-field>
+          </ecole-champ>
+          <ecole-champ libelle="Motif" class="champ-plein">
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="motif" maxlength="200" />
+            </mat-form-field>
+          </ecole-champ>
           <p class="aide">Cette décision est définitive.</p>
         </form>
         <div pied>
           <button
-            matButton
+            matButton="outlined"
             type="button"
             (click)="modaleSortie.demanderFermeture('fermer')"
           >

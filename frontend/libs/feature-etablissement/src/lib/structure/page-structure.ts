@@ -30,7 +30,11 @@ import { SectionSeries } from './section-series';
           : 'Niveaux et séries'
       "
     />
-    <mat-tab-group animationDuration="0ms">
+    <mat-tab-group
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
       @if (droits.estDirecteur()) {
         <mat-tab label="Cycles">
           <ng-template matTabContent><ecole-section-cycles /></ng-template>

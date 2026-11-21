@@ -14,7 +14,11 @@ import { EnTetePage, CHAMPS_FORMULAIRE } from '@ecole/ui';
       titre="Classes et salles"
       sousTitre="Classes d'une année et salles de l'école"
     />
-    <mat-tab-group animationDuration="0ms">
+    <mat-tab-group
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
       <mat-tab label="Classes">
         <ng-template matTabContent><ecole-section-classes /></ng-template>
       </mat-tab>
