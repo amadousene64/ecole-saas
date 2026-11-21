@@ -183,9 +183,14 @@ export async function creerUtilisateurSansEcole(
   expect(creation.status(), 'Création du compte parent fictif').toBe(201);
 }
 
+/** Comptes jetables des scénarios (horodatés) : les seuls que le nettoyage peut supprimer. */
+const COMPTE_JETABLE = /^(reinit\.e2e|parent\.e2e|parent\.inscrit)\.[a-z0-9]+$/;
+
 /**
  * Supprime du realm de dev les comptes créés par un scénario (nettoyage en fin de test). Un compte
- * déjà absent n'est pas une erreur : le nettoyage se rejoue.
+ * déjà absent n'est pas une erreur : le nettoyage se rejoue. Garde-fous : seulement des comptes
+ * jetables (COMPTE_JETABLE, jamais les comptes fixes *.a ou *.e2e), et seulement sur un Keycloak
+ * local, sauf E2E_FORCER_DEV=1 (même règle que infra/scripts/creer-comptes-dev.sh).
  */
 export async function supprimerUtilisateurs(
   request: APIRequestContext,
@@ -194,6 +199,22 @@ export async function supprimerUtilisateurs(
   if (!utilisateurs.length) {
     return;
   }
+  const hote = new URL(KEYCLOAK).hostname;
+  if (
+    !['localhost', '127.0.0.1'].includes(hote) &&
+    process.env['E2E_FORCER_DEV'] !== '1'
+  ) {
+    throw new Error(
+      `Refus : ${KEYCLOAK} n'est pas un Keycloak local (E2E_FORCER_DEV=1 pour passer outre).`,
+    );
+  }
+  for (const utilisateur of utilisateurs) {
+    if (!COMPTE_JETABLE.test(utilisateur)) {
+      throw new Error(
+        `Refus : « ${utilisateur} » n'est pas un compte jetable.`,
+      );
+    }
+  }
   const acces = await jetonAdminKeycloak(request);
   const entetes = { Authorization: `Bearer ${acces}` };
   for (const utilisateur of utilisateurs) {
@@ -201,6 +222,7 @@ export async function supprimerUtilisateurs(
       `${KEYCLOAK}/admin/realms/ecole/users?exact=true&username=${encodeURIComponent(utilisateur)}`,
       { headers: entetes },
     );
+    expect(trouves.ok(), `Recherche du compte ${utilisateur}`).toBe(true);
     for (const { id } of (await trouves.json()) as { id: string }[]) {
       const suppression = await request.delete(
         `${KEYCLOAK}/admin/realms/ecole/users/${id}`,

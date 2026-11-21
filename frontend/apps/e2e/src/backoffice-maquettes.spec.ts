@@ -48,8 +48,10 @@ test('03, 04, 06, 08 · secrétariat : liste, fiche, responsable, nouvel élève
   await capturerMaquette(page, '04-fiche-eleve');
 
   await page.getByRole('tab', { name: 'Responsables' }).click();
-  await page.getByTestId('ajouter-responsable').click();
+  await page.getByTestId('ouvrir-ajout-responsable').click();
+  await expect(page.getByRole('dialog')).toBeVisible();
   await capturerMaquette(page, '06-modale-responsable');
+  await page.keyboard.press('Escape');
 
   await page.goto('/eleves/nouveau');
   await expect(page.getByTestId('champ-prenoms')).toBeVisible();
