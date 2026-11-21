@@ -661,6 +661,384 @@
         "tags" : [ "annee-scolaire-controller" ]
       }
     },
+    "/api/v1/brouillons-inscription" : {
+      "get" : {
+        "operationId" : "brouillonInscription_lister",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BrouillonResumeDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Brouillons en cours de l'école (nom de l'élève et étape, pour reprendre)",
+        "tags" : [ "brouillon-inscription-controller" ]
+      },
+      "post" : {
+        "operationId" : "brouillonInscription_ouvrir",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OuvertureBrouillon"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrouillonInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ouvre un brouillon vide (année en cours, sauf année donnée)",
+        "tags" : [ "brouillon-inscription-controller" ]
+      }
+    },
+    "/api/v1/brouillons-inscription/{id}" : {
+      "delete" : {
+        "operationId" : "brouillonInscription_abandonner",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Abandonne le brouillon : contenu effacé, pièces supprimées",
+        "tags" : [ "brouillon-inscription-controller" ]
+      },
+      "get" : {
+        "operationId" : "brouillonInscription_lire",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrouillonInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Brouillon déchiffré ; ETag = version",
+        "tags" : [ "brouillon-inscription-controller" ]
+      },
+      "put" : {
+        "operationId" : "brouillonInscription_enregistrer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EnregistrementBrouillon"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrouillonInscriptionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Enregistre une étape (contenu complet) ; If-Match : version lue",
+        "tags" : [ "brouillon-inscription-controller" ]
+      }
+    },
+    "/api/v1/brouillons-inscription/{id}/finalisation" : {
+      "post" : {
+        "operationId" : "brouillonInscription_finaliser",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FinalisationBrouillon"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrouillonFinaliseDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée l'élève, ses responsables et l'inscription, rattache les pièces et clôt le brouillon (tout ou rien) ; If-Match : version lue",
+        "tags" : [ "brouillon-inscription-controller" ]
+      }
+    },
+    "/api/v1/brouillons-inscription/{id}/pieces" : {
+      "get" : {
+        "operationId" : "brouillonInscription_pieces",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PieceDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Pièces déposées dans le brouillon, avec leur statut d'analyse",
+        "tags" : [ "brouillon-inscription-controller" ]
+      },
+      "post" : {
+        "operationId" : "brouillonInscription_deposer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  },
+                  "type" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [ "fichier", "type" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PieceDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Dépose une pièce dans le brouillon (PDF, JPEG ou PNG, 5 Mo au plus), analysée par antivirus ; rattachée à l'élève à la finalisation",
+        "tags" : [ "brouillon-inscription-controller" ]
+      }
+    },
+    "/api/v1/brouillons-inscription/{id}/pieces/{pieceId}" : {
+      "delete" : {
+        "operationId" : "brouillonInscription_retirerPiece",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "pieceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Retire une pièce du brouillon ; le fichier est effacé du stockage",
+        "tags" : [ "brouillon-inscription-controller" ]
+      }
+    },
     "/api/v1/classes" : {
       "get" : {
         "operationId" : "classe_lister",
@@ -3994,6 +4372,85 @@
         },
         "required" : [ "dateDebut", "dateFin", "libelle" ]
       },
+      "BrouillonFinaliseDto" : {
+        "type" : "object",
+        "properties" : {
+          "avertissements" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "eleveId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "inscriptionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "BrouillonInscriptionDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "contenu" : {
+            "$ref" : "#/components/schemas/ContenuDto"
+          },
+          "etape" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "modifieLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "BrouillonResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "auteurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "etape" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "modifieLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "ClasseDto" : {
         "type" : "object",
         "properties" : {
@@ -4086,6 +4543,25 @@
           "expireLe" : {
             "type" : "string",
             "format" : "date-time"
+          }
+        }
+      },
+      "ContenuDto" : {
+        "type" : "object",
+        "properties" : {
+          "eleve" : {
+            "$ref" : "#/components/schemas/EleveSaisiDto"
+          },
+          "responsables" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ResponsableSaisiDto"
+            },
+            "maxItems" : 4,
+            "minItems" : 0
+          },
+          "scolarite" : {
+            "$ref" : "#/components/schemas/ScolariteDto"
           }
         }
       },
@@ -4434,6 +4910,59 @@
           }
         }
       },
+      "EleveSaisiDto" : {
+        "type" : "object",
+        "properties" : {
+          "dateNaissance" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "identifiantNational" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          },
+          "lieuNaissance" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "nationalite" : {
+            "type" : "string",
+            "maxLength" : 2,
+            "minLength" : 0
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "prenoms" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "sexe" : {
+            "type" : "string",
+            "enum" : [ "M", "F" ]
+          }
+        }
+      },
+      "EnregistrementBrouillon" : {
+        "type" : "object",
+        "properties" : {
+          "contenu" : {
+            "$ref" : "#/components/schemas/ContenuDto"
+          },
+          "etape" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 5,
+            "minimum" : 1
+          }
+        },
+        "required" : [ "contenu" ]
+      },
       "EtablissementDto" : {
         "type" : "object",
         "properties" : {
@@ -4561,6 +5090,16 @@
           }
         },
         "required" : [ "dateDebut", "dateFin", "libelle", "type" ]
+      },
+      "FinalisationBrouillon" : {
+        "type" : "object",
+        "properties" : {
+          "statut" : {
+            "type" : "string",
+            "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
+          }
+        },
+        "required" : [ "statut" ]
       },
       "InscriptionDto" : {
         "type" : "object",
@@ -5016,6 +5555,15 @@
         },
         "required" : [ "code", "groupe", "libelle" ]
       },
+      "OuvertureBrouillon" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
       "PageDtoEleveListeDto" : {
         "type" : "object",
         "properties" : {
@@ -5295,6 +5843,55 @@
           }
         }
       },
+      "ResponsableSaisiDto" : {
+        "type" : "object",
+        "properties" : {
+          "autoriseRecuperer" : {
+            "type" : "boolean"
+          },
+          "contactUrgence" : {
+            "type" : "boolean"
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "payeur" : {
+            "type" : "boolean"
+          },
+          "prenoms" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "recoitNotifications" : {
+            "type" : "boolean"
+          },
+          "responsableId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "responsableLegal" : {
+            "type" : "boolean"
+          },
+          "telephone" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PERE", "MERE", "TUTEUR", "AUTRE" ]
+          }
+        }
+      },
       "ResultatImportDto" : {
         "type" : "object",
         "properties" : {
@@ -5355,6 +5952,27 @@
           }
         },
         "required" : [ "capacite", "nom" ]
+      },
+      "ScolariteDto" : {
+        "type" : "object",
+        "properties" : {
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "options" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          },
+          "redoublant" : {
+            "type" : "boolean"
+          }
+        }
       },
       "SemaineDto" : {
         "type" : "object",

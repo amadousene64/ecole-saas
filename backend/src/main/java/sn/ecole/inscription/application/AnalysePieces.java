@@ -60,15 +60,18 @@ class AnalysePieces implements TraitementOutbox {
     pieces.save(piece);
     if (resultat.sain()) {
       journal.consignerSysteme(
-          "PIECE_ANALYSEE", "Eleve", piece.getEleveId(), Map.of("piece", pieceId, "sain", true));
+          "PIECE_ANALYSEE",
+          piece.typeRattachement(),
+          piece.idRattachement(),
+          Map.of("piece", pieceId, "sain", true));
       return;
     }
     String cle = piece.getCle();
     ApresTransaction.siValidee(() -> stockage.supprimer(cle));
     journal.consignerSysteme(
         "PIECE_INFECTEE",
-        "Eleve",
-        piece.getEleveId(),
+        piece.typeRattachement(),
+        piece.idRattachement(),
         Map.of("piece", pieceId, "signature", resultat.signature()));
     LOG.warn("Pièce {} bloquée par l'antivirus ({})", pieceId, resultat.signature());
   }

@@ -34,6 +34,10 @@ final class Erreurs {
     return introuvable("ELEVE_INTROUVABLE", "Élève introuvable.");
   }
 
+  static ErreurMetier brouillonIntrouvable() {
+    return introuvable("BROUILLON_INTROUVABLE", "Brouillon d'inscription introuvable.");
+  }
+
   /** Verrou optimiste explicite : la version vue par le client doit être la version courante. */
   static void verifierVersion(int attendue, EntiteAuditee entite) {
     if (!Objects.equals(attendue, entite.getVersion())) {

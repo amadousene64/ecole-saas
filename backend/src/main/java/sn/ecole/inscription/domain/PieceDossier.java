@@ -37,8 +37,13 @@ public class PieceDossier extends TenantAwareEntity {
     INFECTE
   }
 
-  @Column(name = "eleve_id", nullable = false, updatable = false)
+  /** Élève du dossier ; {@code null} tant que la pièce est rattachée à un brouillon. */
+  @Column(name = "eleve_id")
   private UUID eleveId;
+
+  /** Brouillon d'inscription, jusqu'à sa finalisation (exactement un des deux rattachements). */
+  @Column(name = "brouillon_id")
+  private UUID brouillonId;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, updatable = false, length = 30)
@@ -77,6 +82,37 @@ public class PieceDossier extends TenantAwareEntity {
     return p;
   }
 
+  /** Pièce déposée pendant l'assistant d'inscription, avant que l'élève n'existe. */
+  public static PieceDossier deposerPourBrouillon(
+      UUID brouillonId, Type type, String cle, ControlePiece.PieceValidee piece) {
+    PieceDossier p = new PieceDossier();
+    p.brouillonId = Objects.requireNonNull(brouillonId);
+    p.type = Objects.requireNonNull(type);
+    p.cle = Objects.requireNonNull(cle);
+    p.contentType = piece.contentType();
+    p.taille = piece.taille();
+    p.empreinteSha256 = piece.sha256();
+    return p;
+  }
+
+  /** Finalisation du brouillon : la pièce passe au dossier de l'élève créé. */
+  public void rattacherA(UUID eleve) {
+    if (brouillonId == null) {
+      throw new IllegalStateException("Pièce déjà rattachée à un élève.");
+    }
+    eleveId = Objects.requireNonNull(eleve);
+    brouillonId = null;
+  }
+
+  /** Type de l'agrégat auquel la pièce appartient (élève ou brouillon), pour le journal. */
+  public String typeRattachement() {
+    return eleveId != null ? "Eleve" : "BrouillonInscription";
+  }
+
+  public UUID idRattachement() {
+    return eleveId != null ? eleveId : brouillonId;
+  }
+
   /** Résultat de l'analyse ; sans effet si la pièce a déjà été analysée (rejeu). */
   public boolean enregistrerAnalyse(boolean saine, Instant quand) {
     if (statut != Statut.EN_ANALYSE) {
@@ -109,6 +145,10 @@ public class PieceDossier extends TenantAwareEntity {
 
   public UUID getEleveId() {
     return eleveId;
+  }
+
+  public UUID getBrouillonId() {
+    return brouillonId;
   }
 
   public Type getType() {
