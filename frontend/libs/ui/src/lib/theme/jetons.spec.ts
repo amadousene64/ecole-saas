@@ -50,6 +50,9 @@ const COUPLES: [texte: string, fond: string][] = [
   ['bissap', 'bissap-fond'],
   ['fleuve', 'fleuve-fond'],
   ['texte', 'primaire-doux'],
+  // Bouton destructif des confirmations (texte blanc sur rouge).
+  ['sur-primaire', 'bissap'],
+  ['sur-primaire', 'bissap-survol'],
 ];
 
 /**

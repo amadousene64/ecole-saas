@@ -1,0 +1,85 @@
+<dialog
+  #dialogue
+  class="ecole-modale"
+  tabindex="-1"
+  [class.ecole-modale--etroite]="largeur() === 'etroite'"
+  [class.ecole-modale--large]="largeur() === 'large'"
+  [class.ecole-modale--haut]="position() === 'haut'"
+  [attr.role]="role() === 'alertdialog' ? 'alertdialog' : null"
+  [attr.aria-labelledby]="id + '-titre'"
+  [attr.aria-describedby]="
+    confirmerAbandon()
+      ? id + '-abandon'
+      : sousTitre()
+        ? id + '-sous-titre'
+        : decritPar() || null
+  "
+  [attr.data-testid]="testId() || null"
+  (cancel)="surAnnulation($event)"
+  (close)="surFermetureNative()"
+  (keydown)="surTouche($event)"
+  (pointerdown)="surAppui($event)"
+  (click)="surClic($event)"
+>
+  <div class="ecole-modale__cadre">
+    <header class="ecole-modale__entete">
+      <div class="ecole-modale__titres">
+        <h2 class="ecole-modale__titre" [id]="id + '-titre'">{{ titre() }}</h2>
+        @if (sousTitre(); as texte) {
+        <p class="ecole-modale__sous-titre" [id]="id + '-sous-titre'">
+          {{ texte }}
+        </p>
+        }
+      </div>
+      <button
+        type="button"
+        class="ecole-modale__fermer"
+        aria-label="Fermer"
+        data-testid="fermer-modale"
+        (click)="demanderFermeture('fermer')"
+      >
+        <svg viewBox="0 -960 960 960" width="24" height="24" aria-hidden="true">
+          <path
+            d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <div class="ecole-modale__corps" [hidden]="confirmerAbandon()">
+      <ng-content />
+    </div>
+    <footer class="ecole-modale__pied" [hidden]="confirmerAbandon()">
+      <ng-content select="[pied]" />
+    </footer>
+
+    @if (confirmerAbandon()) {
+    <div class="ecole-modale__corps" role="alert">
+      <p [id]="id + '-abandon'" class="ecole-modale__abandon">
+        {{ messageAbandon() }}
+      </p>
+    </div>
+    <footer class="ecole-modale__pied">
+      <div pied>
+        <button
+          #continuer
+          type="button"
+          class="bouton secondaire"
+          data-testid="continuer-saisie"
+          (click)="continuerSaisie()"
+        >
+          {{ libelleContinuer() }}
+        </button>
+        <button
+          type="button"
+          class="bouton danger"
+          data-testid="abandonner-modifications"
+          (click)="fermer('abandon')"
+        >
+          {{ libelleAbandon() }}
+        </button>
+      </div>
+    </footer>
+    }
+  </div>
+</dialog>

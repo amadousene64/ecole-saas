@@ -23,7 +23,12 @@ const LARGEURS = [
 
 async function capturer(page: Page, nom: string): Promise<void> {
   mkdirSync(DOSSIER, { recursive: true });
-  await page.screenshot({ path: `${DOSSIER}/${nom}.png`, fullPage: true });
+  // Animations amenées à leur état final : une modale capturée en plein fondu paraît transparente.
+  await page.screenshot({
+    path: `${DOSSIER}/${nom}.png`,
+    fullPage: true,
+    animations: 'disabled',
+  });
 }
 
 async function pasDeDefilementHorizontal(page: Page): Promise<void> {
@@ -108,6 +113,44 @@ for (const { nom, largeur, hauteur } of LARGEURS) {
     await pasDeDefilementHorizontal(page);
     await capturer(page, `secretariat-fiche-${nom}`);
     await verifierAccessibilite(page, `Fiche élève (${nom} px)`);
+
+    // --- Modale « Changer de classe » : plein écran sur téléphone, Échap rend le focus ---
+    await page.getByRole('tab', { name: 'Scolarité' }).click();
+    const changer = page.getByTestId('action-classe');
+    await changer.click();
+    const modale = page.getByRole('dialog', { name: 'Changer de classe' });
+    await expect(modale).toBeVisible();
+    await expect(page.getByTestId('champ-classe')).toBeFocused();
+    if (largeur < 600) {
+      const boite = await modale.boundingBox();
+      expect(Math.round(boite?.width ?? 0), 'modale plein écran').toBe(largeur);
+    }
+    await capturer(page, `secretariat-modale-classe-${nom}`);
+    await verifierAccessibilite(
+      page,
+      `Modale « Changer de classe » (${nom} px)`,
+    );
+    await page.keyboard.press('Escape');
+    await expect(modale).toBeHidden();
+    await expect(changer).toBeFocused();
+
+    // --- Confirmation « Retirer le lien » : alertdialog, focus sur Annuler, rien n'est retiré ---
+    await page.getByRole('tab', { name: 'Responsables' }).click();
+    const retirer = page.locator('[data-testid^="retirer-"]').first();
+    await retirer.click();
+    const confirmation = page.getByRole('alertdialog', {
+      name: 'Retirer le lien',
+    });
+    await expect(confirmation).toBeVisible();
+    await expect(page.getByTestId('annuler-confirmation')).toBeFocused();
+    await expect(
+      confirmation.getByRole('button', { name: 'Retirer le lien' }),
+    ).toBeVisible();
+    await capturer(page, `secretariat-confirmation-retrait-${nom}`);
+    await verifierAccessibilite(page, `Confirmation du retrait (${nom} px)`);
+    await page.getByTestId('annuler-confirmation').click();
+    await expect(confirmation).toBeHidden();
+    await expect(retirer).toBeFocused();
   });
 }
 
