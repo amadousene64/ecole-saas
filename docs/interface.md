@@ -106,3 +106,43 @@ et `ecole-confirmation`, sur l'élément natif `<dialog>` (`showModal()`). ESLin
 Tests : `libs/ui/src/lib/modales/modale.navigateur.spec.ts`, dans Chromium (projet Vitest
 `ui-navigateur`, jsdom n'implémentant pas `<dialog>`). Sous jsdom (tests des écrans), la modale se
 replie sur l'attribut `open`.
+
+## Maquettes de référence (`docs/maquettes/`)
+
+Tout écran se compare d'abord aux maquettes (lire leur README) ; en cas d'écart avec le style par
+défaut de Material, les maquettes l'emportent. Captures à mettre en regard :
+`npx playwright test -c apps/e2e/playwright.config.mts maquettes` (dossier `dist/.playwright/maquettes`,
+une image par maquette, à sa largeur ; lecture seule).
+
+- **Libellé au-dessus du champ** : `ecole-champ` (`@ecole/ui`) enveloppe le `mat-form-field`, qui
+  n'a plus de `mat-label` (donc ni libellé flottant ni encoche). Le libellé est un vrai `<label>`
+  relié au contrôle ; « (facultatif) » s'ajoute seul aux champs non obligatoires d'un formulaire
+  (pas aux filtres d'un `role="search"`). Les classes de largeur se posent sur `ecole-champ`.
+
+  ```html
+  <ecole-champ libelle="E-mail" class="champ-moyen">
+    <mat-form-field appearance="outline">
+      <input matInput formControlName="email" />
+    </mat-form-field>
+  </ecole-champ>
+  ```
+- Champs à fond blanc, 48 px ; aide et erreur alignées sur le bord gauche du champ.
+- **Onglets** alignés à gauche, à la largeur de leur texte : `mat-stretch-tabs="false"
+  mat-align-tabs="start"` sur chaque `mat-tab-group`. Le corps d'un onglet ne défile jamais pour
+  son compte : une seule barre de défilement, celle de la page.
+- **Pied de formulaire** : `.actions` d'un `.formulaire` est séparé par un trait, boutons à droite,
+  bouton principal en dernier. Page de formulaire seule : `.colonne-formulaire` (720 px) et le
+  formulaire en `.carte`.
+- **En-tête de page** : `ecole-en-tete-page` (titre, sous-titre, actions à droite sur la même
+  ligne) ; action secondaire en bouton contour, principale en bouton plein.
+- En-têtes de tableau en petites capitales grises ; filtres d'une liste en `.filtres-liste`.
+- Listes de valeurs lisibles : `NATIONALITES` / `optionsNationalite()` (`@ecole/ui`), libellé
+  « Sénégalaise », valeur `SN`.
+
+## Données des tests e2e
+
+Les scénarios qui créent ou modifient des données travaillent dans l'**École E2E** (comptes
+`secretariat.e2e`, `directeur.e2e`, `censeur.e2e`, voir `support.ts`), jamais dans les écoles A et
+B utilisées à la main. Les comptes Keycloak qu'ils créent sont supprimés à la fin ; la marque de la
+page de connexion est simulée (`simulerLogoEcole`) au lieu de déposer un logo. Sur un poste déjà
+installé : `bash infra/scripts/creer-comptes-dev.sh`, puis redémarrer le backend (profil dev).

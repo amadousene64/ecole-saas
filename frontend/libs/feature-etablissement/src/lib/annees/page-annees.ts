@@ -1,5 +1,6 @@
 import {
   CHAMPS_FORMULAIRE,
+  Champ,
   Confirmation,
   EnTetePage,
   Pastille,
@@ -55,6 +56,7 @@ const CONFIRMATIONS: Record<
   selector: 'ecole-page-annees',
   providers: [CHAMPS_FORMULAIRE],
   imports: [
+    Champ,
     EnTetePage,
     DatePipe,
     ReactiveFormsModule,
@@ -178,36 +180,40 @@ const CONFIRMATIONS: Record<
         class="formulaire"
         data-testid="form-annee"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Année (AAAA-AAAA)</mat-label>
-          <input
-            matInput
-            formControlName="libelle"
-            placeholder="2027-2028"
-            data-testid="champ-annee-libelle"
-          />
-          @if (formulaire.controls.libelle.hasError('pattern')) {
-            <mat-error>Format AAAA-AAAA, par exemple 2027-2028.</mat-error>
-          }
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Début</mat-label>
-          <input
-            matInput
-            type="date"
-            formControlName="dateDebut"
-            data-testid="champ-annee-debut"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Fin</mat-label>
-          <input
-            matInput
-            type="date"
-            formControlName="dateFin"
-            data-testid="champ-annee-fin"
-          />
-        </mat-form-field>
+        <ecole-champ libelle="Année (AAAA-AAAA)">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="libelle"
+              placeholder="2027-2028"
+              data-testid="champ-annee-libelle"
+            />
+
+            @if (formulaire.controls.libelle.hasError('pattern')) {
+              <mat-error>Format AAAA-AAAA, par exemple 2027-2028.</mat-error>
+            }
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Début" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="date"
+              formControlName="dateDebut"
+              data-testid="champ-annee-debut"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Fin" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="date"
+              formControlName="dateFin"
+              data-testid="champ-annee-fin"
+            />
+          </mat-form-field>
+        </ecole-champ>
         <div class="actions">
           <button
             matButton="filled"

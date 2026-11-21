@@ -115,6 +115,24 @@ $c: jetons.$couleurs;
       )
     );
 
+    // Onglets (maquette 04) : alignés à gauche, largeur de leur texte (mat-stretch-tabs="false"
+    // sur chaque groupe), soulignement vert de 2 px sous l'onglet actif.
+    @include mat.tabs-overrides(
+      (
+        active-indicator-height: 2px,
+        active-indicator-color: map.get($c, 'primaire'),
+        active-focus-indicator-color: map.get($c, 'primaire'),
+        active-hover-indicator-color: map.get($c, 'primaire'),
+        active-label-text-color: map.get($c, 'primaire'),
+        active-focus-label-text-color: map.get($c, 'primaire'),
+        active-hover-label-text-color: map.get($c, 'primaire'),
+        inactive-label-text-color: map.get($c, 'texte-secondaire'),
+        divider-color: map.get($c, 'bordure'),
+        label-text-size: 15px,
+        label-text-weight: 600,
+      )
+    );
+
     // Cartes : rayon 12, bordure 1 px, sans ombre.
     @include mat.card-overrides(
       (
@@ -125,6 +143,26 @@ $c: jetons.$couleurs;
         outlined-outline-width: 1px,
       )
     );
+
+    // Champs à fond blanc sur le fond gris de la page (maquettes 01, 03, 06).
+    .mat-mdc-form-field .mdc-text-field--outlined {
+      background: map.get($c, 'surface');
+      border-radius: jetons.$rayon-controle;
+    }
+
+    // Aide et erreur sous le champ, alignées sur son bord gauche (comme le libellé au-dessus).
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper {
+      padding: 0;
+    }
+
+    // Une seule barre de défilement, celle de la page : le corps d'un onglet ne défile pas
+    // pour son compte (Material lui donne overflow: auto).
+    .mat-mdc-tab-body-content,
+    .mat-mdc-tab-body-active,
+    .mat-mdc-tab-body-wrapper {
+      overflow: visible;
+    }
 
     // Navigation latérale blanche.
     @include mat.sidenav-overrides(

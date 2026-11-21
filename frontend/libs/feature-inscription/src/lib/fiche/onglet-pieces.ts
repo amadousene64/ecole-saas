@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { PieceDto } from '@ecole/api-client';
-import { Pastille } from '@ecole/ui';
+import { Pastille, Champ } from '@ecole/ui';
 import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import {
@@ -52,6 +52,7 @@ export function controlerFichier(fichier: File): string | null {
 @Component({
   selector: 'ecole-onglet-pieces',
   imports: [
+    Champ,
     FormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -131,19 +132,21 @@ export function controlerFichier(fichier: File): string | null {
     @if (droits.peutEcrire()) {
       <h2>Déposer une pièce</h2>
       <div class="formulaire" data-testid="depot-piece">
-        <mat-form-field appearance="outline">
-          <mat-label>Type de pièce</mat-label>
-          <mat-select
-            [ngModel]="type()"
-            (ngModelChange)="type.set($event)"
-            name="type"
-            data-testid="champ-type-piece"
-          >
-            @for (t of types; track t.valeur) {
-              <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <ecole-champ libelle="Type de pièce">
+          <mat-form-field appearance="outline">
+            <mat-select
+              [ngModel]="type()"
+              (ngModelChange)="type.set($event)"
+              name="type"
+              required
+              data-testid="champ-type-piece"
+            >
+              @for (t of types; track t.valeur) {
+                <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
         <div class="champ-fichier">
           <label for="fichier-piece">Fichier (PDF, JPEG ou PNG, 5 Mo)</label>
           <input

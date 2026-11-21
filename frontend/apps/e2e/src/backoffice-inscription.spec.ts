@@ -7,13 +7,15 @@ import {
 } from '@playwright/test';
 import { verifierAccessibilite } from './accessibilite';
 import {
+  COMPTES_E2E,
   creerUtilisateurSansEcole,
-  ECOLE_A_ID,
+  ECOLE_E2E_ID,
   exigerInfra,
   garantirClasseE2E,
   seConnecter,
   URL_API,
   lienMenu,
+  supprimerUtilisateurs,
 } from './support';
 
 /**
@@ -24,6 +26,7 @@ import {
  *   4. le directeur bloque l'accès du parent : sa requête suivante est refusée, sans reconnexion.
  *
  * Les étapes se suivent (un seul élève, un seul parent) : mode série. Noms uniques par exécution.
+ * Tout se passe dans l'école E2E (comptes *.e2e) ; le compte parent créé est supprimé à la fin.
  */
 exigerInfra();
 
@@ -54,6 +57,9 @@ let entetesParent: Record<string, string> = {};
 
 test.afterAll(async () => {
   await contextParent?.close();
+  const api = await request.newContext();
+  await supprimerUtilisateurs(api, [UTILISATEUR_PARENT]);
+  await api.dispose();
 });
 
 /** Toutes les adresses appelées par les navigateurs du scénario (API et pages de l'application). */
@@ -98,7 +104,7 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   // La classe d'accueil est créée au besoin : le test ne dépend d'aucune classe du jeu de données.
   const classe = await garantirClasseE2E(apiRequest);
   surveillerUrls(page);
-  await seConnecter(page, 'secretariat.a');
+  await seConnecter(page, COMPTES_E2E.secretariat);
   await lienMenu(page, 'Élèves', false).click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
   await verifierAccessibilite(page, 'Liste des élèves');
@@ -224,7 +230,7 @@ test('le parent active son compte avec le code et ne voit que son enfant', async
   await verifierAccessibilite(pageParent, 'Activation du compte parent');
 
   // Un mauvais code est refusé sans détail.
-  await pageParent.getByTestId('champ-ecole').fill(ECOLE_A_ID);
+  await pageParent.getByTestId('champ-ecole').fill(ECOLE_E2E_ID);
   await pageParent.getByTestId('champ-code').fill('0000-0000-0000');
   await pageParent.getByTestId('activer').click();
   await expect(pageParent.getByTestId('erreur-activation')).toContainText(
@@ -235,7 +241,7 @@ test('le parent active son compte avec le code et ne voit que son enfant', async
   await pageParent.getByTestId('activer').click();
 
   await expect(pageParent).toHaveURL(/\/enfants$/);
-  const ecole = pageParent.getByTestId('ecole-LYCEE-A');
+  const ecole = pageParent.getByTestId('ecole-E2E');
   await expect(ecole).toContainText(PRENOM_ELEVE);
   // Un seul enfant : pas les élèves de démonstration d'un autre responsable, ni ceux de l'école.
   await expect(pageParent.getByTestId('enfant')).toHaveCount(1);
@@ -268,7 +274,7 @@ test('le censeur consulte des données sensibles : une lecture, seulement au cli
   });
 
   surveillerUrls(page);
-  await seConnecter(page, 'censeur.a');
+  await seConnecter(page, COMPTES_E2E.censeur);
   await ouvrirFiche(page);
   await expect(page.getByTestId('mention-journal')).toContainText('journal');
   await expect(page.getByTestId('bloc-sensibles')).toContainText(
@@ -308,7 +314,7 @@ test("le directeur bloque l'accès d'un parent : sa requête suivante est refus�
     "pas de parent actif : l'étape précédente a échoué",
   );
   surveillerUrls(page);
-  await seConnecter(page, 'directeur.a');
+  await seConnecter(page, COMPTES_E2E.directeur);
   await ouvrirFiche(page);
   await page.getByRole('tab', { name: 'Responsables' }).click();
 

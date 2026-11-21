@@ -1,3 +1,4 @@
+import { Champ, Nationalite, optionsNationalite } from '@ecole/ui';
 import { Component, inject, input, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -35,6 +36,7 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
 @Component({
   selector: 'ecole-onglet-identite',
   imports: [
+    Champ,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -58,42 +60,60 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
       class="formulaire"
       data-testid="form-identite"
     >
-      <mat-form-field appearance="outline">
-        <mat-label>Prénoms</mat-label>
-        <input matInput formControlName="prenoms" data-testid="champ-prenoms" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Nom</mat-label>
-        <input matInput formControlName="nom" data-testid="champ-nom" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Sexe</mat-label>
-        <mat-select formControlName="sexe" data-testid="champ-sexe">
-          <mat-option value="F">Féminin</mat-option>
-          <mat-option value="M">Masculin</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="champ-court">
-        <mat-label>Date de naissance</mat-label>
-        <input
-          matInput
-          type="date"
-          formControlName="dateNaissance"
-          data-testid="champ-naissance"
-        />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Lieu de naissance</mat-label>
-        <input matInput formControlName="lieuNaissance" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Nationalité (code pays)</mat-label>
-        <input matInput formControlName="nationalite" maxlength="2" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Identifiant national</mat-label>
-        <input matInput formControlName="identifiantNational" />
-      </mat-form-field>
+      <ecole-champ libelle="Prénoms">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            formControlName="prenoms"
+            data-testid="champ-prenoms"
+          />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Nom">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="nom" data-testid="champ-nom" />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Sexe">
+        <mat-form-field appearance="outline">
+          <mat-select formControlName="sexe" data-testid="champ-sexe">
+            <mat-option value="F">Féminin</mat-option>
+            <mat-option value="M">Masculin</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Date de naissance" class="champ-court">
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            type="date"
+            formControlName="dateNaissance"
+            data-testid="champ-naissance"
+          />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Lieu de naissance">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="lieuNaissance" />
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Nationalité">
+        <mat-form-field appearance="outline">
+          <mat-select
+            formControlName="nationalite"
+            data-testid="champ-nationalite"
+          >
+            @for (n of nationalites(); track n.code) {
+              <mat-option [value]="n.code">{{ n.libelle }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ecole-champ>
+      <ecole-champ libelle="Identifiant national">
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="identifiantNational" />
+        </mat-form-field>
+      </ecole-champ>
       @if (droits.peutEcrire()) {
         <div class="actions">
           <button
@@ -160,16 +180,17 @@ type CleSensible = (typeof CHAMPS)[number]['cle'];
             data-testid="form-sensibles"
           >
             @for (c of champs; track c.cle) {
-              <mat-form-field appearance="outline">
-                <mat-label>{{ c.libelle }} (saisie)</mat-label>
-                <textarea
-                  matInput
-                  rows="2"
-                  [formControlName]="c.cle"
-                  [attr.data-testid]="'saisie-' + c.cle"
-                ></textarea>
-                <mat-hint>Laisser vide pour ne rien changer.</mat-hint>
-              </mat-form-field>
+              <ecole-champ libelle="{{ c.libelle }} (saisie)">
+                <mat-form-field appearance="outline">
+                  <textarea
+                    matInput
+                    rows="2"
+                    [formControlName]="c.cle"
+                    [attr.data-testid]="'saisie-' + c.cle"
+                  ></textarea>
+                  <mat-hint>Laisser vide pour ne rien changer.</mat-hint>
+                </mat-form-field>
+              </ecole-champ>
             }
             <div class="actions">
               <button
@@ -203,6 +224,9 @@ export class OngletIdentite {
   /** Contenu lu, gardé en mémoire de ce composant seulement (jamais stocké). */
   protected readonly affichees = signal<DonneesSensiblesDto | null>(null);
   private readonly etat = signal<EtatDonneesSensiblesDto | null>(null);
+  protected readonly nationalites = signal<readonly Nationalite[]>(
+    optionsNationalite(null),
+  );
   private versionSensibles: string | null = null;
   private courant: EleveDto | null = null;
 
@@ -229,6 +253,7 @@ export class OngletIdentite {
   private initialiser(): void {
     const e = this.eleve();
     this.courant = e;
+    this.nationalites.set(optionsNationalite(e.nationalite));
     this.formulaire.reset({
       prenoms: e.prenoms ?? '',
       nom: e.nom ?? '',

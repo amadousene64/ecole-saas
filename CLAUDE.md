@@ -72,6 +72,11 @@ docker compose -f infra/docker-compose.yml up -d   # postgres, keycloak, rabbitm
 - Commits conventionnels (`feat(billet): ...`), une branche par fonctionnalité.
 - Jamais de données réelles d'élèves dans les tests ou les fixtures : données anonymisées.
 
+## Interface
+
+- Tout écran construit ou modifié se compare d'abord aux images de `docs/maquettes/` (lis le
+  README) ; en cas d'écart avec le style par défaut de Material, les maquettes l'emportent.
+
 ## Définition de « terminé »
 
 Une tâche n'est terminée que si : `./mvnw verify` (et/ou `nx test` + `nx lint`) passe,

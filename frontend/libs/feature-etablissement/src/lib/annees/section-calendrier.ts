@@ -1,3 +1,4 @@
+import { Champ } from '@ecole/ui';
 import { DatePipe } from '@angular/common';
 import { requis } from '../commun/requis';
 import {
@@ -27,6 +28,7 @@ import { ServiceAnnees } from '../services/service-annees';
 @Component({
   selector: 'ecole-section-calendrier',
   imports: [
+    Champ,
     DatePipe,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -89,40 +91,47 @@ import { ServiceAnnees } from '../services/service-annees';
         class="formulaire"
         data-testid="form-evenement"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Type</mat-label>
-          <mat-select formControlName="type" data-testid="champ-evenement-type">
-            @for (t of types; track t.valeur) {
-              <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Libellé</mat-label>
-          <input
-            matInput
-            formControlName="libelle"
-            data-testid="champ-evenement-libelle"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Du</mat-label>
-          <input
-            matInput
-            type="date"
-            formControlName="dateDebut"
-            data-testid="champ-evenement-debut"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Au</mat-label>
-          <input
-            matInput
-            type="date"
-            formControlName="dateFin"
-            data-testid="champ-evenement-fin"
-          />
-        </mat-form-field>
+        <ecole-champ libelle="Type">
+          <mat-form-field appearance="outline">
+            <mat-select
+              formControlName="type"
+              data-testid="champ-evenement-type"
+            >
+              @for (t of types; track t.valeur) {
+                <mat-option [value]="t.valeur">{{ t.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Libellé">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="libelle"
+              data-testid="champ-evenement-libelle"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Du" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="date"
+              formControlName="dateDebut"
+              data-testid="champ-evenement-debut"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Au" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="date"
+              formControlName="dateFin"
+              data-testid="champ-evenement-fin"
+            />
+          </mat-form-field>
+        </ecole-champ>
         <div class="actions">
           <button
             matButton="filled"
@@ -133,7 +142,7 @@ import { ServiceAnnees } from '../services/service-annees';
             {{ edition() ? 'Enregistrer' : 'Ajouter' }}
           </button>
           @if (edition()) {
-            <button matButton type="button" (click)="annuler()">Annuler</button>
+            <button matButton="outlined" type="button" (click)="annuler()">Annuler</button>
           }
         </div>
       </form>

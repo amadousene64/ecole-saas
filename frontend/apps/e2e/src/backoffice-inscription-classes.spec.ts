@@ -4,6 +4,7 @@ import {
   garantirClasseE2E,
   lienMenu,
   seConnecter,
+  COMPTES_E2E,
 } from './support';
 
 /**
@@ -24,7 +25,7 @@ test('classes indisponibles : le message reste affiché, puis « Réessayer » c
     .toUpperCase()
     .replace(/\d/g, (c) => 'GHIJKLMNOP'[Number(c)]);
 
-  await seConnecter(page, 'secretariat.a');
+  await seConnecter(page, COMPTES_E2E.secretariat);
   await lienMenu(page, 'Élèves', false).click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
   await page.getByTestId('nouvel-eleve').click();

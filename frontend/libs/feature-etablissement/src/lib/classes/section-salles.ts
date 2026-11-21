@@ -1,3 +1,4 @@
+import { Champ } from '@ecole/ui';
 import { Component, inject, signal } from '@angular/core';
 import {
   NonNullableFormBuilder,
@@ -17,6 +18,7 @@ import { ServiceClasses } from '../services/service-classes';
 @Component({
   selector: 'ecole-section-salles',
   imports: [
+    Champ,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -77,21 +79,27 @@ import { ServiceClasses } from '../services/service-classes';
         class="formulaire"
         data-testid="form-salle"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Nom</mat-label>
-          <input matInput formControlName="nom" data-testid="champ-salle-nom" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Capacité</mat-label>
-          <input
-            matInput
-            type="number"
-            min="1"
-            max="500"
-            formControlName="capacite"
-            data-testid="champ-salle-capacite"
-          />
-        </mat-form-field>
+        <ecole-champ libelle="Nom">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              formControlName="nom"
+              data-testid="champ-salle-nom"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Capacité" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="number"
+              min="1"
+              max="500"
+              formControlName="capacite"
+              data-testid="champ-salle-capacite"
+            />
+          </mat-form-field>
+        </ecole-champ>
         @if (edition()) {
           <mat-checkbox formControlName="actif">Salle utilisée</mat-checkbox>
         }
@@ -105,7 +113,7 @@ import { ServiceClasses } from '../services/service-classes';
             {{ edition() ? 'Enregistrer' : 'Ajouter' }}
           </button>
           @if (edition()) {
-            <button matButton type="button" (click)="annuler()">Annuler</button>
+            <button matButton="outlined" type="button" (click)="annuler()">Annuler</button>
           }
         </div>
       </form>

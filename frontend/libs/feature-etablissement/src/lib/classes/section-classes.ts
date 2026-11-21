@@ -1,3 +1,4 @@
+import { Champ } from '@ecole/ui';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { requis } from '../commun/requis';
 import {
@@ -30,6 +31,7 @@ import { ServiceStructure } from '../services/service-structure';
 @Component({
   selector: 'ecole-section-classes',
   imports: [
+    Champ,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -43,18 +45,19 @@ import { ServiceStructure } from '../services/service-structure';
       </p>
     }
     <div class="grille">
-      <mat-form-field appearance="outline">
-        <mat-label>Année scolaire</mat-label>
-        <mat-select
-          [value]="anneeId()"
-          (selectionChange)="changerAnnee($event.value)"
-          data-testid="filtre-annee"
-        >
-          @for (a of annees(); track a.id) {
-            <mat-option [value]="a.id">{{ a.libelle }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <ecole-champ libelle="Année scolaire">
+        <mat-form-field appearance="outline">
+          <mat-select
+            [value]="anneeId()"
+            (selectionChange)="changerAnnee($event.value)"
+            data-testid="filtre-annee"
+          >
+            @for (a of annees(); track a.id) {
+              <mat-option [value]="a.id">{{ a.libelle }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ecole-champ>
     </div>
     @if (anneeCourante()?.statut === 'CLOTUREE') {
       <p class="aide" data-testid="classes-cloturee">
@@ -114,68 +117,73 @@ import { ServiceStructure } from '../services/service-structure';
         class="formulaire"
         data-testid="form-classe"
       >
-        <mat-form-field appearance="outline">
-          <mat-label>Nom (ex. TS2B)</mat-label>
-          <input
-            matInput
-            formControlName="nom"
-            data-testid="champ-classe-nom"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Niveau</mat-label>
-          <mat-select
-            formControlName="niveauId"
-            data-testid="champ-classe-niveau"
-          >
-            @for (n of niveauxActifs(); track n.id) {
-              <mat-option [value]="n.id">{{ n.libelle }}</mat-option>
-            }
-          </mat-select>
-          @if (niveauFige()) {
-            <mat-hint
-              >Le niveau et la série ne changent plus une fois l'année en
-              cours.</mat-hint
-            >
-          }
-        </mat-form-field>
-        @if (seriesDuNiveau().length > 0) {
+        <ecole-champ libelle="Nom (ex. TS2B)">
           <mat-form-field appearance="outline">
-            <mat-label>Série</mat-label>
+            <input
+              matInput
+              formControlName="nom"
+              data-testid="champ-classe-nom"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Niveau">
+          <mat-form-field appearance="outline">
             <mat-select
-              formControlName="serieId"
-              required
-              data-testid="champ-classe-serie"
+              formControlName="niveauId"
+              data-testid="champ-classe-niveau"
             >
-              @for (s of seriesDuNiveau(); track s.id) {
-                <mat-option [value]="s.id">{{ s.code }}</mat-option>
+              @for (n of niveauxActifs(); track n.id) {
+                <mat-option [value]="n.id">{{ n.libelle }}</mat-option>
+              }
+            </mat-select>
+            @if (niveauFige()) {
+              <mat-hint
+                >Le niveau et la série ne changent plus une fois l'année en
+                cours.</mat-hint
+              >
+            }
+          </mat-form-field>
+        </ecole-champ>
+        @if (seriesDuNiveau().length > 0) {
+          <ecole-champ libelle="Série">
+            <mat-form-field appearance="outline">
+              <mat-select
+                formControlName="serieId"
+                required
+                data-testid="champ-classe-serie"
+              >
+                @for (s of seriesDuNiveau(); track s.id) {
+                  <mat-option [value]="s.id">{{ s.code }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </ecole-champ>
+        }
+        <ecole-champ libelle="Capacité" class="champ-court">
+          <mat-form-field appearance="outline">
+            <input
+              matInput
+              type="number"
+              min="1"
+              max="500"
+              formControlName="capacite"
+              data-testid="champ-classe-capacite"
+            />
+          </mat-form-field>
+        </ecole-champ>
+        <ecole-champ libelle="Salle">
+          <mat-form-field appearance="outline">
+            <mat-select
+              formControlName="salleId"
+              data-testid="champ-classe-salle"
+            >
+              <mat-option value="">Aucune</mat-option>
+              @for (s of salles(); track s.id) {
+                <mat-option [value]="s.id">{{ s.nom }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
-        }
-        <mat-form-field appearance="outline" class="champ-court">
-          <mat-label>Capacité</mat-label>
-          <input
-            matInput
-            type="number"
-            min="1"
-            max="500"
-            formControlName="capacite"
-            data-testid="champ-classe-capacite"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Salle</mat-label>
-          <mat-select
-            formControlName="salleId"
-            data-testid="champ-classe-salle"
-          >
-            <mat-option value="">Aucune</mat-option>
-            @for (s of salles(); track s.id) {
-              <mat-option [value]="s.id">{{ s.nom }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        </ecole-champ>
         <div class="actions">
           <button
             matButton="filled"
@@ -186,7 +194,7 @@ import { ServiceStructure } from '../services/service-structure';
             {{ edition() ? 'Enregistrer' : 'Ajouter' }}
           </button>
           @if (edition()) {
-            <button matButton type="button" (click)="annuler()">Annuler</button>
+            <button matButton="outlined" type="button" (click)="annuler()">Annuler</button>
           }
         </div>
       </form>

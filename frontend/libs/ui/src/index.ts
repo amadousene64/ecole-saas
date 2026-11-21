@@ -18,3 +18,5 @@ export * from './lib/formulaires/champs-formulaire';
 export * from './lib/modales/modales';
 export * from './lib/modales/modale';
 export * from './lib/modales/confirmation';
+export * from './lib/formulaires/champ';
+export * from './lib/formats/nationalites';
