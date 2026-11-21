@@ -122,7 +122,7 @@ class DroitsInscriptionTest extends TestInscription {
     Object inscription =
         corps("eleveId", X, "classeId", X, "statut", "INSCRIT", "redoublant", false);
     Object sortie = corps("statut", "ABANDON", "date", "2026-11-02");
-    Object radiation = corps("statut", "RADIE", "date", "2026-11-02");
+    Object radiation = corps("statut", "RADIE", "date", "2026-11-02", "motif", "Motif fictif");
     String i = "/api/v1/inscriptions";
     cas.add(new Cas("POST", i, inscription, ECRITURE));
     cas.add(new Cas("GET", i + "/" + X, null, scolarite));

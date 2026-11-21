@@ -64,7 +64,8 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-captures
-          path: frontend/dist/.playwright/captures
+          # Relatif au dossier de Playwright (apps/e2e), d'où le chemin.
+          path: frontend/apps/e2e/dist/.playwright/captures
           if-no-files-found: ignore
           retention-days: 14
       - name: Diagnostics
