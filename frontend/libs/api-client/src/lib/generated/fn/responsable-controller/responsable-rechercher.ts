@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { ResponsableDto } from '../../models/responsable-dto';
 
 export interface ResponsableRechercher$Params {
-  telephone?: string;
   nom?: string;
 
 /**
@@ -22,7 +21,6 @@ export interface ResponsableRechercher$Params {
 export function responsableRechercher(http: HttpClient, rootUrl: string, params?: ResponsableRechercher$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ResponsableDto>>> {
   const rb = new RequestBuilder(rootUrl, responsableRechercher.PATH, 'get');
   if (params) {
-    rb.query('telephone', params.telephone, {});
     rb.query('nom', params.nom, {});
     rb.header('X-Tenant-Id', params['X-Tenant-Id'], {});
   }

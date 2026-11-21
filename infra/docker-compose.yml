@@ -22,7 +22,7 @@ services:
       retries: 20
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.8.1
+    image: quay.io/keycloak/keycloak:26.8.2-2
     command: ["start-dev", "--import-realm", "--http-port=8180", "--health-enabled=true"]
     environment:
       KC_DB: postgres
@@ -49,7 +49,7 @@ services:
   # Courrier de développement : Keycloak y envoie les e-mails (vérification d'adresse, mot de passe
   # oublié) ; rien ne part sur Internet. Boîte de réception : http://localhost:8025
   mailpit:
-    image: axllent/mailpit:v1.33.0
+    image: axllent/mailpit:v1.33.1
     ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
     healthcheck:
       test: ["CMD", "/mailpit", "readyz"]

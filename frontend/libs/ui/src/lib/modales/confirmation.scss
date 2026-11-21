@@ -1,0 +1,42 @@
+.ecole-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ecole-espace-3);
+}
+
+.ecole-confirmation__icone {
+  flex: none;
+  fill: var(--ecole-bissap);
+}
+
+.ecole-confirmation__consequence {
+  margin: var(--ecole-espace-1) 0 0;
+}
+
+.ecole-confirmation__motif {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecole-espace-libelle);
+  margin-top: var(--ecole-espace-champs);
+
+  textarea {
+    font: inherit;
+    padding: var(--ecole-espace-3);
+    border: 1px solid var(--ecole-bordure-champ);
+    border-radius: var(--ecole-rayon-controle);
+    background: var(--ecole-surface);
+    color: inherit;
+    resize: vertical;
+
+    &[aria-invalid='true'] {
+      border-color: var(--ecole-bissap);
+    }
+  }
+}
+
+.ecole-confirmation__erreur {
+  margin: 0;
+  color: var(--ecole-bissap);
+  font-size: var(--ecole-libelle-taille);
+  line-height: var(--ecole-libelle-interligne);
+}
