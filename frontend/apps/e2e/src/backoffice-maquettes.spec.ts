@@ -90,19 +90,23 @@ async function assistantJusquaScolarite(page: Page): Promise<void> {
   await expect(page.getByTestId('responsable-0')).toBeVisible();
 }
 
-/** Nettoyage : « Enregistrer et quitter », puis abandon de tous les brouillons de l'école E2E. */
+/**
+ * Nettoyage : « Enregistrer et quitter », puis abandon du brouillon ouvert par CE test seulement
+ * (les captures tournent en parallèle dans l'école E2E : un autre brouillon peut être en cours).
+ */
 async function abandonnerBrouillons(page: Page): Promise<void> {
+  const id = page.url().split('/').pop() ?? '';
+  expect(id).toMatch(/^[0-9a-f-]{36}$/);
   await page.getByTestId('enregistrer-quitter').click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
-  const liste = page.getByTestId('brouillons-en-cours');
-  while ((await liste.count()) > 0) {
-    await liste
-      .getByRole('button', { name: /Abandonner/ })
-      .first()
-      .click();
-    await page.getByTestId('confirmer-action').click();
-    await expect(page.getByTestId('confirmer-abandon')).toHaveCount(0);
-  }
+  const ligne = page
+    .getByTestId('brouillons-en-cours')
+    .locator('li')
+    .filter({ has: page.locator(`a[href$="/eleves/brouillons/${id}"]`) });
+  await ligne.getByRole('button', { name: /Abandonner/ }).click();
+  await page.getByTestId('confirmer-action').click();
+  await expect(page.getByTestId('confirmer-abandon')).toHaveCount(0);
+  await expect(ligne).toHaveCount(0);
 }
 
 test("08, 09 · assistant d'inscription (bureau, école E2E)", async ({
@@ -138,11 +142,12 @@ test("10 · assistant d'inscription (téléphone, école E2E)", async ({
   await page.getByRole('option').first().click();
   await capturerMaquette(page, '10-assistant-telephone');
   // Sur téléphone, « Enregistrer et quitter » est dans l'en-tête masqué : la croix fait de même.
+  const brouillon = page.url();
   await page.getByTestId('fermer-assistant').click();
   await expect(page.getByTestId('table-eleves')).toBeVisible();
   await page.setViewportSize(BUREAU);
-  await page.goto('/eleves/nouveau');
-  await expect(page).toHaveURL(/\/eleves\/brouillons\//);
+  await page.goto(brouillon);
+  await expect(page.getByTestId('titre-etape')).toHaveText('Classe et options');
   await abandonnerBrouillons(page);
 });
 
