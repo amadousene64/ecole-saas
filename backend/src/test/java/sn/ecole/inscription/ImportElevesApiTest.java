@@ -11,7 +11,9 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Random;
 import java.util.UUID;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -303,6 +305,59 @@ class ImportElevesApiTest extends TestInscription {
     byte[] fichier = xlsxAvecFeuille(feuille);
     assertThat(fichier.length).isLessThan(2_000_000);
     assertThat(valider(fichier).code()).isEqualTo("FICHIER_INVALIDE");
+  }
+
+  @Test
+  void uneFeuilleSousLesLimitesDePoiMaisAuDessusDesNotresEstRefusee() throws Exception {
+    // Preuve que c'est NOTRE garde qui refuse, pas celle de POI. Par défaut, POI accepte une
+    // entrée de 4 Go au plus avec un taux de compression d'au moins 0,01 ; LecteurTableurApache
+    // abaisse la taille à 10 Mo (même taux). Feuille de 12 Mo comprimée à ~10 % : acceptée par les
+    // réglages par défaut de POI, refusée par les nôtres. Le témoin à 9 Mo, construit de la même
+    // façon, passe la garde de l'archive : le seuil qui refuse est bien celui de 10 Mo.
+    byte[] refusee = feuilleBourree(12_000_000);
+    assertThat((long) refusee.length).isGreaterThan(10_000_000L).isLessThan(4_294_967_295L);
+    assertThat(tauxDeCompression(refusee)).isGreaterThan(0.02);
+    byte[] fichier = xlsxAvecFeuille(new String(refusee, StandardCharsets.UTF_8));
+    assertThat(fichier.length).isLessThan(2_000_000);
+    assertThat(valider(fichier).code()).isEqualTo("FICHIER_INVALIDE");
+
+    byte[] temoin = feuilleBourree(9_000_000);
+    assertThat(tauxDeCompression(temoin)).isGreaterThan(0.02);
+    // Lue jusqu'au bout et validée : l'en-tête seul, aucune ligne d'élève.
+    Reponse r = valider(xlsxAvecFeuille(new String(temoin, StandardCharsets.UTF_8)));
+    assertThat(r.statut()).as(r.corps().toString()).isEqualTo(200);
+    assertThat(r.corps().path("lignes").asInt()).isZero();
+  }
+
+  /**
+   * Feuille valide (en-tête « Prénoms ») suivie d'un commentaire XML de bourrage peu compressible
+   * (espaces semés de lettres au hasard, graine fixe), d'environ {@code octets} octets.
+   */
+  private static byte[] feuilleBourree(int octets) {
+    Random hasard = new Random(42);
+    StringBuilder xml =
+        new StringBuilder(
+            "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+                + "<sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>Prénoms</t></is>"
+                + "</c></row></sheetData><!--");
+    while (xml.length() < octets) {
+      xml.append(hasard.nextInt(16) == 0 ? (char) ('a' + hasard.nextInt(26)) : ' ');
+    }
+    return xml.append("--></worksheet>").toString().getBytes(StandardCharsets.UTF_8);
+  }
+
+  /** Taille compressée (deflate) rapportée à la taille d'origine, comme le mesure ZipSecureFile. */
+  private static double tauxDeCompression(byte[] contenu) {
+    Deflater compresseur = new Deflater();
+    compresseur.setInput(contenu);
+    compresseur.finish();
+    byte[] tampon = new byte[65_536];
+    long compresse = 0;
+    while (!compresseur.finished()) {
+      compresse += compresseur.deflate(tampon);
+    }
+    compresseur.end();
+    return (double) compresse / contenu.length;
   }
 
   @Test
