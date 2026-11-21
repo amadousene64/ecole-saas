@@ -9,6 +9,13 @@ public interface BrouillonInscriptionRepository {
 
   Optional<BrouillonInscription> findById(UUID id);
 
+  /**
+   * Brouillon en cours, verrouillé jusqu'à la fin de la transaction : un dépôt de pièce et une
+   * finalisation (ou un abandon) simultanés se suivent, aucune pièce ne reste sur un brouillon
+   * clos.
+   */
+  Optional<BrouillonInscription> verrouiller(UUID id);
+
   /** Brouillons en cours de l'école, les plus récemment modifiés d'abord. */
   List<BrouillonInscription> findTop50ByOrderByModifieLeDesc();
 

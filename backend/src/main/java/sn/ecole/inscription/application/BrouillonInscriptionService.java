@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,8 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 @Transactional
 public class BrouillonInscriptionService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(BrouillonInscriptionService.class);
 
   /** Taille maximale du contenu (JSON) : quelques responsables, jamais un fichier. */
   static final int TAILLE_MAX = 20_000;
@@ -234,7 +238,7 @@ public class BrouillonInscriptionService {
 
   @PreAuthorize(Droits.ECRITURE)
   public void abandonner(UUID id, int version) {
-    BrouillonInscription b = charger(id);
+    BrouillonInscription b = verrouiller(id);
     Erreurs.verifierVersion(version, b);
     pieces.abandonnerDuBrouillon(id);
     b.clore(Instant.now());
@@ -256,7 +260,7 @@ public class BrouillonInscriptionService {
    */
   @PreAuthorize(Droits.ECRITURE)
   public Finalisation finaliser(UUID id, int version, StatutInscription statut, Integer codePour) {
-    BrouillonInscription b = charger(id);
+    BrouillonInscription b = verrouiller(id);
     Erreurs.verifierVersion(version, b);
     if (statut != StatutInscription.INSCRIT && statut != StatutInscription.PRE_INSCRIT) {
       throw Erreurs.invalide("STATUT_INVALIDE", "Statut attendu : INSCRIT ou PRE_INSCRIT.");
@@ -382,6 +386,11 @@ public class BrouillonInscriptionService {
     return brouillons.findById(id).orElseThrow(Erreurs::brouillonIntrouvable);
   }
 
+  /** Avant de clore : un dépôt de pièce en cours se termine d'abord (voir PieceService). */
+  private BrouillonInscription verrouiller(UUID id) {
+    return brouillons.verrouiller(id).orElseThrow(Erreurs::brouillonIntrouvable);
+  }
+
   private byte[] chiffrer(UUID id, Contenu contenu) {
     String clair;
     try {
@@ -400,7 +409,15 @@ public class BrouillonInscriptionService {
     try {
       return json.readValue(clair, Contenu.class);
     } catch (JacksonException ex) {
-      throw new IllegalStateException("Brouillon illisible.", ex);
+      // Ni la cause ni son message : Jackson y cite la valeur saisie (donnée d'un mineur).
+      LOG.error(
+          "Brouillon {} illisible après déchiffrement ({})",
+          b.getId(),
+          ex.getClass().getSimpleName());
+      throw new ErreurMetier(
+          "BROUILLON_ILLISIBLE",
+          TypeErreur.CONFLIT,
+          "Ce brouillon ne peut plus être relu. Abandonnez-le et recommencez la saisie.");
     }
   }
 

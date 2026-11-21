@@ -250,7 +250,8 @@ public class PieceService implements UtilisationEleve {
     String sha256Depose = ControlePiece.sha256(contenu);
     return transaction.execute(
         statut -> {
-          brouillons.findById(brouillonId).orElseThrow(Erreurs::brouillonIntrouvable);
+          // Verrou : une finalisation ou un abandon simultané attend la fin de ce dépôt.
+          brouillons.verrouiller(brouillonId).orElseThrow(Erreurs::brouillonIntrouvable);
           String cle =
               ContexteTenant.exiger()
                   + "/brouillons/"

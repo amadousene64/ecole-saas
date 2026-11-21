@@ -14,9 +14,11 @@ import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import sn.ecole.shared.application.ChiffrementDonnees;
 
 /**
  * Assistant d'inscription : brouillon chiffré enregistré à chaque étape, pièces rattachées au
@@ -126,6 +128,10 @@ class BrouillonsInscriptionApiTest extends TestInscription {
   }
 
   private Reponse deposerPiece(UUID id, String texte) throws Exception {
+    return deposerPiece(SECRETARIAT_A, A, id, texte);
+  }
+
+  private Reponse deposerPiece(UUID qui, UUID ecole, UUID id, String texte) throws Exception {
     return executer(
         MockMvcRequestBuilders.multipart(HttpMethod.POST, BROUILLONS + "/" + id + "/pieces")
             .file(
@@ -136,8 +142,8 @@ class BrouillonsInscriptionApiTest extends TestInscription {
                     ("%PDF-1.4\n% document fictif\n" + texte + "\n%%EOF")
                         .getBytes(StandardCharsets.US_ASCII)))
             .file(new MockMultipartFile("type", "", "text/plain", "ACTE_NAISSANCE".getBytes())),
-        SECRETARIAT_A,
-        A);
+        qui,
+        ecole);
   }
 
   private int nombre(String table) {
@@ -185,6 +191,25 @@ class BrouillonsInscriptionApiTest extends TestInscription {
     // Rien de lisible au journal non plus.
     assertThat(journal("BROUILLON_OUVERT")).singleElement();
     assertThat(journal("BROUILLON_OUVERT").toString()).doesNotContain("Awa");
+  }
+
+  @Autowired ChiffrementDonnees chiffrement;
+
+  @Test
+  void unBrouillonIllisibleEstSignaleSansCiterLaSaisie() throws Exception {
+    UUID id = ouvert();
+    // Contenu bien chiffré mais devenu illisible (valeur d'énumération inconnue).
+    byte[] chiffre =
+        chiffrement.chiffrer(
+            "{\"eleve\":{\"prenoms\":\"Valeur-Saisie-Fictive\",\"sexe\":\"Valeur-Saisie-Fictive\"}}",
+            A + "|brouillon_inscription|" + id);
+    superUtilisateur()
+        .update("UPDATE ecole.brouillon_inscription SET contenu = ? WHERE id = ?", chiffre, id);
+
+    Reponse r = get(SECRETARIAT_A, A, BROUILLONS + "/" + id);
+    assertThat(r.statut()).isEqualTo(409);
+    assertThat(r.code()).isEqualTo("BROUILLON_ILLISIBLE");
+    assertThat(r.corps().toString()).doesNotContain("Valeur-Saisie-Fictive");
   }
 
   @Test
@@ -410,6 +435,90 @@ class BrouillonsInscriptionApiTest extends TestInscription {
         .isEqualTo(404);
     assertThat(finaliser(DIRECTEUR_B, B, id, 1).statut()).isEqualTo(404);
     assertThat(get(DIRECTEUR_B, B, BROUILLONS + "/" + id + "/pieces").statut()).isEqualTo(404);
+  }
+
+  @Test
+  void lEcoleBNeDeposeNiNeRetireDePieceNiNAbandonneUnBrouillonDeLEcoleA() throws Exception {
+    UUID id = ouvert();
+    Reponse piece = deposerPiece(id, "acte fictif");
+    assertThat(piece.statut()).isEqualTo(201);
+
+    assertThat(deposerPiece(DIRECTEUR_B, B, id, "intrus").statut()).isEqualTo(404);
+    assertThat(delete(DIRECTEUR_B, B, BROUILLONS + "/" + id + "/pieces/" + piece.id()).statut())
+        .isEqualTo(404);
+    Reponse abandon =
+        executer(
+            MockMvcRequestBuilders.delete(BROUILLONS + "/" + id).header("If-Match", "\"0\""),
+            DIRECTEUR_B,
+            B);
+    assertThat(abandon.statut()).isEqualTo(404);
+
+    // Rien n'a bougé dans l'école A : le brouillon et sa seule pièce sont intacts.
+    assertThat(get(SECRETARIAT_A, A, BROUILLONS + "/" + id).statut()).isEqualTo(200);
+    assertThat(get(SECRETARIAT_A, A, BROUILLONS + "/" + id + "/pieces").corps()).hasSize(1);
+    assertThat(stockage.objets()).hasSize(1);
+  }
+
+  @Test
+  void unBrouillonDeLEcoleBNeReferenceNiResponsableNiClasseNiAnneeDeLEcoleA() throws Exception {
+    UUID anneeA =
+        UUID.fromString(
+            get(SECRETARIAT_A, A, BROUILLONS + "/" + ouvert()).corps().path("anneeId").asText());
+    UUID responsableA = creerResponsable(SECRETARIAT_A, A, "Tante", "770000009");
+    creerEtOuvrirAnnee(DIRECTEUR_B, B);
+
+    // Année de A : introuvable depuis B.
+    assertThat(post(DIRECTEUR_B, B, BROUILLONS, corps("anneeId", anneeA)).statut()).isEqualTo(404);
+
+    Map<String, Object> responsable =
+        corps(
+            "responsableId",
+            responsableA,
+            "type",
+            "TUTEUR",
+            "responsableLegal",
+            true,
+            "payeur",
+            false,
+            "contactUrgence",
+            true,
+            "autoriseRecuperer",
+            false,
+            "recoitNotifications",
+            false);
+    for (Map<String, Object> contenu :
+        List.of(
+            complet(List.of(responsable)), // responsable de A, classe de A
+            complet(List.of(nouveauResponsable("Mère", true))))) { // classe de A seulement
+      Reponse b = ouvrir(DIRECTEUR_B, B);
+      assertThat(b.statut()).as(b.corps().toString()).isEqualTo(201);
+      Reponse etape =
+          put(DIRECTEUR_B, B, BROUILLONS + "/" + b.id(), 0, corps("etape", 5, "contenu", contenu));
+      assertThat(etape.statut()).as(etape.corps().toString()).isEqualTo(200);
+      Reponse fin =
+          executer(
+              MockMvcRequestBuilders.post(BROUILLONS + "/" + b.id() + "/finalisation")
+                  .header("If-Match", "\"" + versionEtag(etape) + "\"")
+                  .contentType("application/json")
+                  .content(JSON.writeValueAsString(corps("statut", "INSCRIT"))),
+              DIRECTEUR_B,
+              B);
+      assertThat(fin.statut()).isEqualTo(404);
+      // Tout ou rien : aucun élève ni responsable créé dans B, le brouillon reste ouvert.
+      assertThat(get(DIRECTEUR_B, B, BROUILLONS + "/" + b.id()).statut()).isEqualTo(200);
+    }
+    assertThat(
+            superUtilisateur()
+                .queryForObject(
+                    "SELECT count(*) FROM ecole.eleve WHERE tenant_id = ?", Integer.class, B))
+        .isZero();
+    assertThat(
+            superUtilisateur()
+                .queryForObject(
+                    "SELECT count(*) FROM ecole.lien_parental WHERE responsable_id = ?",
+                    Integer.class,
+                    responsableA))
+        .isZero();
   }
 
   @Test
