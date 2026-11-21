@@ -68,6 +68,21 @@ class InscriptionTest {
   }
 
   @Test
+  void laRadiationExigeUnMotifLesAutresSortiesNon() {
+    Inscription i = inscription(StatutInscription.INSCRIT);
+    code(() -> i.sortir(StatutInscription.RADIE, RENTREE, null), "MOTIF_REQUIS");
+    code(() -> i.sortir(StatutInscription.RADIE, RENTREE, "   "), "MOTIF_REQUIS");
+    assertThat(i.getStatut()).isEqualTo(StatutInscription.INSCRIT);
+    i.sortir(StatutInscription.RADIE, RENTREE, "  Conseil de discipline fictif ");
+    assertThat(i.getStatut()).isEqualTo(StatutInscription.RADIE);
+    assertThat(i.getMotifSortie()).isEqualTo("Conseil de discipline fictif");
+
+    Inscription transfert = inscription(StatutInscription.INSCRIT);
+    transfert.sortir(StatutInscription.TRANSFERE, RENTREE, null);
+    assertThat(transfert.getMotifSortie()).isNull();
+  }
+
+  @Test
   void lesOptionsDoiventEtreProposeesEtUneParGroupe() {
     UUID esp = UUID.randomUUID();
     UUID ar = UUID.randomUUID();

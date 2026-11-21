@@ -72,12 +72,37 @@ class ResponsablesApiTest extends TestInscription {
     assertThat(lu.corps().path("compteActive").asBoolean()).isTrue();
     assertThat(lu.corps().has("utilisateurId")).isFalse();
 
-    assertThat(get(SECRETARIAT_A, A, RESPONSABLES + "?telephone=77 000 00 01").corps())
+    assertThat(rechercherTelephone(SECRETARIAT_A, A, "77 000 00 01").corps())
         .singleElement()
         .satisfies(r -> assertThat(r.path("id").asText()).isEqualTo(mere.toString()));
     assertThat(get(SECRETARIAT_A, A, RESPONSABLES + "?nom=pere").corps()).hasSize(1);
     assertThat(get(SECRETARIAT_A, A, RESPONSABLES).code()).isEqualTo("CRITERE_REQUIS");
     assertThat(get(COMPTABLE_A, A, RESPONSABLES + "?nom=pere").statut()).isEqualTo(403);
+  }
+
+  @Test
+  void laRechercheParTelephonePasseParLeCorpsEtNeRenvoieQueLIdentite() throws Exception {
+    Reponse r = rechercherTelephone(DIRECTEUR_A, A, "+221 77 000 00 01");
+    assertThat(r.statut()).isEqualTo(200);
+    JsonNode trouve = r.corps().get(0);
+    // Identifiant, prénoms et nom : ni téléphone, ni courriel, ni profession, ni version.
+    List<String> champs = new ArrayList<>();
+    trouve.propertyNames().forEach(champs::add);
+    assertThat(champs).containsExactlyInAnyOrder("id", "prenoms", "nom");
+
+    // L'ancienne recherche par URL n'existe plus : le paramètre est ignoré.
+    assertThat(get(SECRETARIAT_A, A, RESPONSABLES + "?telephone=770000001").code())
+        .isEqualTo("CRITERE_REQUIS");
+    // Téléphone absent ou vide : 400 ; rôle sans écriture : 403.
+    assertThat(
+            post(SECRETARIAT_A, A, RESPONSABLES + "/recherche", corps("telephone", " ")).statut())
+        .isEqualTo(400);
+    assertThat(rechercherTelephone(COMPTABLE_A, A, "770000001").statut()).isEqualTo(403);
+    assertThat(rechercherTelephone(SURVEILLANT_A, A, "770000001").statut()).isEqualTo(403);
+  }
+
+  private Reponse rechercherTelephone(UUID qui, UUID ecole, String telephone) throws Exception {
+    return post(qui, ecole, RESPONSABLES + "/recherche", corps("telephone", telephone));
   }
 
   @Test
@@ -305,7 +330,7 @@ class ResponsablesApiTest extends TestInscription {
   void lEcoleBNeVoitNiLesResponsablesNiLesLiensDeLEcoleA() throws Exception {
     assertThat(get(DIRECTEUR_B, B, RESPONSABLES + "/" + mere).code())
         .isEqualTo("RESPONSABLE_INTROUVABLE");
-    assertThat(get(DIRECTEUR_B, B, RESPONSABLES + "?telephone=770000001").corps()).isEmpty();
+    assertThat(rechercherTelephone(DIRECTEUR_B, B, "770000001").corps()).isEmpty();
     assertThat(get(DIRECTEUR_B, B, ELEVES + "/" + awa + "/responsables").statut()).isEqualTo(404);
     UUID eleveB = creerEleve(B, "Dior");
     Object lienVersA =

@@ -160,17 +160,45 @@ class InscriptionsApiTest extends TestInscription {
   }
 
   private Reponse sortir(UUID qui, UUID inscription, String statut) throws Exception {
+    // La radiation exige un motif (MOTIF_REQUIS) : les cas qui ne portent pas dessus en donnent un.
+    return sortir(qui, inscription, statut, "RADIE".equals(statut) ? "Motif fictif" : null);
+  }
+
+  private Reponse sortir(UUID qui, UUID inscription, String statut, String motif) throws Exception {
+    Map<String, String> corps = new java.util.HashMap<>();
+    corps.put("statut", statut);
+    corps.put("date", LocalDate.now().toString());
+    if (motif != null) {
+      corps.put("motif", motif);
+    }
     Reponse lue = get(DIRECTEUR_A, A, INSCRIPTIONS + "/" + inscription);
     return executer(
         org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
                 INSCRIPTIONS + "/" + inscription + "/sortie")
             .header("If-Match", lue.etag())
             .contentType("application/json")
-            .content(
-                JSON.writeValueAsString(
-                    Map.of("statut", statut, "date", LocalDate.now().toString()))),
+            .content(JSON.writeValueAsString(corps)),
         qui,
         A);
+  }
+
+  @Test
+  void laRadiationSansMotifEstRefuseeParLeServeur() throws Exception {
+    UUID inscription = inscrit(awa, sixieme);
+    Reponse sansMotif = sortir(DIRECTEUR_A, inscription, "RADIE", null);
+    assertThat(sansMotif.statut()).isEqualTo(400);
+    assertThat(sansMotif.code()).isEqualTo("MOTIF_REQUIS");
+    assertThat(sortir(DIRECTEUR_A, inscription, "RADIE", "   ").code()).isEqualTo("MOTIF_REQUIS");
+    // Rien n'a changé : l'élève est toujours inscrit, aucune sortie au journal.
+    assertThat(
+            get(DIRECTEUR_A, A, INSCRIPTIONS + "/" + inscription).corps().path("statut").asText())
+        .isEqualTo("INSCRIT");
+    assertThat(journal("INSCRIPTION_TERMINEE")).isEmpty();
+
+    Reponse avecMotif = sortir(DIRECTEUR_A, inscription, "RADIE", "Conseil de discipline fictif");
+    assertThat(avecMotif.statut()).isEqualTo(200);
+    assertThat(avecMotif.corps().path("motifSortie").asText())
+        .isEqualTo("Conseil de discipline fictif");
   }
 
   @Test

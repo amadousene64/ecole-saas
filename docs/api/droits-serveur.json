@@ -617,7 +617,14 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
-    "ResponsableService.rechercher" : {
+    "ResponsableService.rechercherParNom" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "ResponsableService.rechercherParTelephone" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
       "ecriture" : false,
       "conditionnel" : false,
