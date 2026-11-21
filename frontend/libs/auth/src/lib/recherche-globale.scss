@@ -1,9 +1,6 @@
+// Cadre, titre et fermeture : ecole-modale. Le champ occupe toute la largeur de la modale.
 .recherche {
-  width: min(560px, calc(100vw - 32px));
-  background: var(--ecole-surface);
-  color: var(--ecole-texte);
-  border-radius: var(--ecole-rayon-carte);
-  overflow: hidden;
+  margin: calc(-1 * var(--ecole-espace-4)) calc(-1 * var(--ecole-espace-carte));
 }
 .champ {
   display: flex;

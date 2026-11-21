@@ -62,6 +62,9 @@ test('classes indisponibles : le message reste affiché, puis « Réessayer » c
   panne = false;
   await page.getByTestId('reessayer-classes').click();
   await expect(alerte).toHaveCount(0);
+  // L'alerte disparaît dès le début du rechargement : attendre les classes elles-mêmes
+  // (mat-select ne s'ouvre pas tant que la liste est vide).
+  await expect(page.getByTestId('chargement-classes')).toHaveCount(0);
   await page.getByTestId('champ-classe').click();
   await expect(
     page.getByRole('option', { name: classe, exact: true }),

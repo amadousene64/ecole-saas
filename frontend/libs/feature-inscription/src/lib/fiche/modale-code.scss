@@ -1,0 +1,27 @@
+.code-activation .code-valeur {
+  font-size: 1.75rem;
+  letter-spacing: 0.12em;
+  margin: var(--ecole-espace-3) 0;
+  user-select: all;
+}
+
+// Impression : le code seul, sans la page ni le fond de la modale.
+@media print {
+  html:has(.code-activation) body * {
+    visibility: hidden;
+  }
+
+  .code-activation,
+  .code-activation * {
+    visibility: visible;
+  }
+
+  .code-activation {
+    position: absolute;
+    inset: 0;
+  }
+
+  .ecole-modale::backdrop {
+    display: none;
+  }
+}

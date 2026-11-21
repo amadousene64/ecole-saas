@@ -6,6 +6,7 @@ import {
   LienParentalRequete,
   ResponsableDto,
   ResponsableRequete,
+  ResponsableResumeDto,
   inscriptionEmettreCodeEleve,
   lienParentalAjouter,
   lienParentalDefinirAcces,
@@ -15,7 +16,7 @@ import {
   responsableCreer,
   responsableEmettreCode,
   responsableModifier,
-  responsableRechercher,
+  responsableRechercherParTelephone,
 } from '@ecole/api-client';
 import { ifMatch } from '../commun/erreurs';
 import { requis } from '../commun/requis';
@@ -29,11 +30,14 @@ export class ServiceResponsables {
     return this.api.invoke(lienParentalLister, { eleveId });
   }
 
-  rechercher(filtre: {
-    telephone?: string;
-    nom?: string;
-  }): Promise<ResponsableDto[]> {
-    return this.api.invoke(responsableRechercher, { ...filtre });
+  /**
+   * Responsables qui ont déjà ce téléphone (doublons à la saisie) : identifiant, prénoms et nom.
+   * Le numéro part dans le corps d'un POST, jamais dans une URL (journaux d'accès).
+   */
+  parTelephone(telephone: string): Promise<ResponsableResumeDto[]> {
+    return this.api.invoke(responsableRechercherParTelephone, {
+      body: { telephone },
+    });
   }
 
   creer(corps: ResponsableRequete): Promise<ResponsableDto> {

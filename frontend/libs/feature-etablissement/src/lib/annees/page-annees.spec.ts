@@ -64,7 +64,11 @@ async function creer(roles: string[], annees: AnneeScolaireDto[]) {
   TestBed.configureTestingModule({ providers });
   const fixture = TestBed.createComponent(PageAnnees);
   await stabiliser(fixture);
-  return { fixture, invoke, racine: fixture.nativeElement as HTMLElement };
+  return {
+    fixture,
+    invoke,
+    racine: document.body /* les modales sont placées sous <body> */,
+  };
 }
 
 function bouton(racine: HTMLElement, id: string): HTMLButtonElement | null {
@@ -124,7 +128,11 @@ describe('PageAnnees', () => {
       false,
     );
 
-    bouton(racine, 'confirmer-oui')!.click();
+    // Le bouton rouge est nommé par l'action.
+    expect(bouton(racine, 'confirmer-action')!.textContent).toContain(
+      "Ouvrir l'année",
+    );
+    bouton(racine, 'confirmer-action')!.click();
     await stabiliser(fixture);
     expect(invoke.mock.calls.some(([fn]) => fn === anneeScolaireOuvrir)).toBe(
       true,
@@ -141,16 +149,14 @@ describe('PageAnnees', () => {
     await stabiliser(fixture);
     expect(
       racine.querySelector('[data-testid="confirmer"]')?.textContent,
-    ).toContain('définitif');
-    const annuler = Array.from(
-      racine.querySelectorAll<HTMLButtonElement>(
-        '[data-testid="confirmer"] button',
-      ),
-    ).find((b) => b.textContent?.includes('Annuler'))!;
-    annuler.click();
+    ).toContain('Définitif');
+    const confirmation = racine.querySelector('[data-testid="confirmer"]')!;
+    expect(confirmation.getAttribute('role')).toBe('alertdialog');
+    bouton(racine, 'annuler-confirmation')!.click();
     await stabiliser(fixture);
 
-    expect(racine.querySelector('[data-testid="confirmer"]')).toBeNull();
+    // Fermée puis détruite : plus rien de la confirmation (ni le motif saisi) dans la page.
+    expect(confirmation.isConnected).toBe(false);
     expect(invoke.mock.calls.some(([fn]) => fn === anneeScolaireCloturer)).toBe(
       false,
     );
