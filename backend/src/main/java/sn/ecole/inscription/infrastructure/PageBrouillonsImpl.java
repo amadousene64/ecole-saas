@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import sn.ecole.inscription.domain.BrouillonInscription;
+import sn.ecole.shared.domain.ContexteTenant;
 
 /**
  * JPQL paramétré ; l'école courante est appliquée par le filtre Hibernate et la RLS, les brouillons
@@ -36,5 +37,14 @@ class PageBrouillonsImpl implements PageBrouillons {
       requete.setParameter("t", apresModifieLe).setParameter("id", apresId);
     }
     return requete.getResultList();
+  }
+
+  /** Verrou consultatif de transaction, propre à l'école et à l'auteur ; ne lit aucune donnée. */
+  @Override
+  public void verrouillerAuteur(UUID auteurId) {
+    em.createNativeQuery(
+            "SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtextextended(:cle, 0))) verrou")
+        .setParameter("cle", "brouillons:" + ContexteTenant.exiger() + ":" + auteurId)
+        .getSingleResult();
   }
 }

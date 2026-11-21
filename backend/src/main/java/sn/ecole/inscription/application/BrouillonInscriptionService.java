@@ -196,6 +196,8 @@ public class BrouillonInscriptionService {
   public Vue ouvrir(UUID anneeId) {
     UUID annee = anneeId != null ? anneeOuverte(anneeId) : anneeEnCours();
     UUID auteur = Erreurs.utilisateurCourant();
+    // Verrou par auteur : des ouvertures simultanées ne dépassent pas le plafond.
+    brouillons.verrouillerAuteur(auteur);
     if (brouillons.countByAuteurId(auteur) >= BrouillonInscription.MAX_PAR_AUTEUR) {
       throw Erreurs.conflit(
           "BROUILLONS_TROP_NOMBREUX",
@@ -241,8 +243,10 @@ public class BrouillonInscriptionService {
       EleveSaisi e = dechiffrer(b).eleve();
       libelle = e == null ? "" : (nonVide(e.prenoms()) + " " + nonVide(e.nom())).strip();
       libelle = libelle.isEmpty() ? "Élève sans nom" : libelle;
-    } catch (ErreurMetier illisible) {
-      // Un brouillon illisible reste listé : on peut toujours l'abandonner.
+    } catch (ErreurMetier | IllegalStateException illisible) {
+      // JSON illisible ou déchiffrement impossible (clé retirée…) : le brouillon reste listé, pour
+      // pouvoir l'abandonner. Ni la cause ni son message dans le journal.
+      LOG.warn("Brouillon {} illisible ({})", b.getId(), illisible.getClass().getSimpleName());
       libelle = "Brouillon illisible";
     }
     return new Resume(

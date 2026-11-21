@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,6 +131,46 @@ class BrouillonsExpirationApiTest extends TestInscription {
     // Seconde passe : plus rien à supprimer, aucune nouvelle trace.
     purge.purger(Instant.now());
     assertThat(journal("BROUILLONS_EXPIRES")).hasSize(2);
+  }
+
+  @Test
+  void laPurgeVautAussiPourUneEcoleSuspendue() throws Exception {
+    creerEtOuvrirAnnee(DIRECTEUR_B, B);
+    UUID ancienB = ouvrir(DIRECTEUR_B, B);
+    vieillir(ancienB, 31);
+    superUtilisateur().update("UPDATE ecole.tenant SET actif = false WHERE id = ?", B);
+    try {
+      assertThat(purge.purger(Instant.now()).reussies()).contains(B);
+      assertThat(clos(ancienB)).isTrue();
+    } finally {
+      superUtilisateur().update("UPDATE ecole.tenant SET actif = true WHERE id = ?", B);
+    }
+  }
+
+  @Test
+  void desOuverturesSimultaneesNeDepassentPasLePlafond() throws Exception {
+    for (int i = 0; i < BrouillonInscription.MAX_PAR_AUTEUR - 1; i++) {
+      ouvrir(SECRETARIAT_A, A);
+    }
+    ExecutorService pool = Executors.newFixedThreadPool(6);
+    try {
+      List<Future<Reponse>> envois = new ArrayList<>();
+      for (int i = 0; i < 6; i++) {
+        envois.add(pool.submit(() -> post(SECRETARIAT_A, A, BROUILLONS, corps())));
+      }
+      int acceptees = 0;
+      for (Future<Reponse> envoi : envois) {
+        Reponse r = envoi.get();
+        if (r.statut() == 201) {
+          acceptees++;
+        } else {
+          assertThat(r.code()).isEqualTo("BROUILLONS_TROP_NOMBREUX");
+        }
+      }
+      assertThat(acceptees).isEqualTo(1);
+    } finally {
+      pool.shutdown();
+    }
   }
 
   @Test

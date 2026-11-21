@@ -26,8 +26,14 @@ public interface BrouillonInscriptionRepository {
   /** Brouillons en cours de cet auteur (plafond {@link BrouillonInscription#MAX_PAR_AUTEUR}). */
   long countByAuteurId(UUID auteurId);
 
-  /** Brouillons en cours non modifiés depuis {@code avant} : à supprimer. */
-  List<BrouillonInscription> findByModifieLeBefore(Instant avant);
+  /**
+   * Identifiants des brouillons en cours non modifiés depuis {@code avant} : à supprimer. Les seuls
+   * identifiants, pour que {@link #verrouiller} charge chaque brouillon à jour, sous verrou.
+   */
+  List<UUID> expiresAvant(Instant avant);
+
+  /** Sérialise les ouvertures d'un même auteur (plafond), jusqu'à la fin de la transaction. */
+  void verrouillerAuteur(UUID auteurId);
 
   /** Enregistre et écrit tout de suite : la version renvoyée est celle de la base. */
   BrouillonInscription saveAndFlush(BrouillonInscription brouillon);

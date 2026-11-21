@@ -15,10 +15,10 @@ import sn.ecole.shared.application.ExecutionPourTenant;
 import sn.ecole.shared.application.JournalAudit;
 
 /**
- * Tâche quotidienne : supprime, école par école, les brouillons d'inscription non terminés et non
- * modifiés depuis {@link BrouillonInscription#CONSERVATION}. Comme un abandon : contenu chiffré
- * effacé, brouillon clos, pièces marquées supprimées et leurs fichiers retirés du stockage APRÈS
- * validation de la transaction de l'école.
+ * Tâche quotidienne : supprime, école par école (inactives comprises), les brouillons d'inscription
+ * non terminés et non modifiés depuis {@link BrouillonInscription#CONSERVATION}. Comme un abandon :
+ * contenu chiffré effacé, brouillon clos, pièces marquées supprimées et leurs fichiers retirés du
+ * stockage APRÈS validation de la transaction de l'école.
  *
  * <p>Le journal d'audit reçoit, par école, le seul nombre de brouillons supprimés (aucun nom, aucun
  * identifiant d'élève). Désactivable par {@code ecole.brouillons.purge.actif=false} ; les tests
@@ -61,7 +61,9 @@ public class PurgeBrouillons {
   /** Supprime les brouillons expirés à {@code maintenant}, école par école. */
   public BilanExecution purger(Instant maintenant) {
     Instant limite = maintenant.minus(BrouillonInscription.CONSERVATION);
-    BilanExecution bilan = execution.pourChaqueEcole(TACHE, ecole -> purgerEcole(ecole, limite));
+    // Écoles inactives comprises : la durée de conservation vaut aussi pour une école suspendue.
+    BilanExecution bilan =
+        execution.pourToutesLesEcoles(TACHE, ecole -> purgerEcole(ecole, limite));
     if (!bilan.toutReussi()) {
       LOG.warn("Purge des brouillons : {} école(s) en échec", bilan.echouees().size());
     }
@@ -70,9 +72,10 @@ public class PurgeBrouillons {
 
   private void purgerEcole(UUID ecole, Instant limite) {
     int supprimes = 0;
-    for (BrouillonInscription expire : brouillons.findByModifieLeBefore(limite)) {
-      // Verrou, puis nouvelle vérification : un brouillon repris entre-temps est gardé.
-      BrouillonInscription b = brouillons.verrouiller(expire.getId()).orElse(null);
+    for (UUID id : brouillons.expiresAvant(limite)) {
+      // Chargé à jour sous verrou, puis nouvelle vérification : un brouillon repris entre-temps
+      // (ou finalisé, abandonné) est laissé tel quel.
+      BrouillonInscription b = brouillons.verrouiller(id).orElse(null);
       if (b == null || !b.getModifieLe().isBefore(limite)) {
         continue;
       }

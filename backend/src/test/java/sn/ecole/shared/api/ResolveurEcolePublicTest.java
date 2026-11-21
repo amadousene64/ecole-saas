@@ -50,6 +50,11 @@ class ResolveurEcolePublicTest {
         public List<Tenant> findByActifTrueOrderByCode() {
           return List.of();
         }
+
+        @Override
+        public List<Tenant> findAllByOrderByCode() {
+          return List.of();
+        }
       };
 
   private static ResolveurEcolePublic production() {

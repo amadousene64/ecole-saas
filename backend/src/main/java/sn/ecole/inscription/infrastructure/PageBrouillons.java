@@ -11,4 +11,6 @@ import sn.ecole.inscription.domain.BrouillonInscription;
 interface PageBrouillons {
 
   List<BrouillonInscription> page(Instant apresModifieLe, UUID apresId, int limite);
+
+  void verrouillerAuteur(UUID auteurId);
 }
