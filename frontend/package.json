@@ -47,7 +47,7 @@
     "postcss-scss": "^4.0.9",
     "postcss-value-parser": "^4.2.0",
     "prettier": "^3.8.1",
-    "stylelint": "~17.16.0",
+    "stylelint": "~18.0.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.73.0",
