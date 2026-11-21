@@ -101,13 +101,28 @@ class BrouillonsInscriptionApiTest extends TestInscription {
   }
 
   private Reponse finaliser(UUID qui, UUID ecole, UUID id, int version) throws Exception {
+    return finaliser(qui, ecole, id, version, corps("statut", "INSCRIT"));
+  }
+
+  private Reponse finaliser(UUID qui, UUID ecole, UUID id, int version, Object requete)
+      throws Exception {
     return executer(
         MockMvcRequestBuilders.post(BROUILLONS + "/" + id + "/finalisation")
             .header("If-Match", "\"" + version + "\"")
             .contentType("application/json")
-            .content(JSON.writeValueAsString(corps("statut", "INSCRIT"))),
+            .content(JSON.writeValueAsString(requete)),
         qui,
         ecole);
+  }
+
+  private int codesPour(UUID responsable) {
+    Integer n =
+        superUtilisateur()
+            .queryForObject(
+                "SELECT count(*) FROM ecole.code_activation WHERE cible_id = ?",
+                Integer.class,
+                responsable);
+    return n == null ? 0 : n;
   }
 
   private Reponse deposerPiece(UUID id, String texte) throws Exception {
@@ -236,6 +251,102 @@ class BrouillonsInscriptionApiTest extends TestInscription {
     // Une seconde finalisation ne crée rien.
     assertThat(finaliser(SECRETARIAT_A, A, id, versionEtag(etape5)).statut()).isEqualTo(404);
     assertThat(nombre("eleve")).isEqualTo(1);
+  }
+
+  @Test
+  void leCodeDActivationDemandeEstEmisALaFinalisationEtAfficheUneFois() throws Exception {
+    UUID existant = creerResponsable(SECRETARIAT_A, A, "Tante", "770000009");
+    UUID id = ouvert();
+    Map<String, Object> tante =
+        corps(
+            "responsableId",
+            existant,
+            "type",
+            "TUTEUR",
+            "responsableLegal",
+            false,
+            "payeur",
+            false,
+            "contactUrgence",
+            true,
+            "autoriseRecuperer",
+            false,
+            "recoitNotifications",
+            false);
+    Reponse etape5 =
+        enregistrer(
+            SECRETARIAT_A, id, 0, 5, complet(List.of(nouveauResponsable("Mère", true), tante)));
+
+    // Rang hors du brouillon : refusé avant toute création.
+    Reponse horsRang =
+        finaliser(
+            SECRETARIAT_A, A, id, versionEtag(etape5), corps("statut", "INSCRIT", "codePour", 2));
+    assertThat(horsRang.statut()).isEqualTo(400);
+    assertThat(nombre("eleve")).isZero();
+
+    Reponse fin =
+        finaliser(
+            SECRETARIAT_A, A, id, versionEtag(etape5), corps("statut", "INSCRIT", "codePour", 1));
+    assertThat(fin.statut()).as(fin.corps().toString()).isEqualTo(201);
+    assertThat(fin.brut().getHeader("Cache-Control")).contains("no-store");
+    assertThat(fin.corps().path("codeActivation").path("code").asText()).isNotBlank();
+    assertThat(fin.corps().path("codeActivation").path("expireLe").asText()).isNotBlank();
+    // Le code vise la tante (rang 1), émis comme depuis la fiche (empreinte seule en base).
+    assertThat(codesPour(existant)).isEqualTo(1);
+    assertThat(journal("CODE_ACTIVATION_EMIS")).hasSize(1);
+  }
+
+  @Test
+  void sansDemandeAucunCodeEtUnCompteDejaReliEstSignale() throws Exception {
+    UUID existant = creerResponsable(SECRETARIAT_A, A, "Tante", "770000009");
+    superUtilisateur()
+        .update(
+            "UPDATE ecole.responsable SET utilisateur_id = ? WHERE id = ?",
+            UUID.randomUUID(),
+            existant);
+    Map<String, Object> tante =
+        corps(
+            "responsableId",
+            existant,
+            "type",
+            "TUTEUR",
+            "responsableLegal",
+            true,
+            "payeur",
+            false,
+            "contactUrgence",
+            true,
+            "autoriseRecuperer",
+            false,
+            "recoitNotifications",
+            false);
+
+    UUID premier = ouvert();
+    Reponse sans =
+        finaliser(
+            SECRETARIAT_A,
+            A,
+            premier,
+            versionEtag(enregistrer(SECRETARIAT_A, premier, 0, 5, complet(List.of(tante)))));
+    assertThat(sans.statut()).isEqualTo(201);
+    assertThat(
+            sans.corps().path("codeActivation").isMissingNode()
+                || sans.corps().path("codeActivation").isNull())
+        .isTrue();
+
+    UUID second = ouvert();
+    Map<String, Object> contenu = complet(List.of(tante));
+    contenu.put("eleve", identite("Binta", "Fictif"));
+    Reponse avec =
+        finaliser(
+            SECRETARIAT_A,
+            A,
+            second,
+            versionEtag(enregistrer(SECRETARIAT_A, second, 0, 5, contenu)),
+            corps("statut", "INSCRIT", "codePour", 0));
+    assertThat(avec.statut()).as(avec.corps().toString()).isEqualTo(201);
+    assertThat(avec.corps().path("avertissements").toString()).contains("COMPTE_DEJA_RELIE");
+    assertThat(codesPour(existant)).isZero();
   }
 
   @Test

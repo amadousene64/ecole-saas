@@ -51,6 +51,9 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   public record VueInscription(
       Inscription inscription, String classe, List<UUID> options, List<String> avertissements) {}
 
+  /** Élèves pré-inscrits ou inscrits dans une classe, rapportés à sa capacité. */
+  public record Remplissage(UUID classeId, long inscrits, int capacite) {}
+
   private final InscriptionRepository inscriptions;
   private final InscriptionOptionRepository choix;
   private final EleveRepository eleves;
@@ -160,6 +163,22 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     return eleves.findByIdIn(ids).stream()
         .sorted(java.util.Comparator.comparing(Eleve::getNomRecherche))
         .map(e -> new ResumeEleve(e, nom))
+        .toList();
+  }
+
+  /**
+   * Remplissage de chaque classe de l'année (PRE_INSCRIT + INSCRIT), par nom de classe. L'année
+   * d'une autre école n'a aucune classe visible : la liste est vide.
+   */
+  @PreAuthorize(Droits.SCOLARITE)
+  @Transactional(readOnly = true)
+  public List<Remplissage> remplissage(UUID anneeId) {
+    Map<UUID, Long> inscrits = new HashMap<>();
+    inscriptions
+        .compterParClasse(anneeId, StatutInscription.ACTIFS)
+        .forEach(e -> inscrits.put(e.getClasseId(), e.getNombre()));
+    return referentiel.classes(anneeId).stream()
+        .map(c -> new Remplissage(c.id(), inscrits.getOrDefault(c.id(), 0L), c.capacite()))
         .toList();
   }
 

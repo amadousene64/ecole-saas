@@ -60,6 +60,7 @@ export type { PieceDto } from './models/piece-dto';
 export type { RapportImportDto } from './models/rapport-import-dto';
 export type { RechercheElevesRequete } from './models/recherche-eleves-requete';
 export type { RechercheResponsableRequete } from './models/recherche-responsable-requete';
+export type { RemplissageClasseDto } from './models/remplissage-classe-dto';
 export type { ResponsableDto } from './models/responsable-dto';
 export type { ResponsableRequete } from './models/responsable-requete';
 export type { ResponsableResumeDto } from './models/responsable-resume-dto';

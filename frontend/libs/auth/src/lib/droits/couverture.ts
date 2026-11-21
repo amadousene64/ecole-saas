@@ -292,6 +292,11 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
     page: 'eleves',
     action: 'eleves.scolarite.voir',
   },
+  // Étape Scolarité de l'assistant et colonne « Inscrits » de la liste des classes.
+  'InscriptionService.remplissage': {
+    page: 'eleves',
+    action: 'eleves.scolarite.voir',
+  },
 
   // --- Responsables, liens, codes d'activation ---
   'LienParentalService.lister': {

@@ -129,8 +129,15 @@ public class BrouillonInscriptionService {
   public record Resume(
       UUID id, String libelle, int etape, UUID auteurId, Instant modifieLe, int version) {}
 
-  /** Résultat de la finalisation : l'élève créé et les avertissements (capacité…). */
-  public record Finalisation(UUID eleveId, UUID inscriptionId, List<String> avertissements) {}
+  /**
+   * Résultat de la finalisation : l'élève créé, les avertissements (capacité…) et le code
+   * d'activation demandé (nul sinon ; masqué dans {@code toString}).
+   */
+  public record Finalisation(
+      UUID eleveId,
+      UUID inscriptionId,
+      List<String> avertissements,
+      ActivationService.CodeEmis code) {}
 
   private final BrouillonInscriptionRepository brouillons;
   private final ReferentielScolaire referentiel;
@@ -139,6 +146,7 @@ public class BrouillonInscriptionService {
   private final LienParentalService liens;
   private final InscriptionService inscriptions;
   private final PieceService pieces;
+  private final ActivationService activation;
   private final ChiffrementDonnees chiffrement;
   private final JsonMapper json;
   private final JournalAudit journal;
@@ -151,6 +159,7 @@ public class BrouillonInscriptionService {
       LienParentalService liens,
       InscriptionService inscriptions,
       PieceService pieces,
+      ActivationService activation,
       ChiffrementDonnees chiffrement,
       JsonMapper json,
       JournalAudit journal) {
@@ -161,6 +170,7 @@ public class BrouillonInscriptionService {
     this.liens = liens;
     this.inscriptions = inscriptions;
     this.pieces = pieces;
+    this.activation = activation;
     this.chiffrement = chiffrement;
     this.json = json;
     this.journal = journal;
@@ -237,10 +247,15 @@ public class BrouillonInscriptionService {
    * brouillon. Tout ou rien : une erreur (classe complète en politique bloquante, doublon…) annule
    * tout et le brouillon reste intact.
    *
+   * <p>{@code codePour} : rang du responsable (dans le brouillon) pour qui émettre un code
+   * d'activation, comme depuis la fiche. Un responsable déjà relié à un compte n'en reçoit pas :
+   * l'inscription se fait, avec un avertissement.
+   *
    * @param statut INSCRIT ou PRE_INSCRIT
+   * @param codePour rang du responsable, ou nul
    */
   @PreAuthorize(Droits.ECRITURE)
-  public Finalisation finaliser(UUID id, int version, StatutInscription statut) {
+  public Finalisation finaliser(UUID id, int version, StatutInscription statut, Integer codePour) {
     BrouillonInscription b = charger(id);
     Erreurs.verifierVersion(version, b);
     if (statut != StatutInscription.INSCRIT && statut != StatutInscription.PRE_INSCRIT) {
@@ -248,6 +263,10 @@ public class BrouillonInscriptionService {
     }
     Contenu c = dechiffrer(b);
     exigerComplet(c);
+    if (codePour != null && (codePour < 0 || codePour >= c.responsables().size())) {
+      throw Erreurs.invalide(
+          "RESPONSABLE_INTROUVABLE", "Le code d'activation vise un responsable absent.");
+    }
 
     EleveSaisi e = c.eleve();
     UUID eleveId =
@@ -262,6 +281,7 @@ public class BrouillonInscriptionService {
                     e.nationalite(),
                     e.identifiantNational()))
             .getId();
+    List<Responsable> lies = new ArrayList<>();
     for (ResponsableSaisi r : c.responsables()) {
       Responsable responsable =
           r.responsableId() != null
@@ -269,6 +289,7 @@ public class BrouillonInscriptionService {
               : responsables.creer(
                   new ResponsableService.Saisie(
                       r.prenoms(), r.nom(), r.telephone(), r.email(), null));
+      lies.add(responsable);
       liens.ajouter(
           eleveId,
           responsable.getId(),
@@ -291,8 +312,19 @@ public class BrouillonInscriptionService {
         "BrouillonInscription",
         id,
         Map.of("eleve", eleveId, "statut", statut));
+    List<String> avertissements = new ArrayList<>(inscription.avertissements());
+    ActivationService.CodeEmis code = null;
+    if (codePour != null) {
+      Responsable titulaire = lies.get(codePour);
+      if (titulaire.getUtilisateurId() != null) {
+        avertissements.add(
+            "COMPTE_DEJA_RELIE : ce responsable a déjà un compte ; aucun code n'a été généré.");
+      } else {
+        code = activation.emettrePourResponsable(titulaire.getId());
+      }
+    }
     return new Finalisation(
-        eleveId, inscription.inscription().getId(), inscription.avertissements());
+        eleveId, inscription.inscription().getId(), List.copyOf(avertissements), code);
   }
 
   /** Ce qui manque, étape par étape : le message dit où retourner. */

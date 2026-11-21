@@ -49,6 +49,8 @@ const URL_PARENT = 'http://localhost:4201';
 test.describe.configure({ mode: 'serial' });
 
 let code = '';
+/** Code émis par l'assistant, puis révoqué par celui de la fiche. */
+let codeAssistant = '';
 let eleveId = '';
 let contextParent: BrowserContext;
 let pageParent: Page;
@@ -173,6 +175,10 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await expect(page.getByTestId('titre-etape')).toHaveText('Classe et options');
   await page.getByTestId('champ-classe').click();
   await page.getByRole('option', { name: classe, exact: true }).click();
+  // Remplissage lu côté serveur (PRE_INSCRIT + INSCRIT), et non plus la seule capacité.
+  await expect(page.getByTestId('remplissage-classe')).toHaveText(
+    /^\d+ élèves? inscrits? sur \d+ places/,
+  );
   await verifierAccessibilite(page, 'Assistant : scolarité');
   await page.getByTestId('etape-suivante').click();
 
@@ -197,9 +203,20 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await expect(recap).toContainText(PRENOM_ELEVE);
   await expect(recap).toContainText(NOM_RESPONSABLE);
   await expect(recap).toContainText(classe);
+  await page.getByTestId('generer-code').click();
+  await expect(page.getByTestId('generer-code')).toContainText(NOM_RESPONSABLE);
   await verifierAccessibilite(page, 'Assistant : vérification');
   await page.getByTestId('inscrire-eleve').click();
+
+  // Code d'activation demandé à l'étape 5 : affiché une fois, puis la fiche s'ouvre.
+  const valeurAssistant = page.getByTestId('code-valeur');
+  await expect(valeurAssistant).toBeVisible();
+  codeAssistant = ((await valeurAssistant.textContent()) ?? '').trim();
+  expect(codeAssistant).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/);
+  await verifierAccessibilite(page, "Code d'activation après l'inscription");
+  await page.getByTestId('fermer-code').click();
   await expect(page.getByTestId('titre-fiche')).toContainText(PRENOM_ELEVE);
+  await expect(page.getByText(codeAssistant)).toHaveCount(0);
   eleveId = page.url().split('/').pop() ?? '';
   expect(eleveId).toMatch(/^[0-9a-f-]{36}$/);
 
@@ -233,6 +250,7 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await expect(valeur).toBeVisible();
   code = ((await valeur.textContent()) ?? '').trim();
   expect(code).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/);
+  expect(code).not.toEqual(codeAssistant);
   await verifierAccessibilite(page, "Dialogue du code d'activation");
   await page.getByTestId('fermer-code').click();
   // Une fois fermé, le code n'est plus nulle part dans la page.
@@ -284,9 +302,9 @@ test('le parent active son compte avec le code et ne voit que son enfant', async
   ).toBeVisible();
   await verifierAccessibilite(pageParent, 'Activation du compte parent');
 
-  // Un mauvais code est refusé sans détail.
+  // Le code de l'assistant, révoqué par celui de la fiche, est refusé sans détail.
   await pageParent.getByTestId('champ-ecole').fill(ECOLE_E2E_ID);
-  await pageParent.getByTestId('champ-code').fill('0000-0000-0000');
+  await pageParent.getByTestId('champ-code').fill(codeAssistant);
   await pageParent.getByTestId('activer').click();
   await expect(pageParent.getByTestId('erreur-activation')).toContainText(
     'pas valable',

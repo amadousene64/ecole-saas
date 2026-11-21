@@ -661,6 +661,46 @@
         "tags" : [ "annee-scolaire-controller" ]
       }
     },
+    "/api/v1/annees/{anneeId}/remplissage-classes" : {
+      "get" : {
+        "operationId" : "inscription_remplissage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "anneeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RemplissageClasseDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Remplissage des classes de l'année : élèves pré-inscrits ou inscrits, et capacité",
+        "tags" : [ "inscription-controller" ]
+      }
+    },
     "/api/v1/brouillons-inscription" : {
       "get" : {
         "operationId" : "brouillonInscription_lister",
@@ -4381,6 +4421,9 @@
               "type" : "string"
             }
           },
+          "codeActivation" : {
+            "$ref" : "#/components/schemas/CodeActivationDto"
+          },
           "eleveId" : {
             "type" : "string",
             "format" : "uuid"
@@ -5094,6 +5137,12 @@
       "FinalisationBrouillon" : {
         "type" : "object",
         "properties" : {
+          "codePour" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 3,
+            "minimum" : 0
+          },
           "statut" : {
             "type" : "string",
             "enum" : [ "PRE_INSCRIT", "INSCRIT", "TRANSFERE", "RADIE", "ABANDON" ]
@@ -5765,6 +5814,23 @@
           }
         },
         "required" : [ "telephone" ]
+      },
+      "RemplissageClasseDto" : {
+        "type" : "object",
+        "properties" : {
+          "capacite" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "inscrits" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
       },
       "ResponsableDto" : {
         "type" : "object",

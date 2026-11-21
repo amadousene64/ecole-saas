@@ -10,6 +10,7 @@ import {
   FinalisationBrouillon,
   OptionEnseignementDto,
   PieceDto,
+  RemplissageClasseDto,
   brouillonInscriptionAbandonner,
   brouillonInscriptionDeposer,
   brouillonInscriptionEnregistrer,
@@ -22,6 +23,7 @@ import {
   anneeScolaireLire,
   classeLister,
   classeOptions,
+  inscriptionRemplissage,
 } from '@ecole/api-client';
 import { ifMatch } from '../commun/erreurs';
 import { requis } from '../commun/requis';
@@ -71,11 +73,12 @@ export class ServiceBrouillons {
   finaliser(
     brouillon: BrouillonInscriptionDto,
     statut: StatutFinal,
+    codePour?: number,
   ): Promise<BrouillonFinaliseDto> {
     return this.api.invoke(brouillonInscriptionFinaliser, {
       id: requis(brouillon.id),
       'If-Match': ifMatch(brouillon.version),
-      body: { statut },
+      body: { statut, codePour },
     });
   }
 
@@ -102,6 +105,11 @@ export class ServiceBrouillons {
   /** Classes ouvertes à l'inscription pour l'année du brouillon. */
   classes(anneeId: string): Promise<ClasseDto[]> {
     return this.api.invoke(classeLister, { annee: anneeId });
+  }
+
+  /** Inscrits (pré-inscrits compris) et capacité de chaque classe de l'année. */
+  remplissage(anneeId: string): Promise<RemplissageClasseDto[]> {
+    return this.api.invoke(inscriptionRemplissage, { anneeId });
   }
 
   /** Options proposées par une classe (LV2…), regroupées par `groupe`. */

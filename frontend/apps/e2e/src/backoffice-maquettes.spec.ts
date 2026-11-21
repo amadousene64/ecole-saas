@@ -121,6 +121,7 @@ test("08, 09 · assistant d'inscription (bureau, école E2E)", async ({
   await expect(page.getByTestId('titre-etape')).toHaveText(
     "Vérifiez avant d'inscrire",
   );
+  await page.getByTestId('generer-code').click();
   await capturerMaquette(page, '09-assistant-verification');
   await abandonnerBrouillons(page);
 });

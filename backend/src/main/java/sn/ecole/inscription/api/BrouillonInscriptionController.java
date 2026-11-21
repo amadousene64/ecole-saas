@@ -107,7 +107,8 @@ class BrouillonInscriptionController {
       @PathVariable UUID id,
       @RequestHeader("If-Match") String ifMatch,
       @Valid @RequestBody FinalisationBrouillon requete) {
-    Finalisation resultat = service.finaliser(id, Reponses.version(ifMatch), requete.statut());
+    Finalisation resultat =
+        service.finaliser(id, Reponses.version(ifMatch), requete.statut(), requete.codePour());
     return Reponses.cree("/api/v1/eleves/" + resultat.eleveId(), mapper.versDto(resultat));
   }
 

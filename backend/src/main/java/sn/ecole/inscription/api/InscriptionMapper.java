@@ -3,6 +3,7 @@ package sn.ecole.inscription.api;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import sn.ecole.inscription.application.InscriptionService.Remplissage;
 import sn.ecole.inscription.application.InscriptionService.VueInscription;
 
 @Mapper
@@ -15,4 +16,6 @@ interface InscriptionMapper {
   InscriptionDto versDto(VueInscription vue);
 
   List<InscriptionDto> versDtos(List<VueInscription> vues);
+
+  List<RemplissageClasseDto> versRemplissages(List<Remplissage> remplissages);
 }

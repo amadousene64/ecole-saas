@@ -18,6 +18,7 @@ import {
   ContenuDto,
   OptionEnseignementDto,
   PieceDto,
+  RemplissageClasseDto,
   ResponsableSaisiDto,
 } from '@ecole/api-client';
 import {
@@ -35,6 +36,7 @@ import {
   libelleLien,
 } from '../commun/etiquettes';
 import { requis } from '../commun/requis';
+import { DonneesCode, ModaleCode } from '../fiche/modale-code';
 import { ModaleResponsable } from '../fiche/modale-responsable';
 import { ServiceBrouillons, StatutFinal } from '../services/service-brouillons';
 import { TypePiece } from '../services/service-dossier';
@@ -86,6 +88,7 @@ const TEXTES_ETAPES: readonly { titre: string; sousTitre: string }[] = [
     Assistant,
     Champ,
     DatePipe,
+    ModaleCode,
     ModaleResponsable,
     Pastille,
     ReactiveFormsModule,
@@ -123,6 +126,10 @@ export class PageAssistantInscription implements OnInit {
   /** Modale ouverte : index du responsable modifié, -1 pour un ajout, null si fermée. */
   protected readonly modale = signal<number | null>(null);
   protected readonly classes = signal<ClasseDto[]>([]);
+  /** Inscrits et capacité par classe (vide si le remplissage n'a pas pu être lu). */
+  protected readonly remplissage = signal<Record<string, RemplissageClasseDto>>(
+    {},
+  );
   protected readonly options = signal<OptionEnseignementDto[]>([]);
   protected readonly pieces = signal<PieceDto[]>([]);
   protected readonly depot = signal<TypePiece | null>(null);
@@ -147,6 +154,23 @@ export class PageAssistantInscription implements OnInit {
   protected readonly formFinal = this.fb.group({
     statut: ['INSCRIT' as StatutFinal],
   });
+  /** Étape 5 : générer ensuite le code d'activation d'un responsable (maquette 09). */
+  protected readonly genererCode = signal(false);
+  /** Rang choisi ; -1 : le premier responsable légal. */
+  protected readonly codePour = signal(-1);
+  protected readonly rangCode = computed(() => {
+    const liste = this.responsables();
+    const choisi = this.codePour();
+    return choisi >= 0 && choisi < liste.length
+      ? choisi
+      : Math.max(
+          0,
+          liste.findIndex((r) => r.responsableLegal),
+        );
+  });
+  /** Code reçu à la finalisation, affiché une fois ; nul : modale détruite, code oublié. */
+  protected readonly code = signal<DonneesCode | null>(null);
+  private eleveInscrit: string | null = null;
 
   protected readonly etapes = computed<EtapeAssistant[]>(() => {
     const e = this.formEleveValeur();
@@ -177,12 +201,22 @@ export class PageAssistantInscription implements OnInit {
     this.responsables().some((r) => r.responsableLegal),
   );
   protected readonly classeChoisie = signal('');
-  /** Capacité de la classe choisie (le serveur contrôle le remplissage à la finalisation). */
-  protected readonly capaciteChoisie = computed(
-    () =>
-      this.classes().find((c) => c.id === this.classeChoisie())?.capacite ??
-      null,
-  );
+  /**
+   * Remplissage de la classe choisie (« 31 élèves inscrits sur 35 places ») ; à défaut, sa seule
+   * capacité. Indicatif : le serveur contrôle la capacité à la finalisation.
+   */
+  protected readonly remplissageChoisi = computed(() => {
+    const id = this.classeChoisie();
+    const classe = this.classes().find((c) => c.id === id);
+    if (!classe) {
+      return null;
+    }
+    const r = this.remplissage()[id];
+    return {
+      inscrits: r?.inscrits ?? null,
+      capacite: r?.capacite ?? classe.capacite ?? 0,
+    };
+  });
   protected readonly groupesOptions = computed(() => {
     const groupes = new Map<string, OptionEnseignementDto[]>();
     for (const o of this.options()) {
@@ -229,13 +263,18 @@ export class PageAssistantInscription implements OnInit {
       this.appliquer(b);
       this.etape.set(b.etape ?? 1);
       const anneeId = requis(b.anneeId);
-      const [annee, classes, pieces] = await Promise.all([
+      const [annee, classes, pieces, remplissage] = await Promise.all([
         this.service.annee(anneeId),
         this.service.classes(anneeId),
         this.service.pieces(requis(b.id)),
+        // Indicatif : sans remplissage, l'étape Scolarité affiche la seule capacité.
+        this.service.remplissage(anneeId).catch(() => []),
       ]);
       this.anneeLibelle.set(annee.libelle ?? '');
       this.classes.set(classes);
+      this.remplissage.set(
+        Object.fromEntries(remplissage.map((r) => [r.classeId ?? '', r])),
+      );
       this.pieces.set(pieces);
     } catch (e) {
       this.erreur.set(messageErreur(e));
@@ -400,16 +439,34 @@ export class PageAssistantInscription implements OnInit {
     }
     this.occupe.set(true);
     try {
+      const rang = this.genererCode() ? this.rangCode() : undefined;
       const r = await this.service.finaliser(
         requis(this.brouillon()),
         this.formFinal.getRawValue().statut,
+        rang,
       );
+      const titulaire = rang === undefined ? null : this.responsables()[rang];
+      if (r.codeActivation?.code && titulaire) {
+        // La fiche s'ouvre à la fermeture de la modale (le code n'est plus jamais affiché).
+        this.eleveInscrit = requis(r.eleveId);
+        this.code.set({
+          titulaire: `${titulaire.prenoms} ${titulaire.nom}`,
+          code: r.codeActivation.code,
+          expireLe: r.codeActivation.expireLe,
+        });
+        return;
+      }
       await this.routeur.navigate(['/eleves', r.eleveId]);
     } catch (e) {
       this.erreur.set(messageErreur(e));
     } finally {
       this.occupe.set(false);
     }
+  }
+
+  protected async fermerCode(): Promise<void> {
+    this.code.set(null);
+    await this.routeur.navigate(['/eleves', this.eleveInscrit]);
   }
 
   // --- Responsables (étape 2) ---
@@ -510,6 +567,22 @@ export class PageAssistantInscription implements OnInit {
   }
 
   // --- Vérification (étape 5) ---
+
+  protected texteRemplissage(r: {
+    inscrits: number | null;
+    capacite: number;
+  }): string {
+    if (r.inscrits === null) {
+      return `Capacité : ${r.capacite} places`;
+    }
+    const eleves = r.inscrits > 1 ? 'élèves inscrits' : 'élève inscrit';
+    const complete = r.inscrits >= r.capacite ? ' · classe complète' : '';
+    return `${r.inscrits} ${eleves} sur ${r.capacite} places${complete}`;
+  }
+
+  protected nomResponsable(r: ResponsableSaisiDto | undefined): string {
+    return r ? `${(r.nom ?? '').toUpperCase()} ${r.prenoms ?? ''}`.trim() : '';
+  }
 
   protected classeNom(): string {
     return this.classes().find((c) => c.id === this.classeChoisie())?.nom ?? '';

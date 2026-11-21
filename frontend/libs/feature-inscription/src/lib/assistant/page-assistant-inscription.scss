@@ -84,11 +84,6 @@
   &:hover {
     background: var(--ecole-primaire-doux);
   }
-
-  &:focus-visible {
-    outline: 2px solid var(--ecole-primaire);
-    outline-offset: 2px;
-  }
 }
 
 // --- Étape 3 : options en cartes à cocher (maquette 10) ---
@@ -299,4 +294,11 @@
   .grille-recap.trois {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+// Case du code d'activation, sous « Enregistrer comme » (maquette 09).
+.code-final {
+  margin-top: var(--ecole-espace-4);
+  padding-top: var(--ecole-espace-4);
+  border-top: 1px solid var(--ecole-bordure);
 }

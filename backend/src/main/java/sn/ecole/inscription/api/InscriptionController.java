@@ -117,6 +117,15 @@ class InscriptionController {
     return Reponses.ok(eleveMapper.versResumes(service.elevesDeLaClasse(classeId)));
   }
 
+  @GetMapping(
+      path = "/api/v1/annees/{anneeId}/remplissage-classes",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(
+      summary = "Remplissage des classes de l'année : élèves pré-inscrits ou inscrits, et capacité")
+  ResponseEntity<List<RemplissageClasseDto>> remplissage(@PathVariable UUID anneeId) {
+    return Reponses.ok(mapper.versRemplissages(service.remplissage(anneeId)));
+  }
+
   @PostMapping(
       path = "/api/v1/eleves/{eleveId}/codes-activation",
       produces = MediaType.APPLICATION_JSON_VALUE)

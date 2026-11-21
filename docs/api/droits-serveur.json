@@ -365,6 +365,13 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "InscriptionService.remplissage" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT')"
+    },
     "InscriptionService.sortir" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
       "ecriture" : true,

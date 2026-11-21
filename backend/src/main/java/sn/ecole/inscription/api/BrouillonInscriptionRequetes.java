@@ -22,11 +22,20 @@ public final class BrouillonInscriptionRequetes {
   public record EnregistrementBrouillon(
       @Min(1) @Max(5) int etape, @NotNull @Valid ContenuDto contenu) {}
 
-  public record FinalisationBrouillon(@NotNull StatutInscription statut) {}
+  /**
+   * Finalisation : statut de l'inscription et, facultatif, le rang (à partir de 0) du responsable
+   * du brouillon pour qui émettre un code d'activation.
+   */
+  public record FinalisationBrouillon(
+      @NotNull StatutInscription statut, @Min(0) @Max(3) Integer codePour) {}
 
   public record BrouillonResumeDto(
       UUID id, String libelle, int etape, UUID auteurId, Instant modifieLe, int version) {}
 
+  /** {@code codeActivation} : présent si demandé ; affiché une seule fois, jamais relisible. */
   public record BrouillonFinaliseDto(
-      UUID eleveId, UUID inscriptionId, List<String> avertissements) {}
+      UUID eleveId,
+      UUID inscriptionId,
+      List<String> avertissements,
+      CodeActivationDto codeActivation) {}
 }

@@ -171,8 +171,10 @@
           <mat-option [value]="c.id">{{ c.nom }}</mat-option>
           }
         </mat-select>
-        @if (capaciteChoisie(); as capacite) {
-        <mat-hint>Capacité : {{ capacite }} places</mat-hint>
+        @if (remplissageChoisi(); as r) {
+        <mat-hint data-testid="remplissage-classe"
+          >{{ texteRemplissage(r) }}</mat-hint
+        >
         }
       </mat-form-field>
     </ecole-champ>
@@ -304,7 +306,10 @@
       <dl class="grille-recap trois">
         <div>
           <dt>Classe</dt>
-          <dd>{{ classeNom() }}</dd>
+          <dd>
+            {{ classeNom() }}@if (remplissageChoisi(); as r) { @if (r.inscrits
+            !== null) { · {{ r.inscrits }} / {{ r.capacite }} places } }
+          </dd>
         </div>
         @if (optionsChoisies(); as o) {
         <div>
@@ -361,6 +366,33 @@
           </mat-radio-button>
         </mat-radio-group>
       </fieldset>
+      @if (responsables().length) {
+      <div class="code-final">
+        <mat-checkbox
+          [checked]="genererCode()"
+          (change)="genererCode.set($event.checked)"
+          data-testid="generer-code"
+        >
+          Générer ensuite le code d'activation de {{
+          nomResponsable(responsables()[rangCode()]) }}
+        </mat-checkbox>
+        @if (genererCode() && responsables().length > 1) {
+        <ecole-champ libelle="Responsable qui reçoit le code">
+          <mat-form-field appearance="outline">
+            <mat-select
+              [value]="rangCode()"
+              (selectionChange)="codePour.set($event.value)"
+              data-testid="champ-code-pour"
+            >
+              @for (r of responsables(); track $index) {
+              <mat-option [value]="$index">{{ nomResponsable(r) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </ecole-champ>
+        }
+      </div>
+      }
     </form>
   </div>
   } }
@@ -399,3 +431,7 @@
     }
   </div>
 </ecole-assistant>
+
+@if (code(); as c) {
+<ecole-modale-code [donnees]="c" (fermee)="fermerCode()" />
+}

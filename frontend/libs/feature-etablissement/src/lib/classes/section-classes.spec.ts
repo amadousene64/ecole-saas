@@ -6,6 +6,7 @@ import {
   classeCreer,
   classeLister,
   classeModifier,
+  inscriptionRemplissage,
   niveauLister,
   salleLister,
   serieLister,
@@ -67,6 +68,14 @@ async function creer(
       [salleLister, [{ id: 'sa1', nom: 'Salle 1', capacite: 50 }]],
       [classeLister, classes],
       [
+        inscriptionRemplissage,
+        classes.map((c) => ({
+          classeId: c.id,
+          inscrits: 45,
+          capacite: c.capacite,
+        })),
+      ],
+      [
         classeCreer,
         (p: unknown) => ({
           id: 'k9',
@@ -111,6 +120,22 @@ describe('SectionClasses', () => {
     expect(ligne.textContent).toContain('Tle');
     expect(ligne.textContent).toContain('S2');
     expect(ligne.textContent).toContain('45');
+    expect(
+      racine.querySelector('[data-testid="inscrits-TS2B"]')?.textContent,
+    ).toContain('45 · complète');
+  });
+
+  it('le comptable ne voit pas les inscrits (le serveur les lui refuse)', async () => {
+    const { racine, invoke } = await creer(['COMPTABLE'], ANNEE_EN_COURS, [
+      CLASSE_TS2B,
+    ]);
+
+    expect(racine.querySelector('[data-testid="classe-TS2B"]')).not.toBeNull();
+    expect(racine.querySelector('[data-testid="inscrits-TS2B"]')).toBeNull();
+    expect(invoke).not.toHaveBeenCalledWith(
+      inscriptionRemplissage,
+      expect.anything(),
+    );
   });
 
   it("n'affiche le champ série que si le niveau en propose", async () => {
