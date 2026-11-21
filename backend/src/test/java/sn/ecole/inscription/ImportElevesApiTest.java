@@ -277,11 +277,6 @@ class ImportElevesApiTest extends TestInscription {
 
   @Test
   void unXlsxFabriqueQuiRepeteUnNumeroDeLigneEstRefuse() throws Exception {
-    ByteArrayOutputStream modele = new ByteArrayOutputStream();
-    try (XSSFWorkbook classeur = new XSSFWorkbook()) {
-      classeur.createSheet("Élèves").createRow(0).createCell(0).setCellValue("Prénoms");
-      classeur.write(modele);
-    }
     // Feuille réécrite à la main : 3000 fois la ligne 2, pour contourner la limite de lignes.
     StringBuilder feuille =
         new StringBuilder(
@@ -292,6 +287,47 @@ class ImportElevesApiTest extends TestInscription {
       feuille.append("<row r=\"2\"><c r=\"A2\" t=\"inlineStr\"><is><t>x</t></is></c></row>");
     }
     feuille.append("</sheetData></worksheet>");
+    assertThat(valider(xlsxAvecFeuille(feuille.toString())).code()).isEqualTo("FICHIER_INVALIDE");
+  }
+
+  @Test
+  void uneBombeDeDecompressionEstRefuseeSansEtreDecompressee() throws Exception {
+    // 40 Mo d'espaces dans la feuille : quelques dizaines de Ko une fois compressés, donc sous la
+    // limite de 2 Mo du fichier. C'est la garde de l'archive (ZipSecureFile : taux de compression
+    // et taille des entrées) qui doit refuser, avant toute lecture de la feuille.
+    String feuille =
+        "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+            + "<sheetData>"
+            + " ".repeat(40_000_000)
+            + "</sheetData></worksheet>";
+    byte[] fichier = xlsxAvecFeuille(feuille);
+    assertThat(fichier.length).isLessThan(2_000_000);
+    assertThat(valider(fichier).code()).isEqualTo("FICHIER_INVALIDE");
+  }
+
+  @Test
+  void uneEntiteExterneDansLaFeuilleEstRefusee() throws Exception {
+    // XXE : une DOCTYPE déclare une entité qui lirait un fichier du serveur. L'analyseur XML de POI
+    // refuse toute DOCTYPE : le fichier est rejeté, rien n'est lu ni renvoyé.
+    String feuille =
+        "<?xml version=\"1.0\"?>"
+            + "<!DOCTYPE w [<!ENTITY secret SYSTEM \"file:///etc/passwd\">]>"
+            + "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+            + "<sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>Prénoms</t></is></c>"
+            + "</row><row r=\"2\"><c r=\"A2\" t=\"inlineStr\"><is><t>&secret;</t></is></c>"
+            + "</row></sheetData></worksheet>";
+    Reponse r = valider(xlsxAvecFeuille(feuille));
+    assertThat(r.code()).isEqualTo("FICHIER_INVALIDE");
+    assertThat(r.corps().toString()).doesNotContain("root:");
+  }
+
+  /** Classeur XLSX valide dont la première feuille est remplacée par le XML donné. */
+  private static byte[] xlsxAvecFeuille(String feuille) throws Exception {
+    ByteArrayOutputStream modele = new ByteArrayOutputStream();
+    try (XSSFWorkbook classeur = new XSSFWorkbook()) {
+      classeur.createSheet("Élèves").createRow(0).createCell(0).setCellValue("Prénoms");
+      classeur.write(modele);
+    }
     ByteArrayOutputStream sortie = new ByteArrayOutputStream();
     try (var entree = new ZipInputStream(new ByteArrayInputStream(modele.toByteArray()));
         var zip = new ZipOutputStream(sortie)) {
@@ -299,12 +335,12 @@ class ImportElevesApiTest extends TestInscription {
         zip.putNextEntry(new ZipEntry(e.getName()));
         zip.write(
             e.getName().equals("xl/worksheets/sheet1.xml")
-                ? feuille.toString().getBytes(StandardCharsets.UTF_8)
+                ? feuille.getBytes(StandardCharsets.UTF_8)
                 : entree.readAllBytes());
         zip.closeEntry();
       }
     }
-    assertThat(valider(sortie.toByteArray()).code()).isEqualTo("FICHIER_INVALIDE");
+    return sortie.toByteArray();
   }
 
   @Test
