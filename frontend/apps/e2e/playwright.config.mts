@@ -18,6 +18,9 @@ const applications = [
 export default defineConfig({
   ...nxE2EPreset(import.meta.dirname, { testDir: './src' }),
   use: { trace: 'on-first-retry' },
+  // Les parcours enchaînent de nombreuses analyses axe (pages, modales, trois largeurs) : 90 s
+  // par test plutôt que 30, pour un poste ou un runner chargé.
+  timeout: 90_000,
   webServer: applications.map(({ nom, port }) => ({
     command: `npx nx run ${nom}:${isCI ? 'serve-static' : 'serve'}`,
     url: `http://localhost:${port}`,
