@@ -25,3 +25,6 @@ coverage/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Clés de dev du poste (infra/scripts/backend-dev.sh) : jamais versionnées, où que soit le dossier.
+cles-dev.env

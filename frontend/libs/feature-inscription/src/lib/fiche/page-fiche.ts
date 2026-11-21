@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EleveDto } from '@ecole/api-client';
@@ -8,7 +7,7 @@ import { Droits } from '../commun/droits';
 import { messageErreur } from '../commun/erreurs';
 import { ServiceEleves } from '../services/service-eleves';
 import { ServiceResponsables } from '../services/service-responsables';
-import { DialogueCode } from './dialogue-code';
+import { DonneesCode, ModaleCode } from './modale-code';
 import { OngletIdentite } from './onglet-identite';
 import { OngletPieces } from './onglet-pieces';
 import { OngletResponsables } from './onglet-responsables';
@@ -30,6 +29,7 @@ import { CHAMPS_FORMULAIRE } from '@ecole/ui';
     OngletResponsables,
     OngletScolarite,
     OngletPieces,
+    ModaleCode,
   ],
   template: `
     <p><a routerLink="/eleves">← Retour à la liste</a></p>
@@ -87,19 +87,23 @@ import { CHAMPS_FORMULAIRE } from '@ecole/ui';
         }
       </mat-tab-group>
     }
+    @if (code(); as c) {
+      <ecole-modale-code [donnees]="c" (fermee)="code.set(null)" />
+    }
   `,
   styleUrl: '../../../../ui/src/lib/styles/ecran.scss',
 })
 export class PageFiche {
   private readonly service = inject(ServiceEleves);
   private readonly responsables = inject(ServiceResponsables);
-  private readonly dialogue = inject(MatDialog);
   protected readonly droits = inject(Droits);
 
   protected readonly id =
     inject(ActivatedRoute).snapshot.paramMap.get('eleveId') ?? '';
   protected readonly eleve = signal<EleveDto | null>(null);
   protected readonly erreur = signal<string | null>(null);
+  /** Code d'activation à afficher (une fois) ; nul : modale détruite, code oublié. */
+  protected readonly code = signal<DonneesCode | null>(null);
 
   constructor() {
     void this.charger();
@@ -117,14 +121,10 @@ export class PageFiche {
     this.erreur.set(null);
     try {
       const reponse = await this.responsables.codeEleve(this.id);
-      this.dialogue.open(DialogueCode, {
-        data: {
-          titulaire: `${eleve.prenoms} ${eleve.nom}`,
-          code: reponse.code ?? '',
-          expireLe: reponse.expireLe,
-        },
-        disableClose: true,
-        autoFocus: 'first-tabbable',
+      this.code.set({
+        titulaire: `${eleve.prenoms} ${eleve.nom}`,
+        code: reponse.code ?? '',
+        expireLe: reponse.expireLe,
       });
     } catch (e) {
       this.erreur.set(messageErreur(e));
