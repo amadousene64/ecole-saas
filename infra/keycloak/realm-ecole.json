@@ -303,6 +303,54 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000121",
+      "username": "secretariat.e2e",
+      "email": "secretariat.e2e@exemple.test",
+      "firstName": "Secrétariat",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000122",
+      "username": "directeur.e2e",
+      "email": "directeur.e2e@exemple.test",
+      "firstName": "Directeur",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000123",
+      "username": "censeur.e2e",
+      "email": "censeur.e2e@exemple.test",
+      "firstName": "Censeur",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     }
   ],
   "components": {

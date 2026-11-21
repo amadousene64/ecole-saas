@@ -122,20 +122,26 @@ export async function verifierDansApp(
 /** Identifiant de l'école A de dev (voir backend/src/main/resources/db/dev). */
 export const ECOLE_A_ID = '01930000-0000-7000-8000-0000000000a1';
 
+/**
+ * École réservée aux tests (« École E2E », voir R__dev_donnees_fictives.sql) : tout scénario qui
+ * CRÉE ou MODIFIE des données y travaille, avec ses propres comptes, jamais dans les écoles A et B
+ * où le développeur teste à la main. Les autres scénarios ne font que lire.
+ */
+export const ECOLE_E2E_ID = '01930000-0000-7000-8000-0000000000e3';
+export const NOM_ECOLE_E2E = 'École E2E';
+export const COMPTES_E2E = {
+  secretariat: 'secretariat.e2e',
+  directeur: 'directeur.e2e',
+  censeur: 'censeur.e2e',
+} as const;
+
 export const URL_API = API;
 
 const ADMIN_KC = process.env['E2E_KEYCLOAK_ADMIN'] || 'admin';
 const ADMIN_KC_MOT_DE_PASSE =
   process.env['E2E_KEYCLOAK_ADMIN_MOT_DE_PASSE'] || 'admin-dev';
 
-/**
- * Crée dans le realm de dev un compte tout neuf, sans aucune appartenance : celui d'un parent qui
- * n'a pas encore activé son compte. Un nom unique par exécution rend le scénario rejouable.
- */
-export async function creerUtilisateurSansEcole(
-  request: APIRequestContext,
-  utilisateur: string,
-): Promise<void> {
+async function jetonAdminKeycloak(request: APIRequestContext): Promise<string> {
   const jeton = await request.post(
     `${KEYCLOAK}/realms/master/protocol/openid-connect/token`,
     {
@@ -148,9 +154,18 @@ export async function creerUtilisateurSansEcole(
     },
   );
   expect(jeton.ok(), 'Jeton administrateur Keycloak (dev)').toBe(true);
-  const { access_token: acces } = (await jeton.json()) as {
-    access_token: string;
-  };
+  return ((await jeton.json()) as { access_token: string }).access_token;
+}
+
+/**
+ * Crée dans le realm de dev un compte tout neuf, sans aucune appartenance : celui d'un parent qui
+ * n'a pas encore activé son compte. Un nom unique par exécution rend le scénario rejouable.
+ */
+export async function creerUtilisateurSansEcole(
+  request: APIRequestContext,
+  utilisateur: string,
+): Promise<void> {
+  const acces = await jetonAdminKeycloak(request);
   const creation = await request.post(`${KEYCLOAK}/admin/realms/ecole/users`, {
     headers: { Authorization: `Bearer ${acces}` },
     data: {
@@ -168,6 +183,36 @@ export async function creerUtilisateurSansEcole(
   expect(creation.status(), 'Création du compte parent fictif').toBe(201);
 }
 
+/**
+ * Supprime du realm de dev les comptes créés par un scénario (nettoyage en fin de test). Un compte
+ * déjà absent n'est pas une erreur : le nettoyage se rejoue.
+ */
+export async function supprimerUtilisateurs(
+  request: APIRequestContext,
+  utilisateurs: string[],
+): Promise<void> {
+  if (!utilisateurs.length) {
+    return;
+  }
+  const acces = await jetonAdminKeycloak(request);
+  const entetes = { Authorization: `Bearer ${acces}` };
+  for (const utilisateur of utilisateurs) {
+    const trouves = await request.get(
+      `${KEYCLOAK}/admin/realms/ecole/users?exact=true&username=${encodeURIComponent(utilisateur)}`,
+      { headers: entetes },
+    );
+    for (const { id } of (await trouves.json()) as { id: string }[]) {
+      const suppression = await request.delete(
+        `${KEYCLOAK}/admin/realms/ecole/users/${id}`,
+        { headers: entetes },
+      );
+      expect(suppression.ok(), `Suppression du compte ${utilisateur}`).toBe(
+        true,
+      );
+    }
+  }
+}
+
 /** Lien du menu principal (et non un raccourci de l'accueil qui porte le même intitulé). */
 export function lienMenu(page: Page, nom: string, exact = true) {
   return page
@@ -175,14 +220,14 @@ export function lienMenu(page: Page, nom: string, exact = true) {
     .getByRole('link', { name: nom, exact });
 }
 
-/** Classe réservée au parcours d'inscription : toujours la même, créée si elle manque. */
+/** Classe réservée au parcours d'inscription (école E2E) : toujours la même, créée si elle manque. */
 export const CLASSE_E2E_INSCRIPTION = 'E2E Inscription';
 
 /**
- * Garantit l'existence, dans l'année en cours de l'école A, d'une classe dédiée à l'e2e (grande
+ * Garantit l'existence, dans l'année en cours de l'école E2E, d'une classe dédiée à l'e2e (grande
  * capacité). Le parcours d'inscription ne dépend ainsi ni des classes du jeu de données de dev, ni de
  * leur remplissage (chaque exécution inscrit un élève de plus). Idempotent : une seule classe, jamais
- * de doublon. Utilise le compte directeur.a avec le client de dev `dev-cli`.
+ * de doublon. Utilise le compte directeur.e2e avec le client de dev `dev-cli`.
  */
 export async function garantirClasseE2E(
   request: APIRequestContext,
@@ -194,18 +239,18 @@ export async function garantirClasseE2E(
         grant_type: 'password',
         client_id: 'dev-cli',
         scope: 'openid',
-        username: 'directeur.a',
+        username: COMPTES_E2E.directeur,
         password: MOT_DE_PASSE,
       },
     },
   );
-  expect(jeton.ok(), 'Jeton directeur.a (dev-cli)').toBe(true);
+  expect(jeton.ok(), 'Jeton directeur.e2e (dev-cli)').toBe(true);
   const { access_token: acces } = (await jeton.json()) as {
     access_token: string;
   };
   const entetes = {
     Authorization: `Bearer ${acces}`,
-    'X-Tenant-Id': ECOLE_A_ID,
+    'X-Tenant-Id': ECOLE_E2E_ID,
   };
 
   const classes = await request.get(`${API}/api/v1/classes`, {
@@ -301,43 +346,29 @@ export function pngUni(largeur: number, hauteur: number): Buffer {
 }
 
 /**
- * Donne un logo à l'école A si elle n'en a pas (le directeur le dépose par l'API) : les pages de
- * connexion affichent alors une vraie marque, quel que soit l'état du jeu de données.
+ * Donne à la page de connexion une marque AVEC logo, sans rien écrire dans l'école A : la réponse
+ * de l'API publique de marque reçoit un `logoVersion`, et l'image du logo est servie par le test
+ * (PNG uni). Le reste de la marque (nom, ville, phrase) vient réellement de l'API. À appeler avant
+ * d'ouvrir la page ; une route posée ensuite par un test (API injoignable) passe avant celle-ci.
  */
-export async function garantirLogoE2E(
-  request: APIRequestContext,
-): Promise<void> {
-  const marque = await request.get(`${URL_MARQUE}?ecole=${ECOLE_A_ID}`);
-  expect(marque.ok(), 'Marque publique').toBe(true);
-  if (((await marque.json()) as { logoVersion?: string | null }).logoVersion) {
-    return;
-  }
-  const jeton = await request.post(
-    `${KEYCLOAK}/realms/ecole/protocol/openid-connect/token`,
-    {
-      form: {
-        grant_type: 'password',
-        client_id: 'dev-cli',
-        scope: 'openid',
-        username: 'directeur.a',
-        password: MOT_DE_PASSE,
-      },
+export async function simulerLogoEcole(page: Page): Promise<void> {
+  const chemin = new URL(URL_MARQUE).pathname;
+  await page.route(
+    (url) => url.pathname === chemin,
+    async (route) => {
+      const reponse = await route.fetch();
+      const marque = (await reponse.json()) as Record<string, unknown>;
+      await route.fulfill({
+        response: reponse,
+        json: { ...marque, logoVersion: 'e2e' },
+      });
     },
   );
-  const { access_token: acces } = (await jeton.json()) as {
-    access_token: string;
-  };
-  const depot = await request.put(`${API}/api/v1/etablissement/images/LOGO`, {
-    headers: { Authorization: `Bearer ${acces}`, 'X-Tenant-Id': ECOLE_A_ID },
-    multipart: {
-      fichier: {
-        name: 'logo.png',
-        mimeType: 'image/png',
-        buffer: pngUni(64, 64),
-      },
-    },
-  });
-  expect(depot.ok(), 'Dépôt du logo de test').toBe(true);
+  await page.route(
+    (url) => url.pathname === `${chemin}/logo`,
+    (route) =>
+      route.fulfill({ contentType: 'image/png', body: pngUni(64, 64) }),
+  );
 }
 
 /**

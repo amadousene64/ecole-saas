@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Crée dans le realm de dev les comptes fictifs ajoutés après l'import initial du realm
-# (comptable.a, surveillant.a, parent.demo), par l'API d'administration de Keycloak : sans
-# réimporter le realm ni effacer les volumes. Idempotent. Mêmes comptes dans realm-ecole.json pour
-# une installation neuve ; mêmes identifiants que les appartenances de
+# (comptable.a, surveillant.a, parent.demo, comptes *.e2e de l'école de test), par l'API
+# d'administration de Keycloak : sans réimporter le realm ni effacer les volumes. Idempotent.
+# Mêmes comptes dans realm-ecole.json pour une installation neuve ; mêmes identifiants que les
+# appartenances de
 # backend/src/main/resources/db/dev/R__dev_donnees_fictives.sql.
 #
 # La création simple d'un utilisateur (POST /users) ignore l'identifiant fourni : on passe par
@@ -61,3 +62,7 @@ creer() {
 creer 01930000-0000-7000-8000-000000000111 comptable.a Comptable "Fictif A"
 creer 01930000-0000-7000-8000-000000000112 surveillant.a Surveillant "Fictif A"
 creer 01930000-0000-7000-8000-000000000113 parent.demo Parent "Démo Fictif"
+# Comptes de l'école dédiée aux tests e2e (« École E2E ») : les scénarios qui écrivent y travaillent.
+creer 01930000-0000-7000-8000-000000000121 secretariat.e2e Secrétariat "Fictif E2E"
+creer 01930000-0000-7000-8000-000000000122 directeur.e2e Directeur "Fictif E2E"
+creer 01930000-0000-7000-8000-000000000123 censeur.e2e Censeur "Fictif E2E"

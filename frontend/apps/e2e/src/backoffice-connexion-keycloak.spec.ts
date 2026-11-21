@@ -5,8 +5,9 @@ import {
   creerUtilisateurSansEcole,
   exigerInfra,
   exigerMailpit,
-  garantirLogoE2E,
   lienDuCourriel,
+  simulerLogoEcole,
+  supprimerUtilisateurs,
   URL_MARQUE,
 } from './support';
 
@@ -22,11 +23,24 @@ const expect = expectBase.configure({ timeout: 15_000 });
 const DOSSIER = 'dist/.playwright/captures';
 const MOT_DE_PASSE = process.env['E2E_MOT_DE_PASSE'] || 'Passer-2026-dev';
 
+/** Comptes Keycloak créés par les scénarios : supprimés à la fin, rien ne reste dans le realm. */
+const comptesCrees: string[] = [];
+
 test.beforeAll(async () => {
   const api = await request.newContext();
   await exigerMailpit(api);
-  await garantirLogoE2E(api);
   await api.dispose();
+});
+
+test.afterAll(async () => {
+  const api = await request.newContext();
+  await supprimerUtilisateurs(api, comptesCrees);
+  await api.dispose();
+});
+
+// Marque avec logo sans rien déposer dans l'école A (voir simulerLogoEcole).
+test.beforeEach(async ({ page }) => {
+  await simulerLogoEcole(page);
 });
 
 async function ouvrirConnexion(page: Page): Promise<void> {
@@ -125,6 +139,7 @@ test('mot de passe oublié → courriel → nouveau mot de passe, avec axe à ch
 }) => {
   const utilisateur = `reinit.e2e.${Date.now().toString(36)}`;
   await creerUtilisateurSansEcole(api, utilisateur);
+  comptesCrees.push(utilisateur);
   await ouvrirConnexion(page);
 
   await page.getByRole('link', { name: /Mot de passe oublié/ }).click();
