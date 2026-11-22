@@ -52,6 +52,7 @@ describe('App (back-office)', () => {
       'Années et périodes',
       'Établissement',
       'Structure pédagogique',
+      'Matières et horaires',
     ]);
     // Sections du menu
     expect(
@@ -70,6 +71,7 @@ describe('App (back-office)', () => {
       'Années, périodes et calendrier',
       'Profil et logo',
       'Niveaux et séries',
+      'Matières et horaires',
     ]);
   });
 
