@@ -10,5 +10,11 @@ public interface CycleRepository {
 
   Optional<Cycle> findById(UUID id);
 
+  /**
+   * Cycle verrouillé jusqu'à la fin de la transaction : les écritures dans sa grille horaire
+   * (chevauchement, copie dans une grille vide) se suivent au lieu de se croiser.
+   */
+  Optional<Cycle> verrouiller(UUID id);
+
   Cycle save(Cycle cycle);
 }

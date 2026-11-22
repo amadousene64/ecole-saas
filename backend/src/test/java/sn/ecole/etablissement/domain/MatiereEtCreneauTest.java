@@ -58,6 +58,8 @@ class MatiereEtCreneauTest {
     assertCode(() -> creneau("05:59", "08:00", MONDAY), "HORAIRE_INVALIDE");
     assertCode(() -> creneau("19:00", "20:01", MONDAY), "HORAIRE_INVALIDE");
     assertCode(() -> creneau("08:00", "08:14", MONDAY), "HORAIRE_INVALIDE");
+    assertCode(() -> creneau("23:50", "08:00", MONDAY), "HORAIRE_INVALIDE");
+    assertCode(() -> creneau("10:00", "10:00", MONDAY), "HORAIRE_INVALIDE");
     assertCode(() -> creneau("08:00", "09:00"), "JOURS_REQUIS");
   }
 

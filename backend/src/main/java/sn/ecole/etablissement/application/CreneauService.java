@@ -48,7 +48,7 @@ public class CreneauService {
 
   @PreAuthorize(Droits.PEDAGOGIE)
   public Creneau creer(UUID cycleId, Saisie s) {
-    exigerCycle(cycleId);
+    verrouillerCycle(cycleId);
     Creneau creneau = Creneau.creer(cycleId, s.debut(), s.fin(), s.jours(), s.type(), s.libelle());
     verifierSansChevauchement(creneau);
     return creneaux.save(creneau);
@@ -58,6 +58,7 @@ public class CreneauService {
   public Creneau modifier(UUID id, int version, Saisie s) {
     Creneau creneau = charger(id);
     Erreurs.verifierVersion(version, creneau);
+    verrouillerCycle(creneau.getCycleId());
     creneau.modifier(s.debut(), s.fin(), s.jours(), s.type(), s.libelle());
     verifierSansChevauchement(creneau);
     return creneaux.save(creneau);
@@ -74,7 +75,7 @@ public class CreneauService {
   @PreAuthorize(Droits.PEDAGOGIE)
   public List<Creneau> copier(UUID depuisCycleId, UUID versCycleId) {
     exigerCycle(depuisCycleId);
-    exigerCycle(versCycleId);
+    verrouillerCycle(versCycleId);
     if (depuisCycleId.equals(versCycleId)) {
       throw Erreurs.invalide("COPIE_INVALIDE", "Choisissez un autre cycle que celui à remplir.");
     }
@@ -108,6 +109,13 @@ public class CreneauService {
   private void exigerCycle(UUID cycleId) {
     cycles
         .findById(cycleId)
+        .orElseThrow(() -> Erreurs.introuvable("CYCLE_INTROUVABLE", "Cycle introuvable."));
+  }
+
+  /** Le cycle existe dans l'école, et sa grille est à nous jusqu'à la fin de la transaction. */
+  private void verrouillerCycle(UUID cycleId) {
+    cycles
+        .verrouiller(cycleId)
         .orElseThrow(() -> Erreurs.introuvable("CYCLE_INTROUVABLE", "Cycle introuvable."));
   }
 

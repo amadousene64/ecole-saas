@@ -250,6 +250,7 @@ class MatieresEtCreneauxApiTest extends TestEtablissement {
             creneau("05:30", "07:00", SEMAINE),
             creneau("19:00", "20:30", SEMAINE),
             creneau("10:00", "09:00", SEMAINE),
+            creneau("23:50", "08:00", SEMAINE),
             creneau("10:00", "10:10", SEMAINE))) {
       Reponse r = post(DIRECTEUR_A, A, url, invalide);
       assertThat(r.statut()).as(invalide.toString()).isEqualTo(400);
@@ -257,6 +258,26 @@ class MatieresEtCreneauxApiTest extends TestEtablissement {
     }
     assertThat(post(DIRECTEUR_A, A, url, creneau("08:00", "12:00", List.of())).statut())
         .isEqualTo(400);
+    // Une valeur nulle dans une liste est une saisie invalide, pas une erreur serveur.
+    java.util.List<String> avecNul = new java.util.ArrayList<>(List.of("MONDAY"));
+    avecNul.add(null);
+    assertThat(post(DIRECTEUR_A, A, url, creneau("08:00", "12:00", avecNul)).statut())
+        .isEqualTo(400);
+    java.util.List<String> cyclesNuls = new java.util.ArrayList<>();
+    cyclesNuls.add(null);
+    assertThat(post(DIRECTEUR_A, A, MATIERES, matiere("NUL", "Nul", cyclesNuls)).statut())
+        .isEqualTo(400);
+    // La base refuse aussi un créneau qui passerait minuit (contrainte, pas seulement le domaine).
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () ->
+                superUtilisateur()
+                    .update(
+                        "INSERT INTO ecole.creneau (id, tenant_id, cycle_id, debut, fin, jours,"
+                            + " type) VALUES (gen_random_uuid(), ?, ?, '23:50', '08:00', 1,"
+                            + " 'COURS')",
+                        A,
+                        cycle(DIRECTEUR_A, A, "MOYEN")))
+        .hasMessageContaining("ck_creneau_heures");
   }
 
   @Test

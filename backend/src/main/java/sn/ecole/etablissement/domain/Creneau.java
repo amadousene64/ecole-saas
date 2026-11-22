@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Collection;
@@ -92,7 +93,8 @@ public class Creneau extends TenantAwareEntity {
     if (d.isBefore(OUVERTURE) || f.isAfter(FERMETURE)) {
       throw Verif.invalide("HORAIRE_INVALIDE", "Un créneau se situe entre 6 h et 20 h.");
     }
-    if (d.plusMinutes(DUREE_MIN_MINUTES).isAfter(f)) {
+    // Durée calculée sans repasser par minuit : 23:50 → 08:00 est refusé (début après la fin).
+    if (!d.isBefore(f) || Duration.between(d, f).toMinutes() < DUREE_MIN_MINUTES) {
       throw Verif.invalide(
           "HORAIRE_INVALIDE",
           "Un créneau finit après son début et dure au moins " + DUREE_MIN_MINUTES + " minutes.");

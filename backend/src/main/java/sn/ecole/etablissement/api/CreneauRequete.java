@@ -12,6 +12,6 @@ import sn.ecole.etablissement.domain.TypeCreneau;
 public record CreneauRequete(
     @NotNull LocalTime debut,
     @NotNull LocalTime fin,
-    @NotEmpty Set<DayOfWeek> jours,
+    @NotEmpty Set<@NotNull DayOfWeek> jours,
     TypeCreneau type,
     @Size(max = 30) String libelle) {}
