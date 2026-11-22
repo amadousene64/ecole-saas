@@ -212,7 +212,7 @@ describe('ajustements demandés', () => {
     expect(peut('etablissement.direction', ['SECRETARIAT'])).toBe(false);
   });
 
-  it('le menu du secrétariat porte « Paramètres de l’école » avec ses trois pages', () => {
+  it('le menu du secrétariat porte « Paramètres de l’école » avec ses quatre pages', () => {
     const menu = menuPour(['SECRETARIAT'], 'backoffice');
     const section = menu.filter(
       (e) => e.groupe === 'Paramètres de l’école'.replace('’', "'"),
@@ -221,6 +221,7 @@ describe('ajustements demandés', () => {
       'Années, périodes et calendrier',
       'Profil et logo',
       'Niveaux et séries',
+      'Matières et horaires',
     ]);
     // Aucune page réservée au directeur dans ce menu.
     expect(menu.map((e) => e.chemin)).not.toContain(
@@ -234,6 +235,7 @@ describe('ajustements demandés', () => {
       'Accueil',
       'Élèves',
       'Classes',
+      'Matières et horaires',
     ]);
     for (const cle of [
       'ClasseService.creer',

@@ -88,6 +88,7 @@ describe('menus par rôle', () => {
       'Années et périodes',
       'Établissement',
       'Structure pédagogique',
+      'Matières et horaires',
     ]);
     const sections = menuPour(['DIRECTEUR'], 'backoffice').map((e) => e.groupe);
     expect(sections).toEqual([
@@ -95,6 +96,7 @@ describe('menus par rôle', () => {
       null,
       'Classes et années',
       'Classes et années',
+      'Paramètres',
       'Paramètres',
       'Paramètres',
     ]);
@@ -109,6 +111,7 @@ describe('menus par rôle', () => {
       'Années, périodes et calendrier',
       'Profil et logo',
       'Niveaux et séries',
+      'Matières et horaires',
     ]);
     expect(
       menuPour(['SECRETARIAT'], 'backoffice').map((e) => e.groupe),
@@ -120,6 +123,7 @@ describe('menus par rôle', () => {
       "Paramètres de l'école",
       "Paramètres de l'école",
       "Paramètres de l'école",
+      "Paramètres de l'école",
     ]);
   });
 
@@ -128,6 +132,7 @@ describe('menus par rôle', () => {
       'Accueil',
       'Élèves',
       'Classes',
+      'Matières et horaires',
     ]);
   });
 

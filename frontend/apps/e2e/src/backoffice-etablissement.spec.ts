@@ -99,7 +99,7 @@ test('le secrétariat a « Paramètres de l’école » : profil et logo, sans c
   await expect(page.getByRole('tab', { name: 'Cycles' })).toHaveCount(0);
 });
 
-test('le censeur lit les classes sans pouvoir les modifier ; pas de pages de paramètres', async ({
+test('le censeur lit les classes sans pouvoir les modifier ; pas de paramètres de l’école', async ({
   page,
 }) => {
   await seConnecter(page, 'censeur.a');
@@ -107,7 +107,12 @@ test('le censeur lit les classes sans pouvoir les modifier ; pas de pages de par
   const liens = page
     .getByRole('navigation', { name: 'Navigation principale' })
     .getByRole('link');
-  await expect(liens).toHaveText(['Accueil', 'Élèves', 'Classes']);
+  await expect(liens).toHaveText([
+    'Accueil',
+    'Élèves',
+    'Classes',
+    'Matières et horaires',
+  ]);
 
   await allerA(page, 'Classes');
   await expect(page.getByTestId('table-classes')).toBeVisible();
@@ -193,4 +198,81 @@ test("l'assistant de préparation crée une année, ses périodes et son calendr
   await ligne.getByTestId('supprimer-annee').click();
   await page.getByTestId('confirmer-action').click();
   await expect(ligne).toHaveCount(0);
+});
+
+test('le censeur organise les matières et la grille horaire (école E2E)', async ({
+  page,
+}) => {
+  await seConnecter(page, COMPTES_E2E.censeur);
+  await allerA(page, 'Matières et horaires');
+  await expect(page.getByTestId('table-matieres')).toBeVisible();
+  await verifierAccessibilite(page, 'Matières et horaires : matières');
+
+  // Matières usuelles : ajoutées une fois, sans doublon ensuite.
+  await page.getByTestId('matieres-usuelles').click();
+  await expect(page.getByTestId('info-matieres')).toBeVisible();
+  await page.getByTestId('matieres-usuelles').click();
+  await expect(page.getByTestId('info-matieres')).toHaveText(
+    'Toutes les matières usuelles sont déjà là.',
+  );
+  await expect(page.getByTestId('matiere-MATHS')).toBeVisible();
+
+  // Ajout en modale (un cycle au moins), puis suppression confirmée.
+  await page.getByTestId('ajouter-matiere').click();
+  await expect(page.getByTestId('modale-matiere')).toBeVisible();
+  await page.getByTestId('champ-matiere-code').fill('E2EDISS');
+  await page.getByTestId('champ-matiere-libelle').fill('Dissertation E2E');
+  await page.getByTestId('champ-matiere-groupe').fill('Français');
+  await page.getByTestId('enregistrer-matiere').click();
+  await expect(page.getByText('Choisissez au moins un cycle.')).toBeVisible();
+  await page.getByTestId('cycle-SECONDAIRE').click();
+  await verifierAccessibilite(page, 'Modale : ajouter une matière');
+  await page.getByTestId('enregistrer-matiere').click();
+  const ligne = page.getByTestId('matiere-E2EDISS');
+  await expect(ligne).toContainText('Secondaire');
+  await ligne.getByRole('button', { name: /Supprimer/ }).click();
+  await verifierAccessibilite(page, 'Confirmation : supprimer une matière');
+  await page.getByTestId('confirmer-action').click();
+  await expect(ligne).toHaveCount(0);
+
+  // Grille horaire : un créneau du dimanche soir (aucun autre ne l'occupe), chevauchement refusé.
+  await page.getByRole('tab', { name: 'Grille horaire' }).click();
+  await expect(page.getByTestId('table-creneaux')).toBeVisible();
+  await verifierAccessibilite(page, 'Matières et horaires : grille');
+  const ajouterCreneau = async (debut: string, fin: string) => {
+    await page.getByTestId('ajouter-creneau').click();
+    await expect(page.getByTestId('modale-creneau')).toBeVisible();
+    await page.getByTestId('champ-creneau-debut').fill(debut);
+    await page.getByTestId('champ-creneau-fin').fill(fin);
+    for (const jour of [
+      'MONDAY',
+      'TUESDAY',
+      'WEDNESDAY',
+      'THURSDAY',
+      'FRIDAY',
+    ]) {
+      await page.getByTestId(`jour-${jour}`).click();
+    }
+    await page.getByTestId('jour-SUNDAY').click();
+  };
+  await ajouterCreneau('18:00', '19:00');
+  await page.getByTestId('champ-creneau-libelle').fill('E2E');
+  await verifierAccessibilite(page, 'Modale : ajouter un créneau');
+  await page.getByTestId('enregistrer-creneau').click();
+  const creneau = page.getByTestId('creneau-18:00');
+  await expect(creneau).toContainText('18:00 – 19:00');
+  await expect(creneau).toContainText('dimanche');
+
+  await ajouterCreneau('18:30', '19:30');
+  await page.getByTestId('enregistrer-creneau').click();
+  await expect(page.getByTestId('erreur-creneau')).toContainText('chevauche');
+  await page
+    .getByTestId('modale-creneau')
+    .getByRole('button', { name: 'Annuler' })
+    .click();
+  await expect(page.getByTestId('modale-creneau')).toHaveCount(0);
+
+  await creneau.getByRole('button', { name: /Supprimer/ }).click();
+  await page.getByTestId('confirmer-action').click();
+  await expect(creneau).toHaveCount(0);
 });
