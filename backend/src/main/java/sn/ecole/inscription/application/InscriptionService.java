@@ -62,6 +62,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   private final VerrouClasse verrou;
   private final ApplicationEventPublisher evenements;
   private final JournalAudit journal;
+  private final PerimetreEleves perimetre;
 
   public InscriptionService(
       InscriptionRepository inscriptions,
@@ -71,7 +72,8 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
       ParametresInscriptionService parametres,
       VerrouClasse verrou,
       ApplicationEventPublisher evenements,
-      JournalAudit journal) {
+      JournalAudit journal,
+      PerimetreEleves perimetre) {
     this.inscriptions = inscriptions;
     this.choix = choix;
     this.eleves = eleves;
@@ -80,6 +82,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     this.verrou = verrou;
     this.evenements = evenements;
     this.journal = journal;
+    this.perimetre = perimetre;
   }
 
   /**
@@ -139,7 +142,9 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   @PreAuthorize(Droits.SCOLARITE)
   @Transactional(readOnly = true)
   public VueInscription lire(UUID inscriptionId) {
-    return vue(charger(inscriptionId), List.of());
+    Inscription inscription = charger(inscriptionId);
+    perimetre.exigerClasse(inscription.getClasseId());
+    return vue(inscription, List.of());
   }
 
   /** Historique de l'élève, de la plus récente à la plus ancienne. */
@@ -147,14 +152,19 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   @Transactional(readOnly = true)
   public List<VueInscription> historique(UUID eleveId) {
     eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
+    perimetre.exigerEleve(eleveId);
     return vues(inscriptions.findByEleveIdOrderByDateEntreeDesc(eleveId));
   }
 
-  /** Élèves pré-inscrits ou inscrits dans la classe, par nom. */
-  @PreAuthorize(Droits.SCOLARITE)
+  /**
+   * Élèves pré-inscrits ou inscrits dans la classe, par nom. L'enseignant y accède pour ses classes
+   * (« Mes classes ») ; le surveillant pour celles de ses cycles.
+   */
+  @PreAuthorize(Droits.SCOLARITE_CLASSE)
   @Transactional(readOnly = true)
   public List<ResumeEleve> elevesDeLaClasse(UUID classeId) {
     referentiel.classe(classeId);
+    perimetre.exigerClasse(classeId);
     List<UUID> ids =
         inscriptions.findByClasseIdAndStatutIn(classeId, StatutInscription.ACTIFS).stream()
             .map(Inscription::getEleveId)
@@ -177,7 +187,13 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     inscriptions
         .compterParClasse(anneeId, StatutInscription.ACTIFS)
         .forEach(e -> inscrits.put(e.getClasseId(), e.getNombre()));
-    return referentiel.classes(anneeId).stream()
+    List<ClasseScolaire> classes = referentiel.classes(anneeId);
+    Set<UUID> visibles =
+        perimetre.toutLEcole()
+            ? null
+            : perimetre.filtrer(classes.stream().map(ClasseScolaire::id).toList());
+    return classes.stream()
+        .filter(c -> visibles == null || visibles.contains(c.id()))
         .map(c -> new Remplissage(c.id(), inscrits.getOrDefault(c.id(), 0L), c.capacite()))
         .toList();
   }

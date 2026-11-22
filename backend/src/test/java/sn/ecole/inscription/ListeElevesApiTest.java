@@ -39,6 +39,8 @@ class ListeElevesApiTest extends TestInscription {
   void structure() throws Exception {
     superUtilisateur().execute("TRUNCATE ecole.outbox_event");
     UUID annee = creerEtOuvrirAnnee(DIRECTEUR_A, A);
+    // Le surveillant lit les élèves des cycles qui lui sont affectés : ici, tous.
+    surveillerToutesLesClasses(SURVEILLANT_A, A, DIRECTEUR_A, annee);
     Reponse c =
         post(
             DIRECTEUR_A,
@@ -210,6 +212,8 @@ class ListeElevesApiTest extends TestInscription {
 
   @Test
   void seulsLaDirectionEtLeSecretariatVoientLEtatDuDossier() throws Exception {
+    // Le surveillant ne voit que les élèves inscrits dans une classe de ses cycles.
+    inscrire(awa, "INSCRIT");
     for (UUID qui : List.of(DIRECTEUR_A, SECRETARIAT_A)) {
       Reponse r = get(qui, A, ELEVES);
       assertThat(r.statut()).isEqualTo(200);

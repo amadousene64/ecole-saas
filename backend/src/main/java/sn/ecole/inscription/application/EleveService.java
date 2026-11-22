@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,6 +75,7 @@ public class EleveService {
   private final List<UtilisationEleve> utilisations;
   private final InscriptionService inscriptions;
   private final PieceService pieces;
+  private final PerimetreEleves perimetre;
 
   public EleveService(
       EleveRepository eleves,
@@ -84,7 +86,8 @@ public class EleveService {
       JournalAudit journal,
       List<UtilisationEleve> utilisations,
       InscriptionService inscriptions,
-      PieceService pieces) {
+      PieceService pieces,
+      PerimetreEleves perimetre) {
     this.eleves = eleves;
     this.recherche = recherche;
     this.compteur = compteur;
@@ -94,6 +97,7 @@ public class EleveService {
     this.utilisations = List.copyOf(utilisations);
     this.inscriptions = inscriptions;
     this.pieces = pieces;
+    this.perimetre = perimetre;
   }
 
   /**
@@ -145,8 +149,20 @@ public class EleveService {
       throw new ErreurMetier(
           "ACCES_REFUSE", TypeErreur.INTERDIT, "Le filtre par statut est réservé à la scolarité.");
     }
+    // Périmètre : un surveillant ne cherche que dans les classes qui lui sont affectées.
+    Collection<UUID> classes = classeId == null ? null : List.of(classeId);
+    if (!perimetre.toutLEcole()) {
+      if (classeId != null) {
+        perimetre.exigerClasse(classeId);
+      } else {
+        classes = perimetre.classesVisiblesCetteAnnee();
+        if (classes.isEmpty()) {
+          return new PageCurseur<>(List.of(), null);
+        }
+      }
+    }
     List<Eleve> lus =
-        recherche.rechercher(normalise, matricule, classeId, statut, apresNom, apresId, n + 1);
+        recherche.rechercher(normalise, matricule, classes, statut, apresNom, apresId, n + 1);
     PageCurseur<Eleve> page = PageCurseur.depuis(lus, n, e -> new String[] {e.getId().toString()});
     List<UUID> ids = page.elements().stream().map(Eleve::getId).toList();
     Map<UUID, InscriptionService.Situation> situations = inscriptions.situations(ids);
@@ -171,7 +187,9 @@ public class EleveService {
   @PreAuthorize(Droits.IDENTITE_ELEVE)
   @Transactional(readOnly = true)
   public VueEleve lire(UUID eleveId) {
-    return vue(charger(eleveId));
+    Eleve eleve = charger(eleveId);
+    perimetre.exigerEleve(eleveId);
+    return vue(eleve);
   }
 
   /** Crée l'élève et lui attribue le prochain matricule selon le format de l'école. */

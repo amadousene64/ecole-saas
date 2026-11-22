@@ -22,6 +22,41 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "AffectationService.changerPeriode" : {
+      "roles" : [ "DIRECTEUR", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR')"
+    },
+    "AffectationService.creer" : {
+      "roles" : [ "DIRECTEUR", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR')"
+    },
+    "AffectationService.lister" : {
+      "roles" : [ "DIRECTEUR", "CENSEUR" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR')"
+    },
+    "AffectationService.miennes" : {
+      "roles" : [ "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('ENSEIGNANT','SURVEILLANT')"
+    },
+    "AffectationService.terminer" : {
+      "roles" : [ "DIRECTEUR", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR')"
+    },
     "AnneeScolaireService.cloturer" : {
       "roles" : [ "DIRECTEUR" ],
       "ecriture" : true,
@@ -77,6 +112,13 @@
       "conditionnel" : false,
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
+    },
+    "AnnuairePersonnel.affectables" : {
+      "roles" : [ "DIRECTEUR", "CENSEUR" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR')"
     },
     "BrouillonInscriptionService.abandonner" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],
@@ -366,11 +408,11 @@
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
     "InscriptionService.elevesDeLaClasse" : {
-      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT", "ENSEIGNANT" ],
       "ecriture" : false,
       "conditionnel" : false,
       "perimetre" : false,
-      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT')"
+      "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT','ENSEIGNANT')"
     },
     "InscriptionService.historique" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "SURVEILLANT" ],
@@ -687,6 +729,13 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE','PARENT','ELEVE')"
     },
+    "ReferentielScolaireService.anneesEtCyclesDesClasses" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
     "ReferentielScolaireService.classe" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
       "ecriture" : false,
@@ -695,6 +744,13 @@
       "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
     },
     "ReferentielScolaireService.classes" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "ReferentielScolaireService.matieres" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
       "ecriture" : false,
       "conditionnel" : false,

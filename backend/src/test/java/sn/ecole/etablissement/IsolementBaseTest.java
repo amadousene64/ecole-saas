@@ -37,7 +37,9 @@ class IsolementBaseTest extends TestEtablissement {
           "parametres_cycle_annee",
           "parametres_niveau_annee",
           "matiere",
-          "creneau");
+          "creneau",
+          "affectation",
+          "membre_personnel");
 
   private UUID anneeA;
   private UUID anneeB;
@@ -93,6 +95,18 @@ class IsolementBaseTest extends TestEtablissement {
           ecole.getKey(),
           "/api/v1/cycles/" + cycle + "/creneaux",
           corps("debut", "08:00", "fin", "10:00", "jours", List.of("MONDAY")));
+    }
+    surveillerToutesLesClasses(sn.ecole.Fixtures.SURVEILLANT_A, A, DIRECTEUR_A, anneeA);
+    surveillerToutesLesClasses(sn.ecole.Fixtures.SURVEILLANT_B, B, DIRECTEUR_B, anneeB);
+    for (var membre :
+        java.util.Map.of(A, sn.ecole.Fixtures.SURVEILLANT_A, B, sn.ecole.Fixtures.SURVEILLANT_B)
+            .entrySet()) {
+      superUtilisateur()
+          .update(
+              "INSERT INTO ecole.membre_personnel (id, tenant_id, utilisateur_id, vu_le)"
+                  + " VALUES (gen_random_uuid(), ?, ?, now())",
+              membre.getKey(),
+              membre.getValue());
     }
     televerser(DIRECTEUR_A, A, "LOGO", png(32, 32), "a.png");
     televerser(DIRECTEUR_B, B, "LOGO", png(32, 32), "b.png");

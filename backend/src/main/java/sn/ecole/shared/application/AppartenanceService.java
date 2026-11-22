@@ -1,6 +1,5 @@
 package sn.ecole.shared.application;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.EnumSet;
@@ -17,8 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import sn.ecole.shared.domain.Appartenance;
 import sn.ecole.shared.domain.AppartenanceRepository;
 import sn.ecole.shared.domain.CacheRoles;
@@ -42,10 +39,11 @@ public class AppartenanceService {
   private final CacheRoles cache;
   private final ExecutionPourTenant execution;
   private final JournalAudit journal;
-  private final Counter echecsSecondeInvalidation;
+  private final InvalidationDroits invalidation;
 
   /** Métrique : nombre d'échecs de la seconde invalidation (après commit) du cache des rôles. */
-  public static final String METRIQUE_ECHEC_INVALIDATION = "ecole.droits.invalidation.echecs";
+  public static final String METRIQUE_ECHEC_INVALIDATION =
+      InvalidationDroits.METRIQUE_ECHEC_INVALIDATION;
 
   public AppartenanceService(
       AppartenanceRepository appartenances,
@@ -59,10 +57,7 @@ public class AppartenanceService {
     this.cache = cache;
     this.execution = execution;
     this.journal = journal;
-    this.echecsSecondeInvalidation =
-        Counter.builder(METRIQUE_ECHEC_INVALIDATION)
-            .description("Échecs de l'invalidation du cache des rôles après commit")
-            .register(metriques);
+    this.invalidation = new InvalidationDroits(cache, metriques);
   }
 
   /**
@@ -159,32 +154,7 @@ public class AppartenanceService {
         });
   }
 
-  /**
-   * Nouvelle génération des droits juste avant le commit (si Redis est injoignable, l'exception
-   * annule la transaction : pas de changement de droits sans invalidation) puis juste après (une
-   * lecture concurrente qui aurait mis en cache l'état d'avant le commit devient périmée).
-   */
   private void changerGenerationAuCommit(UUID utilisateurId) {
-    TransactionSynchronizationManager.registerSynchronization(
-        new TransactionSynchronization() {
-          @Override
-          public void beforeCommit(boolean lectureSeule) {
-            cache.nouvelleGeneration(utilisateurId);
-          }
-
-          @Override
-          public void afterCommit() {
-            try {
-              cache.nouvelleGeneration(utilisateurId);
-            } catch (RuntimeException e) {
-              // Pas de reprise (choix assumé) : signalé par journal et par métrique.
-              echecsSecondeInvalidation.increment();
-              LOG.warn(
-                  "Seconde invalidation des droits impossible : une lecture concurrente au commit"
-                      + " peut rester en cache jusqu'à expiration ({})",
-                  e.toString());
-            }
-          }
-        });
+    invalidation.auCommit(utilisateurId);
   }
 }

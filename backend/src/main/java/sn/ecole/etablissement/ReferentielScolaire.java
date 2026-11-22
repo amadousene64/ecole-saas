@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /** Lecture de la structure scolaire de l'école courante, pour les autres modules. */
@@ -62,6 +63,26 @@ public interface ReferentielScolaire {
   List<NiveauScolaire> niveaux();
 
   record NiveauScolaire(UUID id, String code, String libelle, int ordre, CodeCycle codeCycle) {}
+
+  /**
+   * Année et cycle de chacune des classes demandées (les inconnues sont absentes), en une lecture.
+   * Pour le périmètre d'un surveillant, affecté à des cycles pour une année. Réservé au personnel.
+   */
+  Map<UUID, AnneeEtCycle> anneesEtCyclesDesClasses(Collection<UUID> classeIds);
+
+  record AnneeEtCycle(UUID anneeId, CodeCycle codeCycle) {}
+
+  /** Matières de l'école, dans l'ordre d'affichage, actives ou non. Réservé au personnel. */
+  List<MatiereScolaire> matieres();
+
+  /** Matière et cycles où elle est enseignée. */
+  record MatiereScolaire(
+      UUID id, String code, String libelle, Set<CodeCycle> cycles, boolean actif) {
+
+    public MatiereScolaire {
+      cycles = Set.copyOf(cycles);
+    }
+  }
 
   record ClasseScolaire(
       UUID id,

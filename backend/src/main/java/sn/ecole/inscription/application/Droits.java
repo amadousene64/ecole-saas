@@ -9,8 +9,11 @@ package sn.ecole.inscription.application;
  *   <li>DIRECTEUR et SECRETARIAT écrivent ;
  *   <li>CENSEUR et SURVEILLANT lisent l'identité et la scolarité ;
  *   <li>COMPTABLE lit l'identité et les responsables payeurs ;
- *   <li>ENSEIGNANT : aucun accès pour l'instant (issue « accès enseignant limité à ses classes »).
+ *   <li>ENSEIGNANT : les élèves de ses classes seulement (« Mes classes »).
  * </ul>
+ *
+ * <p>Enseignant et surveillant sont limités à leur périmètre d'affectations ({@link
+ * PerimetreEleves}) : classes affectées, cycles surveillés.
  */
 final class Droits {
 
@@ -29,6 +32,13 @@ final class Droits {
   static final String SCOLARITE = "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT')";
 
   static final String SCOLARITE_ELEVE = SCOLARITE + " or hasPermission(#eleveId, 'Eleve', 'lire')";
+
+  /**
+   * Élèves d'une classe : la scolarité et l'enseignant (« Mes classes »), chacun dans son périmètre
+   * d'affectations.
+   */
+  static final String SCOLARITE_CLASSE =
+      "hasAnyRole('DIRECTEUR','SECRETARIAT','CENSEUR','SURVEILLANT','ENSEIGNANT')";
 
   /** Lecture des données de santé et de la situation familiale. */
   static final String SENSIBLE_LECTURE = "hasAnyRole('DIRECTEUR','CENSEUR')";

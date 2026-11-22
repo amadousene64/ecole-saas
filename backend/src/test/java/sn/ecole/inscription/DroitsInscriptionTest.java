@@ -131,7 +131,10 @@ class DroitsInscriptionTest extends TestInscription {
     cas.add(new Cas("POSTV", i + "/" + X + "/sortie", sortie, ECRITURE));
     cas.add(new Cas("POSTV", i + "/" + X + "/sortie", radiation, DIRECTION));
     cas.add(new Cas("GET", ELEVES + "/" + X + "/inscriptions", null, scolarite));
-    cas.add(new Cas("GET", "/api/v1/classes/" + X + "/eleves", null, scolarite));
+    // L'enseignant y accède aussi (« Mes classes »), dans son périmètre d'affectations.
+    Set<String> scolariteClasse = new java.util.HashSet<>(scolarite);
+    scolariteClasse.add(ENSEIGNANT);
+    cas.add(new Cas("GET", "/api/v1/classes/" + X + "/eleves", null, scolariteClasse));
     cas.add(new Cas("POST", ELEVES + "/" + X + "/codes-activation", null, ECRITURE));
     cas.add(new Cas("GET", "/api/v1/moi/eleve", null, Set.of(ELEVE)));
     String pieces = ELEVES + "/" + X + "/pieces";

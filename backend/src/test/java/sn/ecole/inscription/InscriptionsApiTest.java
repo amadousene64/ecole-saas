@@ -155,6 +155,7 @@ class InscriptionsApiTest extends TestInscription {
     assertThat(evenements.stream(InscriptionTerminee.class)).hasSize(1);
     assertThat(inscrire(SECRETARIAT_A, awa, ci, "INSCRIT", List.of()).statut()).isEqualTo(201);
 
+    surveillerToutesLesClasses(SURVEILLANT_A, A, DIRECTEUR_A, annee);
     Reponse historique = get(SURVEILLANT_A, A, ELEVES + "/" + awa + "/inscriptions");
     assertThat(historique.corps()).hasSize(2);
   }
@@ -448,6 +449,7 @@ class InscriptionsApiTest extends TestInscription {
             });
     Reponse tous = get(SECRETARIAT_A, A, ELEVES);
     assertThat(tous.corps().path("elements")).hasSize(3);
+    surveillerToutesLesClasses(SURVEILLANT_A, A, DIRECTEUR_A, annee);
     assertThat(get(SURVEILLANT_A, A, "/api/v1/classes/" + ci + "/eleves").corps())
         .singleElement()
         .satisfies(e -> assertThat(e.path("prenoms").asText()).isEqualTo("Binta"));

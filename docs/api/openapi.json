@@ -47,6 +47,179 @@
         "tags" : [ "activation-controller" ]
       }
     },
+    "/api/v1/affectations" : {
+      "get" : {
+        "operationId" : "lister",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "annee",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AffectationDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Affectations de l'année, en cours et terminées (historique)",
+        "tags" : [ "affectation-controller" ]
+      },
+      "post" : {
+        "operationId" : "creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AffectationRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AffectationDto"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "summary" : "Affecte un enseignant (matière dans une classe, ou titulaire) ou un surveillant (un ou plusieurs cycles) ; une affectation par cycle",
+        "tags" : [ "affectation-controller" ]
+      }
+    },
+    "/api/v1/affectations/{id}" : {
+      "put" : {
+        "operationId" : "changerPeriode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PeriodeRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Corrige la période d'une affectation (If-Match : version lue)",
+        "tags" : [ "affectation-controller" ]
+      }
+    },
+    "/api/v1/affectations/{id}/fin" : {
+      "post" : {
+        "operationId" : "terminer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FinRequete"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Termine une affectation (aujourd'hui par défaut : effet immédiat) ; annulée si elle n'avait pas commencé (If-Match : version lue)",
+        "tags" : [ "affectation-controller" ]
+      }
+    },
     "/api/v1/annees-scolaires" : {
       "get" : {
         "operationId" : "anneeScolaire_lister",
@@ -3459,6 +3632,38 @@
         "tags" : [ "moi-controller" ]
       }
     },
+    "/api/v1/moi/affectations" : {
+      "get" : {
+        "operationId" : "miennes",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AffectationDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Mes affectations en cours (enseignant, surveillant)",
+        "tags" : [ "affectation-controller" ]
+      }
+    },
     "/api/v1/moi/ecoles" : {
       "get" : {
         "operationId" : "mesEcoles",
@@ -3997,6 +4202,38 @@
         },
         "summary" : "Modifie les paramètres (directeur ; If-Match : version lue)",
         "tags" : [ "parametres-inscription-controller" ]
+      }
+    },
+    "/api/v1/personnel/affectables" : {
+      "get" : {
+        "operationId" : "affectables",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MembreDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Enseignants et surveillants de l'école, à affecter",
+        "tags" : [ "affectation-controller" ]
       }
     },
     "/api/v1/public/marque" : {
@@ -4776,6 +5013,104 @@
           }
         },
         "required" : [ "code" ]
+      },
+      "AffectationDto" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classe" : {
+            "type" : "string"
+          },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "codeCycle" : {
+            "type" : "string",
+            "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+          },
+          "debut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "enCours" : {
+            "type" : "boolean"
+          },
+          "fin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "matiere" : {
+            "type" : "string"
+          },
+          "matiereId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "ENSEIGNEMENT", "TITULAIRE", "SURVEILLANCE" ]
+          },
+          "utilisateurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "AffectationRequete" : {
+        "type" : "object",
+        "properties" : {
+          "anneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "cycles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+            },
+            "maxItems" : 3,
+            "minItems" : 0,
+            "uniqueItems" : true
+          },
+          "debut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "fin" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "matiereId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "ENSEIGNEMENT", "TITULAIRE", "SURVEILLANCE" ]
+          },
+          "utilisateurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "anneeId", "debut", "type", "utilisateurId" ]
       },
       "AnneeScolaireDto" : {
         "type" : "object",
@@ -5636,6 +5971,15 @@
         },
         "required" : [ "dateDebut", "dateFin", "libelle", "type" ]
       },
+      "FinRequete" : {
+        "type" : "object",
+        "properties" : {
+          "fin" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
       "FinalisationBrouillon" : {
         "type" : "object",
         "properties" : {
@@ -5918,6 +6262,29 @@
           }
         },
         "required" : [ "code", "cycles", "libelle" ]
+      },
+      "MembreDto" : {
+        "type" : "object",
+        "properties" : {
+          "nom" : {
+            "type" : "string"
+          },
+          "prenoms" : {
+            "type" : "string"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "DIRECTEUR", "CENSEUR", "SECRETARIAT", "SURVEILLANT", "ENSEIGNANT", "COMPTABLE", "PARENT", "ELEVE" ]
+            },
+            "uniqueItems" : true
+          },
+          "utilisateurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
       },
       "ModificationInscriptionRequete" : {
         "type" : "object",
@@ -6301,6 +6668,20 @@
             "format" : "int32"
           }
         }
+      },
+      "PeriodeRequete" : {
+        "type" : "object",
+        "properties" : {
+          "debut" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "fin" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "debut" ]
       },
       "PieceDto" : {
         "type" : "object",

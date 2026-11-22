@@ -81,7 +81,7 @@ public abstract class TestEtablissement extends TestIntegration {
     superUtilisateur()
         .execute(
             """
-            TRUNCATE ecole.classe_option, ecole.option_enseignement, ecole.parametres_niveau_annee, ecole.parametres_cycle_annee, ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
+            TRUNCATE ecole.affectation, ecole.membre_personnel, ecole.classe_option, ecole.option_enseignement, ecole.parametres_niveau_annee, ecole.parametres_cycle_annee, ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
               ecole.annee_scolaire, ecole.niveau_serie, ecole.niveau, ecole.serie, ecole.creneau, ecole.matiere, ecole.cycle,
               ecole.etablissement_image, ecole.etablissement CASCADE""");
     stockage.vider();
@@ -203,6 +203,34 @@ public abstract class TestEtablissement extends TestIntegration {
       throw new AssertionError("Ouverture de l'année : " + r.statut() + " " + r.corps());
     }
     return annee;
+  }
+
+  /**
+   * Affecte ce surveillant à tous les cycles de l'année (à partir de sa rentrée), et fixe l'horloge
+   * pendant l'année : sans affectation, un surveillant ne voit aucun élève.
+   */
+  protected void surveillerToutesLesClasses(
+      UUID surveillant, UUID ecole, UUID directeur, UUID annee) throws Exception {
+    horloge.fixer(LocalDate.of(2026, 11, 4));
+    Reponse r =
+        post(
+            directeur,
+            ecole,
+            "/api/v1/affectations",
+            corps(
+                "type",
+                "SURVEILLANCE",
+                "anneeId",
+                annee,
+                "utilisateurId",
+                surveillant,
+                "cycles",
+                java.util.List.of("ELEMENTAIRE", "MOYEN", "SECONDAIRE"),
+                "debut",
+                "2026-10-05"));
+    if (r.statut() != 201) {
+      throw new AssertionError("Affectation du surveillant : " + r.statut() + " " + r.corps());
+    }
   }
 
   /** Id du niveau de code {@code code} (ex. TLE, CP) dans l'école. */

@@ -39,6 +39,7 @@ class DroitsServeurTest {
       List.of(
           "sn.ecole.etablissement.application",
           "sn.ecole.inscription.application",
+          "sn.ecole.personnel.application",
           "sn.ecole.statistique.application");
 
   private static final List<String> ORDRE_ROLES =

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.ecole.etablissement.CodeCycle;
 import sn.ecole.etablissement.ReferentielScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaire;
 import sn.ecole.etablissement.domain.AnneeScolaireRepository;
@@ -22,6 +23,7 @@ import sn.ecole.etablissement.domain.ClasseOptionRepository;
 import sn.ecole.etablissement.domain.ClasseRepository;
 import sn.ecole.etablissement.domain.Cycle;
 import sn.ecole.etablissement.domain.CycleRepository;
+import sn.ecole.etablissement.domain.MatiereRepository;
 import sn.ecole.etablissement.domain.Niveau;
 import sn.ecole.etablissement.domain.NiveauRepository;
 import sn.ecole.etablissement.domain.OptionEnseignement;
@@ -48,6 +50,7 @@ public class ReferentielScolaireService implements ReferentielScolaire {
   private final ParametresNiveauAnneeRepository parametresNiveaux;
   private final ClasseOptionRepository classesOptions;
   private final OptionEnseignementRepository options;
+  private final MatiereRepository matieres;
 
   public ReferentielScolaireService(
       AnneeScolaireRepository annees,
@@ -58,7 +61,8 @@ public class ReferentielScolaireService implements ReferentielScolaire {
       ParametresCycleAnneeRepository parametresCycles,
       ParametresNiveauAnneeRepository parametresNiveaux,
       ClasseOptionRepository classesOptions,
-      OptionEnseignementRepository options) {
+      OptionEnseignementRepository options,
+      MatiereRepository matieres) {
     this.annees = annees;
     this.periodes = periodes;
     this.cycles = cycles;
@@ -68,6 +72,38 @@ public class ReferentielScolaireService implements ReferentielScolaire {
     this.parametresNiveaux = parametresNiveaux;
     this.classesOptions = classesOptions;
     this.options = options;
+    this.matieres = matieres;
+  }
+
+  @Override
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  public Map<UUID, AnneeEtCycle> anneesEtCyclesDesClasses(Collection<UUID> classeIds) {
+    if (classeIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<UUID, UUID> cycleParNiveau = new HashMap<>();
+    niveaux.findAllByOrderByOrdre().forEach(n -> cycleParNiveau.put(n.getId(), n.getCycleId()));
+    Map<UUID, CodeCycle> codeParCycle = new HashMap<>();
+    cycles.findAll().forEach(c -> codeParCycle.put(c.getId(), c.getCode()));
+    Map<UUID, AnneeEtCycle> resultat = new HashMap<>();
+    for (Classe classe : classes.findByIdIn(Set.copyOf(classeIds))) {
+      CodeCycle code = codeParCycle.get(cycleParNiveau.get(classe.getNiveauId()));
+      if (code != null) {
+        resultat.put(classe.getId(), new AnneeEtCycle(classe.getAnneeId(), code));
+      }
+    }
+    return resultat;
+  }
+
+  @Override
+  @PreAuthorize(Droits.LECTURE_PERSONNEL)
+  public List<MatiereScolaire> matieres() {
+    return matieres.findAllByOrderByOrdreAscLibelleAsc().stream()
+        .map(
+            m ->
+                new MatiereScolaire(
+                    m.getId(), m.getCode(), m.getLibelle(), m.getCycles(), m.isActif()))
+        .toList();
   }
 
   @Override

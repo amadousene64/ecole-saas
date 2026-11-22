@@ -67,6 +67,14 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
 - Appel clos : l'enseignant corrige jusqu'à la fin de la journée ; ensuite seule la vie scolaire,
   avec motif et journal d'audit.
 
+**Temps**
+- Toute la logique métier datée (expiration des billets, alerte à 15 minutes, séances du jour,
+  affectations en cours, purges) lit l'heure dans le `java.time.Clock` injecté (bean
+  `HorlogeConfig`, fuseau `Africa/Dakar`) : jamais `now()` ni `CURRENT_DATE` en SQL (les dates
+  sont passées en paramètre), jamais `Instant.now()` / `LocalDate.now()` directement. Une seule
+  source de temps, et des tests qui avancent l'horloge au lieu d'attendre. Les écarts d'horloge
+  entre la JVM et les conteneurs (issue #91) ne touchent plus alors la logique métier.
+
 **Conservation**
 - Détail des absences purgé au plus tôt après la clôture des bulletins de l'année ; les totaux par
   période sont conservés avec le bulletin.
