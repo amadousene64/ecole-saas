@@ -225,7 +225,7 @@ test('le censeur organise les matières et la grille horaire (école E2E)', asyn
   await page.getByTestId('champ-matiere-groupe').fill('Français');
   await page.getByTestId('enregistrer-matiere').click();
   await expect(page.getByText('Choisissez au moins un cycle.')).toBeVisible();
-  await page.getByTestId('cycle-SECONDAIRE').click();
+  await page.getByTestId('cycle-SECONDAIRE').getByRole('checkbox').check();
   await verifierAccessibilite(page, 'Modale : ajouter une matière');
   await page.getByTestId('enregistrer-matiere').click();
   const ligne = page.getByTestId('matiere-E2EDISS');
@@ -251,9 +251,9 @@ test('le censeur organise les matières et la grille horaire (école E2E)', asyn
       'THURSDAY',
       'FRIDAY',
     ]) {
-      await page.getByTestId(`jour-${jour}`).click();
+      await page.getByTestId(`jour-${jour}`).getByRole('checkbox').uncheck();
     }
-    await page.getByTestId('jour-SUNDAY').click();
+    await page.getByTestId('jour-SUNDAY').getByRole('checkbox').check();
   };
   await ajouterCreneau('18:00', '19:00');
   await page.getByTestId('champ-creneau-libelle').fill('E2E');
