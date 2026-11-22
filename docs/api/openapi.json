@@ -1421,6 +1421,88 @@
         "tags" : [ "classe-controller" ]
       }
     },
+    "/api/v1/creneaux/{id}" : {
+      "delete" : {
+        "operationId" : "creneau_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) un créneau",
+        "tags" : [ "creneau-controller" ]
+      },
+      "put" : {
+        "operationId" : "creneau_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreneauRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreneauDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie un créneau (If-Match : version lue)",
+        "tags" : [ "creneau-controller" ]
+      }
+    },
     "/api/v1/cycles" : {
       "get" : {
         "operationId" : "cycle_lister",
@@ -1451,6 +1533,141 @@
         },
         "summary" : "Cycles et leurs paramètres de notation",
         "tags" : [ "cycle-controller" ]
+      }
+    },
+    "/api/v1/cycles/{cycleId}/creneaux" : {
+      "get" : {
+        "operationId" : "creneau_lister",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "cycleId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CreneauDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Grille horaire du cycle, par heure de début",
+        "tags" : [ "creneau-controller" ]
+      },
+      "post" : {
+        "operationId" : "creneau_creer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "cycleId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreneauRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreneauDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ajoute un créneau à la grille du cycle (sans chevauchement)",
+        "tags" : [ "creneau-controller" ]
+      }
+    },
+    "/api/v1/cycles/{cycleId}/creneaux/copie" : {
+      "post" : {
+        "operationId" : "creneau_copier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "cycleId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CopieGrilleRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CreneauDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Recopie la grille d'un autre cycle dans ce cycle, encore vide",
+        "tags" : [ "creneau-controller" ]
       }
     },
     "/api/v1/cycles/{id}" : {
@@ -3028,6 +3245,189 @@
         },
         "summary" : "Valide une pré-inscription (If-Match)",
         "tags" : [ "inscription-controller" ]
+      }
+    },
+    "/api/v1/matieres" : {
+      "get" : {
+        "operationId" : "matiere_lister",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MatiereDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Matières de l'école, dans l'ordre d'affichage",
+        "tags" : [ "matiere-controller" ]
+      },
+      "post" : {
+        "operationId" : "matiere_creer",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MatiereRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MatiereDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Crée une matière",
+        "tags" : [ "matiere-controller" ]
+      }
+    },
+    "/api/v1/matieres/modele" : {
+      "post" : {
+        "operationId" : "matiere_ajouterModele",
+        "parameters" : [ {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MatiereDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ajoute les matières usuelles du modèle sénégalais encore absentes (par code) ; renvoie celles ajoutées",
+        "tags" : [ "matiere-controller" ]
+      }
+    },
+    "/api/v1/matieres/{id}" : {
+      "delete" : {
+        "operationId" : "matiere_supprimer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Supprime (logiquement) une matière",
+        "tags" : [ "matiere-controller" ]
+      },
+      "put" : {
+        "operationId" : "matiere_modifier",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "École demandée (dev). En production : sous-domaine.",
+          "in" : "header",
+          "name" : "X-Tenant-Id",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MatiereRequete"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MatiereDto"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Modifie une matière (If-Match : version lue)",
+        "tags" : [ "matiere-controller" ]
       }
     },
     "/api/v1/moi" : {
@@ -4628,6 +5028,16 @@
           }
         }
       },
+      "CopieGrilleRequete" : {
+        "type" : "object",
+        "properties" : {
+          "depuisCycleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "depuisCycleId" ]
+      },
       "CreerNiveauRequete" : {
         "type" : "object",
         "properties" : {
@@ -4655,6 +5065,78 @@
           }
         },
         "required" : [ "code", "cycleId", "libelle", "ordre" ]
+      },
+      "CreneauDto" : {
+        "type" : "object",
+        "properties" : {
+          "cycleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "debut" : {
+            "type" : "string",
+            "format" : "time-local"
+          },
+          "fin" : {
+            "type" : "string",
+            "format" : "time-local"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "jours" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY" ]
+            },
+            "uniqueItems" : true
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "COURS", "PAUSE" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "CreneauRequete" : {
+        "type" : "object",
+        "properties" : {
+          "debut" : {
+            "type" : "string",
+            "format" : "time-local"
+          },
+          "fin" : {
+            "type" : "string",
+            "format" : "time-local"
+          },
+          "jours" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY" ]
+            },
+            "minItems" : 1,
+            "uniqueItems" : true
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "COURS", "PAUSE" ]
+          }
+        },
+        "required" : [ "debut", "fin", "jours" ]
       },
       "CycleDto" : {
         "type" : "object",
@@ -5360,6 +5842,82 @@
             "type" : "string"
           }
         }
+      },
+      "MatiereDto" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "cycles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+            },
+            "uniqueItems" : true
+          },
+          "groupe" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "MatiereRequete" : {
+        "type" : "object",
+        "properties" : {
+          "actif" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "cycles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ELEMENTAIRE", "MOYEN", "SECONDAIRE" ]
+            },
+            "minItems" : 1,
+            "uniqueItems" : true
+          },
+          "groupe" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 999,
+            "minimum" : 0
+          }
+        },
+        "required" : [ "code", "cycles", "libelle" ]
       },
       "ModificationInscriptionRequete" : {
         "type" : "object",

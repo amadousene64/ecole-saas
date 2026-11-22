@@ -160,6 +160,7 @@ describe('Acces', () => {
       'Accueil',
       'Élèves',
       'Classes',
+      'Matières et horaires',
     ]);
     expect(acces.libelleRole()).toBe('Censeur');
     expect(acces.peut('eleves.sensible.lire')).toBe(true);

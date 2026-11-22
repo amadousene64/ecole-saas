@@ -21,6 +21,15 @@ export const ROUTES_ETABLISSEMENT: Route[] = [
       import('./structure/page-structure').then((m) => m.PageStructure),
   },
   {
+    path: 'enseignements',
+    title: 'Matières et horaires',
+    canActivate: [gardePage('enseignements')],
+    loadComponent: () =>
+      import('./enseignements/page-enseignements').then(
+        (m) => m.PageEnseignements,
+      ),
+  },
+  {
     path: 'annees',
     title: 'Années scolaires et périodes',
     canActivate: [gardePage('annees')],

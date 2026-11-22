@@ -197,6 +197,41 @@
       "perimetre" : false,
       "expression" : "hasAnyRole('DIRECTEUR','SECRETARIAT')"
     },
+    "CreneauService.copier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
+    "CreneauService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
+    "CreneauService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "CreneauService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
+    "CreneauService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
     "CycleService.lister" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
       "ecriture" : false,
@@ -448,6 +483,41 @@
       "conditionnel" : false,
       "perimetre" : false,
       "expression" : "permitAll()"
+    },
+    "MatiereService.ajouterModele" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
+    "MatiereService.creer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
+    "MatiereService.lister" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR", "COMPTABLE", "SURVEILLANT", "ENSEIGNANT" ],
+      "ecriture" : false,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT','SURVEILLANT','ENSEIGNANT','COMPTABLE')"
+    },
+    "MatiereService.modifier" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
+    },
+    "MatiereService.supprimer" : {
+      "roles" : [ "DIRECTEUR", "SECRETARIAT", "CENSEUR" ],
+      "ecriture" : true,
+      "conditionnel" : false,
+      "perimetre" : false,
+      "expression" : "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')"
     },
     "NiveauService.creer" : {
       "roles" : [ "DIRECTEUR", "SECRETARIAT" ],

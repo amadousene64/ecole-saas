@@ -15,6 +15,9 @@ export class Droits {
   /** Cachet, signature, ouverture/clôture d'année, cycles et bases de moyenne : directeur seul. */
   readonly estDirecteur = this.acces.signalPour('etablissement.direction');
 
+  /** Matières et grille horaire : direction, censeur et secrétariat. */
+  readonly peutOrganiser = this.acces.signalPour('enseignements.ecrire');
+
   /** Inscrits par classe : le personnel de scolarité (pas le comptable ni l'enseignant). */
   readonly voitRemplissage = this.acces.signalPour('eleves.scolarite.voir');
 }

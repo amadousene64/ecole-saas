@@ -132,6 +132,18 @@ export const PAGES: readonly PageDef[] = [
     groupes: { DIRECTEUR: 'Paramètres', SECRETARIAT: "Paramètres de l'école" },
     disponible: true,
   },
+  {
+    id: 'enseignements',
+    app: 'backoffice',
+    chemin: '/etablissement/enseignements',
+    libelle: 'Matières et horaires',
+    // Matières et grille horaire de chaque cycle : direction, censeur (qui fait d'ordinaire
+    // l'emploi du temps) et secrétariat (saisie). Lecture par tout le personnel côté serveur.
+    icone: 'notes',
+    roles: ['DIRECTEUR', 'SECRETARIAT', 'CENSEUR'],
+    groupes: { DIRECTEUR: 'Paramètres', SECRETARIAT: "Paramètres de l'école" },
+    disponible: true,
+  },
   // Modules pas encore construits : déclarés pour que la table décrive la cible, mais invisibles.
   {
     id: 'vie-scolaire-direction',
@@ -252,6 +264,8 @@ export const ACTIONS = {
   'etablissement.ecrire': ['DIRECTEUR', 'SECRETARIAT'],
   // Cachet, signature, paramètres de notation des cycles, ouverture et clôture d'une année.
   'etablissement.direction': ['DIRECTEUR'],
+  // Matières et grille horaire (puis emploi du temps) : Droits.PEDAGOGIE côté serveur.
+  'enseignements.ecrire': ['DIRECTEUR', 'CENSEUR', 'SECRETARIAT'],
   // Tableau de bord de la direction (accueil du directeur) : effectifs, dossiers, familles.
   'statistiques.voir': ['DIRECTEUR'],
 } as const satisfies Record<string, readonly RoleEcole[]>;

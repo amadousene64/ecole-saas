@@ -231,7 +231,9 @@ test("le secrétariat inscrit un élève et génère un code d'activation", asyn
   await page.getByRole('tab', { name: 'Scolarité' }).click();
   await expect(page.getByTestId('table-inscriptions')).toContainText('Inscrit');
   await page.getByRole('tab', { name: 'Pièces' }).click();
-  await expect(page.getByText('Acte de naissance')).toBeVisible();
+  await expect(
+    page.getByRole('cell', { name: 'Acte de naissance', exact: true }),
+  ).toBeVisible();
 
   // Données sensibles : le secrétariat saisit mais ne peut pas relire.
   await page.getByRole('tab', { name: 'Identité' }).click();

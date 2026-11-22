@@ -25,9 +25,9 @@ ni sur une route**. Quand il existe, on passe l'indicateur à `true` et on branc
 
 | Rôle | Application | Menu |
 |---|---|---|
-| Directeur | back-office | Accueil, Élèves, *Classes et années* (Classes et salles, Années et périodes), *Paramètres* (Établissement, Structure pédagogique) |
-| Secrétariat | back-office | Accueil, Élèves et inscriptions, Import, Classes et salles, *Paramètres de l'école* (Années, périodes et calendrier, Profil et logo, Niveaux et séries) |
-| Censeur | back-office | Accueil, Élèves, Classes (lecture seule) |
+| Directeur | back-office | Accueil, Élèves, *Classes et années* (Classes et salles, Années et périodes), *Paramètres* (Établissement, Structure pédagogique, Matières et horaires) |
+| Secrétariat | back-office | Accueil, Élèves et inscriptions, Import, Classes et salles, *Paramètres de l'école* (Années, périodes et calendrier, Profil et logo, Niveaux et séries, Matières et horaires) |
+| Censeur | back-office | Accueil, Élèves, Classes (lecture seule), Matières et horaires |
 | Comptable | back-office | Accueil, Élèves et payeurs |
 | Surveillant, Enseignant | vie scolaire | Accueil |
 | Parent, Élève | espace parent | Accueil (Mes enfants) ; pas de barre du bas tant qu'il y a moins de deux entrées |

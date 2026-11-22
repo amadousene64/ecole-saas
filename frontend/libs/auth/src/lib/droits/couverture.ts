@@ -128,6 +128,41 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
     page: 'structure',
     action: 'etablissement.ecrire',
   },
+  // --- Matières et grille horaire des cycles ---
+  'MatiereService.lister': { page: 'enseignements' },
+  'MatiereService.creer': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'MatiereService.modifier': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'MatiereService.supprimer': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'MatiereService.ajouterModele': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'CreneauService.lister': { page: 'enseignements' },
+  'CreneauService.creer': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'CreneauService.modifier': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'CreneauService.supprimer': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
+  'CreneauService.copier': {
+    page: 'enseignements',
+    action: 'enseignements.ecrire',
+  },
   'SerieService.lister': { page: 'structure' },
   'SerieService.lire': { page: 'structure' },
   'SerieService.creer': { page: 'structure', action: 'etablissement.ecrire' },

@@ -41,6 +41,7 @@ const PERSONNEL = [
       'Années et périodes',
       'Établissement',
       'Structure pédagogique',
+      'Matières et horaires',
     ],
   },
   {
@@ -54,12 +55,13 @@ const PERSONNEL = [
       'Années, périodes et calendrier',
       'Profil et logo',
       'Niveaux et séries',
+      'Matières et horaires',
     ],
   },
   {
     utilisateur: 'censeur.a',
     role: 'Censeur',
-    menu: ['Accueil', 'Élèves', 'Classes'],
+    menu: ['Accueil', 'Élèves', 'Classes', 'Matières et horaires'],
   },
   {
     utilisateur: 'comptable.a',
