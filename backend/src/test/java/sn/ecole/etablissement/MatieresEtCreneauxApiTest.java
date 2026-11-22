@@ -179,6 +179,84 @@ class MatieresEtCreneauxApiTest extends TestEtablissement {
     assertThat(matiereParCode("MATHS").path("libelle").asText()).isEqualTo("Mathématiques");
   }
 
+  /** Actions du journal d'audit de cet acteur dans l'école A, dans l'ordre. */
+  private List<String> journal(UUID acteur, java.sql.Timestamp depuis) {
+    return superUtilisateur()
+        .queryForList(
+            "SELECT action FROM ecole.journal_audit WHERE tenant_id = ? AND acteur_id = ?"
+                + " AND (action LIKE 'MATIERE_%' OR action LIKE 'CRENEAU_%'"
+                + " OR action = 'GRILLE_COPIEE') AND cree_le >= ? ORDER BY cree_le, id",
+            String.class, A, acteur, depuis);
+  }
+
+  @Test
+  void chaqueEcritureDuSecretariatEstTraceeDansLeJournal() throws Exception {
+    // Le journal n'est pas vidé entre les tests : seules comptent les entrées de celui-ci.
+    java.sql.Timestamp debut =
+        superUtilisateur().queryForObject("SELECT clock_timestamp()", java.sql.Timestamp.class);
+    Reponse m =
+        post(SECRETARIAT_A, A, MATIERES, matiere("TRACE", "Matière tracée", SEMAINE_CYCLES));
+    Reponse mm =
+        put(
+            SECRETARIAT_A,
+            A,
+            MATIERES + "/" + m.id(),
+            version(m),
+            matiere("TRACE", "Renommée", SEMAINE_CYCLES));
+    assertThat(mm.statut()).isEqualTo(200);
+    assertThat(delete(SECRETARIAT_A, A, MATIERES + "/" + m.id()).statut()).isEqualTo(204);
+    String maths = matiereParCode("MATHS").path("id").asText();
+    assertThat(delete(SECRETARIAT_A, A, MATIERES + "/" + maths).statut()).isEqualTo(204);
+    // Le modèle rajoute MATHS : sa création est tracée elle aussi.
+    assertThat(post(SECRETARIAT_A, A, MATIERES + "/modele", null).corps()).hasSize(1);
+
+    UUID moyen = cycle(DIRECTEUR_A, A, "MOYEN");
+    UUID elementaire = cycle(DIRECTEUR_A, A, "ELEMENTAIRE");
+    Reponse c =
+        post(
+            SECRETARIAT_A,
+            A,
+            "/api/v1/cycles/" + moyen + "/creneaux",
+            creneau("08:00", "10:00", SEMAINE));
+    Reponse cm =
+        put(
+            SECRETARIAT_A,
+            A,
+            "/api/v1/creneaux/" + c.id(),
+            version(c),
+            creneau("07:30", "09:30", SEMAINE));
+    assertThat(cm.statut()).isEqualTo(200);
+    assertThat(
+            post(
+                    SECRETARIAT_A,
+                    A,
+                    "/api/v1/cycles/" + elementaire + "/creneaux/copie",
+                    corps("depuisCycleId", moyen))
+                .statut())
+        .isEqualTo(200);
+    assertThat(delete(SECRETARIAT_A, A, "/api/v1/creneaux/" + c.id()).statut()).isEqualTo(204);
+
+    assertThat(journal(SECRETARIAT_A, debut))
+        .containsExactly(
+            "MATIERE_CREEE",
+            "MATIERE_MODIFIEE",
+            "MATIERE_SUPPRIMEE",
+            "MATIERE_SUPPRIMEE",
+            "MATIERE_CREEE",
+            "CRENEAU_CREE",
+            "CRENEAU_MODIFIE",
+            "GRILLE_COPIEE",
+            "CRENEAU_SUPPRIME");
+    String detail =
+        superUtilisateur()
+            .queryForObject(
+                "SELECT details::text FROM ecole.journal_audit WHERE action = 'MATIERE_MODIFIEE'"
+                    + " AND id_cible = ?",
+                String.class,
+                m.id());
+    assertThat(detail).contains("Matière tracée").contains("Renommée");
+  }
+
   // --- Grille horaire ---
 
   @Test

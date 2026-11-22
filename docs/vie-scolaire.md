@@ -29,6 +29,12 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
    demi-journées et en heures.
 5. **Convocation au seuil de retards** : proposée seulement, confirmée par le surveillant ou le
    censeur, journalisée.
+6. **Grille horaire par cycle** (validé le 22/11) : une école aux horaires communs saisit une grille
+   et la copie vers les autres cycles.
+7. **Matières et grille modifiables par la direction, le censeur et le secrétariat** (validé le
+   22/11), à condition que toute création, modification ou suppression de matière ou de créneau
+   soit tracée dans le journal d'audit (MATIERE_*, CRENEAU_*, GRILLE_COPIEE, avec l'avant et
+   l'après d'une modification).
 
 ## Règles
 
@@ -65,7 +71,11 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
 - Détail des absences purgé au plus tôt après la clôture des bulletins de l'année ; les totaux par
   période sont conservés avec le bulletin.
 
-**Matières**
+**Matières et créneaux**
+- Dès qu'une matière ou un créneau est référencé (emploi du temps en PR 3, puis affectations,
+  notes), sa suppression est **refusée** (409, code `MATIERE_UTILISEE` / `CRENEAU_UTILISE`) et
+  l'écran propose la **désactivation** à la place. Chaque module qui y fait référence fournit un
+  vérificateur d'utilisation (comme `VerificateurUtilisationClasse` pour les classes).
 - Prévoir les coefficients par niveau, série et matière, et le barème du primaire
   (`docs/bulletins/regles-bulletins.md`, § 3) : ils viendront dans une table à part, clé
   (niveau, série, matière), sans changer la matière.

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -13,10 +14,12 @@ import sn.ecole.etablissement.CodeCycle;
 import sn.ecole.etablissement.domain.Matiere;
 import sn.ecole.etablissement.domain.MatiereRepository;
 import sn.ecole.etablissement.domain.ModeleSenegalais;
+import sn.ecole.shared.application.JournalAudit;
 
 /**
  * Matières de l'école, dans l'ordre d'affichage. Une matière qui ne sert plus se désactive ; la
  * suppression (logique) sera refusée quand des affectations ou un emploi du temps l'utiliseront.
+ * Chaque création, modification ou suppression est tracée dans le journal d'audit.
  */
 @Service
 @Transactional
@@ -27,9 +30,11 @@ public class MatiereService {
       String code, String libelle, String groupe, Collection<CodeCycle> cycles, int ordre) {}
 
   private final MatiereRepository matieres;
+  private final JournalAudit journal;
 
-  public MatiereService(MatiereRepository matieres) {
+  public MatiereService(MatiereRepository matieres, JournalAudit journal) {
     this.matieres = matieres;
+    this.journal = journal;
   }
 
   @PreAuthorize(Droits.LECTURE_PERSONNEL)
@@ -42,7 +47,9 @@ public class MatiereService {
   public Matiere creer(Saisie s) {
     Matiere matiere = Matiere.creer(s.code(), s.libelle(), s.groupe(), s.cycles(), s.ordre());
     verifierCodeLibre(matiere.getCode(), null);
-    return matieres.save(matiere);
+    Matiere creee = matieres.save(matiere);
+    journal.consigner("MATIERE_CREEE", "Matiere", creee.getId(), resume(creee));
+    return creee;
   }
 
   @PreAuthorize(Droits.PEDAGOGIE)
@@ -51,8 +58,15 @@ public class MatiereService {
     Erreurs.verifierVersion(version, matiere);
     // Avant de modifier l'entité : la requête de contrôle écrirait sinon la modification en base.
     verifierCodeLibre(s.code() == null ? "" : s.code().strip().toUpperCase(Locale.ROOT), id);
+    Map<String, Object> avant = resume(matiere);
     matiere.modifier(s.code(), s.libelle(), s.groupe(), s.cycles(), s.ordre(), actif);
-    return matieres.save(matiere);
+    Matiere modifiee = matieres.save(matiere);
+    journal.consigner(
+        "MATIERE_MODIFIEE",
+        "Matiere",
+        modifiee.getId(),
+        Map.of("avant", avant, "apres", resume(modifiee)));
+    return modifiee;
   }
 
   @PreAuthorize(Droits.PEDAGOGIE)
@@ -60,6 +74,7 @@ public class MatiereService {
     Matiere matiere = charger(id);
     matiere.supprimer(Instant.now());
     matieres.save(matiere);
+    journal.consigner("MATIERE_SUPPRIMEE", "Matiere", id, resume(matiere));
   }
 
   /**
@@ -75,7 +90,20 @@ public class MatiereService {
             matieres.save(Matiere.creer(m.code(), m.libelle(), m.groupe(), m.cycles(), m.ordre())));
       }
     }
+    ajoutees.forEach(m -> journal.consigner("MATIERE_CREEE", "Matiere", m.getId(), resume(m)));
     return ajoutees;
+  }
+
+  private static Map<String, Object> resume(Matiere m) {
+    return Map.of(
+        "code",
+        m.getCode(),
+        "libelle",
+        m.getLibelle(),
+        "cycles",
+        m.getCycles(),
+        "actif",
+        m.isActif());
   }
 
   private Matiere charger(UUID id) {
