@@ -191,9 +191,14 @@ class MatieresEtCreneauxApiTest extends TestEtablissement {
 
   @Test
   void chaqueEcritureDuSecretariatEstTraceeDansLeJournal() throws Exception {
-    // Le journal n'est pas vidé entre les tests : seules comptent les entrées de celui-ci.
+    // Le journal n'est pas vidé entre les tests : seules comptent les entrées de celui-ci. La
+    // borne vient du journal lui-même (même horloge que ses entrées), pas de l'heure de la base.
     java.sql.Timestamp debut =
-        superUtilisateur().queryForObject("SELECT clock_timestamp()", java.sql.Timestamp.class);
+        superUtilisateur()
+            .queryForObject(
+                "SELECT coalesce(max(cree_le), '-infinity') + interval '1 microsecond'"
+                    + " FROM ecole.journal_audit",
+                java.sql.Timestamp.class);
     Reponse m =
         post(SECRETARIAT_A, A, MATIERES, matiere("TRACE", "Matière tracée", SEMAINE_CYCLES));
     Reponse mm =
