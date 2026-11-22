@@ -64,7 +64,23 @@ public class ExecutionPourTenant {
    * d'une école est journalisé et rapporté dans le bilan ; il n'empêche pas les suivantes.
    */
   public BilanExecution pourChaqueEcole(String tache, Consumer<UUID> action) {
-    List<UUID> ecoles = ecolesActives();
+    return pour(ecolesActives(), tache, action);
+  }
+
+  /**
+   * Comme {@link #pourChaqueEcole}, mais aussi pour les écoles inactives : une durée de
+   * conservation (brouillons, données temporaires) s'applique même à une école suspendue.
+   */
+  public BilanExecution pourToutesLesEcoles(String tache, Consumer<UUID> action) {
+    horsContexteEcole();
+    List<UUID> ecoles =
+        Objects.requireNonNull(
+            lecture.execute(
+                statut -> tenants.findAllByOrderByCode().stream().map(Tenant::getId).toList()));
+    return pour(ecoles, tache, action);
+  }
+
+  private BilanExecution pour(List<UUID> ecoles, String tache, Consumer<UUID> action) {
     List<UUID> reussies = new ArrayList<>();
     List<UUID> echouees = new ArrayList<>();
     for (UUID ecole : ecoles) {
@@ -81,13 +97,17 @@ public class ExecutionPourTenant {
 
   /** Écoles actives, par code ; hors de tout contexte d'école (tâches de fond seulement). */
   public List<UUID> ecolesActives() {
+    horsContexteEcole();
+    return Objects.requireNonNull(
+        lecture.execute(
+            statut -> tenants.findByActifTrueOrderByCode().stream().map(Tenant::getId).toList()));
+  }
+
+  private static void horsContexteEcole() {
     if (ContexteTenant.courant().isPresent()) {
       throw new IllegalStateException(
           "La liste des écoles ne se lit pas depuis un contexte d'école (requête HTTP).");
     }
-    return Objects.requireNonNull(
-        lecture.execute(
-            statut -> tenants.findByActifTrueOrderByCode().stream().map(Tenant::getId).toList()));
   }
 
   private <T> T dans(UUID tenantId, TransactionTemplate modele, Supplier<T> action) {

@@ -5,7 +5,7 @@ import {
   ClasseDto,
   BrouillonFinaliseDto,
   BrouillonInscriptionDto,
-  BrouillonResumeDto,
+  PageDtoBrouillonResumeDto,
   ContenuDto,
   FinalisationBrouillon,
   OptionEnseignementDto,
@@ -43,8 +43,12 @@ export class ServiceBrouillons {
     return this.api.invoke(brouillonInscriptionOuvrir, { body: {} });
   }
 
-  lister(): Promise<BrouillonResumeDto[]> {
-    return this.api.invoke(brouillonInscriptionLister, {});
+  /** Une page des brouillons en cours, du plus récent au plus ancien ; `curseur` : page suivante. */
+  lister(
+    curseur?: string,
+    taille?: number,
+  ): Promise<PageDtoBrouillonResumeDto> {
+    return this.api.invoke(brouillonInscriptionLister, { curseur, taille });
   }
 
   lire(id: string): Promise<BrouillonInscriptionDto> {

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,9 +28,11 @@ import sn.ecole.inscription.api.BrouillonInscriptionRequetes.FinalisationBrouill
 import sn.ecole.inscription.api.BrouillonInscriptionRequetes.OuvertureBrouillon;
 import sn.ecole.inscription.application.BrouillonInscriptionService;
 import sn.ecole.inscription.application.BrouillonInscriptionService.Finalisation;
+import sn.ecole.inscription.application.BrouillonInscriptionService.Resume;
 import sn.ecole.inscription.application.BrouillonInscriptionService.Vue;
 import sn.ecole.inscription.application.PieceService;
 import sn.ecole.inscription.domain.PieceDossier;
+import sn.ecole.shared.domain.PageCurseur;
 
 /**
  * Assistant d'inscription : brouillon enregistré côté serveur (contenu chiffré), pièces rattachées
@@ -61,9 +64,15 @@ class BrouillonInscriptionController {
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  @Operation(summary = "Brouillons en cours de l'école (nom de l'élève et étape, pour reprendre)")
-  ResponseEntity<List<BrouillonResumeDto>> lister() {
-    return Reponses.ok(mapper.versResumes(service.lister()));
+  @Operation(
+      summary =
+          "Brouillons en cours de l'école (nom de l'élève, étape, date de suppression), du plus"
+              + " récent au plus ancien ; paginé par curseur")
+  ResponseEntity<PageDto<BrouillonResumeDto>> lister(
+      @RequestParam(name = "curseur", required = false) String curseur,
+      @RequestParam(name = "taille", required = false) Integer taille) {
+    PageCurseur<Resume> page = service.lister(curseur, taille);
+    return Reponses.ok(new PageDto<>(mapper.versResumes(page.elements()), page.curseurSuivant()));
   }
 
   @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

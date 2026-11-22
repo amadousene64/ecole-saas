@@ -4,6 +4,7 @@
 export interface BrouillonResumeDto {
   auteurId?: string;
   etape?: number;
+  expireLe?: string;
   id?: string;
   libelle?: string;
   modifieLe?: string;

@@ -705,6 +705,21 @@
       "get" : {
         "operationId" : "brouillonInscription_lister",
         "parameters" : [ {
+          "in" : "query",
+          "name" : "curseur",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "taille",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
           "name" : "X-Tenant-Id",
@@ -719,17 +734,14 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/BrouillonResumeDto"
-                  }
+                  "$ref" : "#/components/schemas/PageDtoBrouillonResumeDto"
                 }
               }
             },
             "description" : "OK"
           }
         },
-        "summary" : "Brouillons en cours de l'école (nom de l'élève et étape, pour reprendre)",
+        "summary" : "Brouillons en cours de l'école (nom de l'élève, étape, date de suppression), du plus récent au plus ancien ; paginé par curseur",
         "tags" : [ "brouillon-inscription-controller" ]
       },
       "post" : {
@@ -4452,6 +4464,10 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
           "id" : {
             "type" : "string",
             "format" : "uuid"
@@ -4476,6 +4492,10 @@
           "etape" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
           },
           "id" : {
             "type" : "string",
@@ -5610,6 +5630,20 @@
           "anneeId" : {
             "type" : "string",
             "format" : "uuid"
+          }
+        }
+      },
+      "PageDtoBrouillonResumeDto" : {
+        "type" : "object",
+        "properties" : {
+          "curseurSuivant" : {
+            "type" : "string"
+          },
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BrouillonResumeDto"
+            }
           }
         }
       },

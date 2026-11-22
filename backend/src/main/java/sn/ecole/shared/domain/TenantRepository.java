@@ -12,4 +12,7 @@ public interface TenantRepository {
   Optional<Tenant> findBySousDomaine(String sousDomaine);
 
   List<Tenant> findByActifTrueOrderByCode();
+
+  /** Toutes les écoles, actives ou non (purges de données à durée de conservation limitée). */
+  List<Tenant> findAllByOrderByCode();
 }

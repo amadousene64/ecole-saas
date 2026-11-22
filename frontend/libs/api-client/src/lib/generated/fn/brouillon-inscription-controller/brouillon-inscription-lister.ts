@@ -7,9 +7,11 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { BrouillonResumeDto } from '../../models/brouillon-resume-dto';
+import { PageDtoBrouillonResumeDto } from '../../models/page-dto-brouillon-resume-dto';
 
 export interface BrouillonInscriptionLister$Params {
+  curseur?: string;
+  taille?: number;
 
 /**
  * École demandée (dev). En production : sous-domaine.
@@ -17,9 +19,11 @@ export interface BrouillonInscriptionLister$Params {
   'X-Tenant-Id'?: string;
 }
 
-export function brouillonInscriptionLister(http: HttpClient, rootUrl: string, params?: BrouillonInscriptionLister$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<BrouillonResumeDto>>> {
+export function brouillonInscriptionLister(http: HttpClient, rootUrl: string, params?: BrouillonInscriptionLister$Params, context?: HttpContext): Observable<StrictHttpResponse<PageDtoBrouillonResumeDto>> {
   const rb = new RequestBuilder(rootUrl, brouillonInscriptionLister.PATH, 'get');
   if (params) {
+    rb.query('curseur', params.curseur, {});
+    rb.query('taille', params.taille, {});
     rb.header('X-Tenant-Id', params['X-Tenant-Id'], {});
   }
 
@@ -28,7 +32,7 @@ export function brouillonInscriptionLister(http: HttpClient, rootUrl: string, pa
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<BrouillonResumeDto>>;
+      return r as StrictHttpResponse<PageDtoBrouillonResumeDto>;
     })
   );
 }

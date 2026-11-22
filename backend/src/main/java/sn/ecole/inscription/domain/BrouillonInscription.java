@@ -3,6 +3,7 @@ package sn.ecole.inscription.domain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -19,6 +20,12 @@ import sn.ecole.shared.domain.TenantAwareEntity;
 public class BrouillonInscription extends TenantAwareEntity {
 
   public static final int ETAPES = 5;
+
+  /** Un brouillon non terminé est supprimé après 30 jours sans modification. */
+  public static final Duration CONSERVATION = Duration.ofDays(30);
+
+  /** Brouillons en cours par auteur : au-delà, il faut en terminer ou en abandonner un. */
+  public static final int MAX_PAR_AUTEUR = 50;
 
   @Column(name = "annee_id", nullable = false, updatable = false)
   private UUID anneeId;
@@ -51,6 +58,12 @@ public class BrouillonInscription extends TenantAwareEntity {
     }
     contenu = Objects.requireNonNull(contenuChiffre);
     etape = (short) etapeAtteinte;
+  }
+
+  /** Date de suppression automatique si le brouillon n'est pas terminé d'ici là. */
+  public Instant expireLe() {
+    Instant reference = getModifieLe() != null ? getModifieLe() : getCreeLe();
+    return reference == null ? null : reference.plus(CONSERVATION);
   }
 
   /** Abandon ou finalisation : le contenu est effacé, la ligne marquée supprimée. */

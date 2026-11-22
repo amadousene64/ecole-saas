@@ -8,16 +8,19 @@ import { messageErreur } from '../commun/erreurs';
 import { requis } from '../commun/requis';
 import { ServiceBrouillons } from '../services/service-brouillons';
 
+/** Brouillons par page ; « Charger la suite » affiche les suivants (aucun ne reste invisible). */
+const TAILLE_PAGE = 10;
+
 /**
  * Inscriptions commencées dans l'assistant et non terminées (brouillons de l'école) : reprendre
- * là où la saisie s'est arrêtée, ou abandonner (contenu effacé, pièces supprimées). Rien n'est
- * affiché s'il n'y en a aucune.
+ * là où la saisie s'est arrêtée, ou abandonner (contenu effacé, pièces supprimées). Chacune
+ * indique sa date de suppression automatique. Rien n'est affiché s'il n'y en a aucune.
  */
 @Component({
   selector: 'ecole-brouillons-en-cours',
   imports: [Confirmation, DatePipe, MatButtonModule, RouterLink],
   template: `
-    @if (brouillons().length > 0) {
+    @if (brouillons().length > 0 || erreur()) {
       <section
         class="carte brouillons"
         aria-labelledby="titre-brouillons"
@@ -34,7 +37,8 @@ import { ServiceBrouillons } from '../services/service-brouillons';
                 <strong>{{ b.libelle }}</strong>
                 <span class="texte-secondaire">
                   · étape {{ b.etape }} sur 5 · modifié le
-                  {{ b.modifieLe | date: 'd MMM à HH:mm' }}
+                  {{ b.modifieLe | date: 'd MMM à HH:mm' }} · supprimé le
+                  {{ b.expireLe | date: 'dd/MM' }} s'il n'est pas terminé
                 </span>
               </span>
               <a
@@ -49,6 +53,17 @@ import { ServiceBrouillons } from '../services/service-brouillons';
             </li>
           }
         </ul>
+        @if (suivant()) {
+          <button
+            matButton
+            type="button"
+            [disabled]="chargement()"
+            (click)="charger(true)"
+            data-testid="brouillons-suite"
+          >
+            Charger la suite
+          </button>
+        }
       </section>
     }
     @if (aAbandonner(); as b) {
@@ -79,13 +94,31 @@ export class BrouillonsEnCours implements OnInit {
   protected readonly occupe = signal(false);
   protected readonly erreur = signal<string | null>(null);
   protected readonly erreurAbandon = signal<string | null>(null);
+  protected readonly suivant = signal<string | null>(null);
+  protected readonly chargement = signal(false);
 
   async ngOnInit(): Promise<void> {
+    await this.charger(false);
+  }
+
+  protected async charger(suite: boolean): Promise<void> {
+    this.chargement.set(true);
+    this.erreur.set(null);
     try {
-      this.brouillons.set(await this.service.lister());
+      const page = await this.service.lister(
+        suite ? (this.suivant() ?? undefined) : undefined,
+        TAILLE_PAGE,
+      );
+      const elements = page.elements ?? [];
+      this.brouillons.set(
+        suite ? [...this.brouillons(), ...elements] : elements,
+      );
+      this.suivant.set(page.curseurSuivant ?? null);
     } catch (e) {
       // La liste des élèves reste utilisable sans elle ; l'erreur ne s'affiche qu'ici.
       this.erreur.set(messageErreur(e));
+    } finally {
+      this.chargement.set(false);
     }
   }
 
