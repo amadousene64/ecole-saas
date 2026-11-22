@@ -12,6 +12,8 @@ import sn.ecole.etablissement.domain.Cycle;
 import sn.ecole.etablissement.domain.CycleRepository;
 import sn.ecole.etablissement.domain.Etablissement;
 import sn.ecole.etablissement.domain.EtablissementRepository;
+import sn.ecole.etablissement.domain.Matiere;
+import sn.ecole.etablissement.domain.MatiereRepository;
 import sn.ecole.etablissement.domain.ModeleSenegalais;
 import sn.ecole.etablissement.domain.Niveau;
 import sn.ecole.etablissement.domain.NiveauRepository;
@@ -34,6 +36,7 @@ public class InitialisationEcoleService implements InitialisationEcole {
   private final NiveauRepository niveaux;
   private final SerieRepository series;
   private final NiveauSerieRepository liens;
+  private final MatiereRepository matieres;
 
   public InitialisationEcoleService(
       ExecutionPourTenant execution,
@@ -41,13 +44,15 @@ public class InitialisationEcoleService implements InitialisationEcole {
       CycleRepository cycles,
       NiveauRepository niveaux,
       SerieRepository series,
-      NiveauSerieRepository liens) {
+      NiveauSerieRepository liens,
+      MatiereRepository matieres) {
     this.execution = execution;
     this.etablissements = etablissements;
     this.cycles = cycles;
     this.niveaux = niveaux;
     this.series = series;
     this.liens = liens;
+    this.matieres = matieres;
   }
 
   @Override
@@ -97,5 +102,8 @@ public class InitialisationEcoleService implements InitialisationEcole {
                     liens.save(
                         NiveauSerie.associer(
                             parNiveau.get(codeNiveau).getId(), parSerie.get(codeSerie).getId()))));
+    for (ModeleSenegalais.ModeleMatiere m : ModeleSenegalais.MATIERES) {
+      matieres.save(Matiere.creer(m.code(), m.libelle(), m.groupe(), m.cycles(), m.ordre()));
+    }
   }
 }

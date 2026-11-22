@@ -17,6 +17,12 @@ final class Droits {
 
   static final String ECRITURE = "hasAnyRole('DIRECTEUR','SECRETARIAT')";
 
+  /**
+   * Organisation des enseignements (matières, grille horaire, puis emploi du temps) : la direction,
+   * le censeur, qui fait d'ordinaire l'emploi du temps, et le secrétariat pour la saisie.
+   */
+  static final String PEDAGOGIE = "hasAnyRole('DIRECTEUR','CENSEUR','SECRETARIAT')";
+
   /** Actions sensibles ou irréversibles : cachet, signature, ouverture et clôture, cycles. */
   static final String DIRECTION = "hasRole('DIRECTEUR')";
 

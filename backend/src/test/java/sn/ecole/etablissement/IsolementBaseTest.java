@@ -35,7 +35,9 @@ class IsolementBaseTest extends TestEtablissement {
           "salle",
           "classe",
           "parametres_cycle_annee",
-          "parametres_niveau_annee");
+          "parametres_niveau_annee",
+          "matiere",
+          "creneau");
 
   private UUID anneeA;
   private UUID anneeB;
@@ -79,6 +81,19 @@ class IsolementBaseTest extends TestEtablissement {
             30));
     post(DIRECTEUR_A, A, "/api/v1/salles", corps("nom", "Salle A", "capacite", 40));
     post(DIRECTEUR_B, B, "/api/v1/salles", corps("nom", "Salle B", "capacite", 40));
+    for (var ecole : java.util.Map.of(A, DIRECTEUR_A, B, DIRECTEUR_B).entrySet()) {
+      String cycle =
+          get(ecole.getValue(), ecole.getKey(), "/api/v1/cycles")
+              .corps()
+              .get(0)
+              .path("id")
+              .asText();
+      post(
+          ecole.getValue(),
+          ecole.getKey(),
+          "/api/v1/cycles/" + cycle + "/creneaux",
+          corps("debut", "08:00", "fin", "10:00", "jours", List.of("MONDAY")));
+    }
     televerser(DIRECTEUR_A, A, "LOGO", png(32, 32), "a.png");
     televerser(DIRECTEUR_B, B, "LOGO", png(32, 32), "b.png");
   }

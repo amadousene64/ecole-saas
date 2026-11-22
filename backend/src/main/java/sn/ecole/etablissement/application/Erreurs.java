@@ -18,6 +18,10 @@ final class Erreurs {
     return new ErreurMetier(code, TypeErreur.INTROUVABLE, message);
   }
 
+  static ErreurMetier invalide(String code, String message) {
+    return new ErreurMetier(code, TypeErreur.INVALIDE, message);
+  }
+
   static ErreurMetier conflit(String code, String message) {
     return new ErreurMetier(code, TypeErreur.CONFLIT, message);
   }

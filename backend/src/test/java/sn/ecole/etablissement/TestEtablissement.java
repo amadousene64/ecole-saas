@@ -82,7 +82,7 @@ public abstract class TestEtablissement extends TestIntegration {
         .execute(
             """
             TRUNCATE ecole.classe_option, ecole.option_enseignement, ecole.parametres_niveau_annee, ecole.parametres_cycle_annee, ecole.classe, ecole.salle, ecole.evenement_calendrier, ecole.periode,
-              ecole.annee_scolaire, ecole.niveau_serie, ecole.niveau, ecole.serie, ecole.cycle,
+              ecole.annee_scolaire, ecole.niveau_serie, ecole.niveau, ecole.serie, ecole.creneau, ecole.matiere, ecole.cycle,
               ecole.etablissement_image, ecole.etablissement CASCADE""");
     stockage.vider();
     initialisation.initialiser(A, "Lycée Exemple A", "LYC-A", StatutEtablissement.PUBLIC);

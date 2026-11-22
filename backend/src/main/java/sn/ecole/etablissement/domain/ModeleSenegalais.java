@@ -7,9 +7,9 @@ import sn.ecole.etablissement.ModeNotation;
 import sn.ecole.etablissement.TypePeriode;
 
 /**
- * Référentiel « modèle sénégalais » : cycles, niveaux (CI à Terminale) et séries du lycée. Copié
- * dans chaque école à sa création, puis modifiable par l'école. Constante de code : elle évolue
- * avec les versions de l'application, sans table de référentiel à tenir à jour.
+ * Référentiel « modèle sénégalais » : cycles, niveaux (CI à Terminale), séries du lycée et matières
+ * usuelles. Copié dans chaque école à sa création, puis modifiable par l'école. Constante de code :
+ * elle évolue avec les versions de l'application, sans table de référentiel à tenir à jour.
  */
 public final class ModeleSenegalais {
 
@@ -23,6 +23,9 @@ public final class ModeleSenegalais {
   public record ModeleNiveau(String code, String libelle, CodeCycle cycle, int ordre) {}
 
   public record ModeleSerie(String code, String libelle) {}
+
+  public record ModeleMatiere(
+      String code, String libelle, String groupe, List<CodeCycle> cycles, int ordre) {}
 
   public static final List<ModeleCycle> CYCLES =
       List.of(
@@ -69,6 +72,35 @@ public final class ModeleSenegalais {
           "2NDE", List.of("L", "S"),
           "1RE", List.of("L1", "L2", "S1", "S2", "S3"),
           "TLE", List.of("L1", "L2", "S1", "S2", "S3"));
+
+  private static final List<CodeCycle> ELEMENTAIRE = List.of(CodeCycle.ELEMENTAIRE);
+  private static final List<CodeCycle> MOYEN_SECONDAIRE =
+      List.of(CodeCycle.MOYEN, CodeCycle.SECONDAIRE);
+  private static final List<CodeCycle> TOUS = List.of(CodeCycle.values());
+
+  /**
+   * Matières usuelles : élémentaire (approche par compétences), moyen et secondaire. L'école les
+   * complète (sous-disciplines du Français, langues…) ou les désactive.
+   */
+  public static final List<ModeleMatiere> MATIERES =
+      List.of(
+          new ModeleMatiere("LC", "Langue et communication", null, ELEMENTAIRE, 10),
+          new ModeleMatiere("MATHS", "Mathématiques", null, TOUS, 20),
+          new ModeleMatiere("DM", "Découverte du monde", null, ELEMENTAIRE, 30),
+          new ModeleMatiere("EDD", "Éducation au développement durable", null, ELEMENTAIRE, 40),
+          new ModeleMatiere("AP", "Arts plastiques", null, ELEMENTAIRE, 50),
+          new ModeleMatiere("FR", "Français", null, MOYEN_SECONDAIRE, 60),
+          new ModeleMatiere("ANG", "Anglais", null, MOYEN_SECONDAIRE, 70),
+          new ModeleMatiere("HG", "Histoire-Géographie", null, MOYEN_SECONDAIRE, 80),
+          new ModeleMatiere("SVT", "Sciences de la vie et de la Terre", null, MOYEN_SECONDAIRE, 90),
+          new ModeleMatiere("PC", "Sciences physiques", null, MOYEN_SECONDAIRE, 100),
+          new ModeleMatiere("PHILO", "Philosophie", null, List.of(CodeCycle.SECONDAIRE), 110),
+          new ModeleMatiere("EC", "Éducation civique", null, List.of(CodeCycle.MOYEN), 120),
+          new ModeleMatiere("ESP", "Espagnol", "Langues vivantes 2", MOYEN_SECONDAIRE, 130),
+          new ModeleMatiere("AR", "Arabe", "Langues vivantes 2", MOYEN_SECONDAIRE, 140),
+          new ModeleMatiere("ALL", "Allemand", "Langues vivantes 2", MOYEN_SECONDAIRE, 150),
+          new ModeleMatiere("PORT", "Portugais", "Langues vivantes 2", MOYEN_SECONDAIRE, 160),
+          new ModeleMatiere("EPS", "Éducation physique et sportive", null, TOUS, 170));
 
   private ModeleSenegalais() {}
 }
