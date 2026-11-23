@@ -112,6 +112,7 @@ test('le censeur lit les classes sans pouvoir les modifier ; pas de paramètres 
     'Élèves',
     'Classes',
     'Matières et horaires',
+    'Affectations',
   ]);
 
   await allerA(page, 'Classes');
