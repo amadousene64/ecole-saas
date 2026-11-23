@@ -30,6 +30,7 @@ class AppartenanceServiceTest extends TestIntegration {
 
   @Autowired AppartenanceService service;
   @Autowired ExecutionPourTenant execution;
+  @Autowired RelaisOutbox relais;
 
   private static void connecte(UUID utilisateur, RoleEcole... roles) {
     Jwt jwt =
@@ -143,6 +144,9 @@ class AppartenanceServiceTest extends TestIntegration {
     UUID revoque = UUID.randomUUID();
     connecte(DIRECTEUR_A, RoleEcole.DIRECTEUR);
     execution.executer(ECOLE_A, () -> service.attribuer(revoque, RoleEcole.COMPTABLE));
+    // Tant que l'invalidation n'a pas été rejouée par le relais (5 s en production), le cache est
+    // ignoré ; une fois rejouée, il sert de nouveau.
+    relais.traiterTout();
     assertThat(service.rolesPour(ECOLE_A, revoque)).containsExactly(RoleEcole.COMPTABLE);
     assertThat(redis.hasKey(cle(ECOLE_A, revoque))).isTrue(); // en cache
 

@@ -81,7 +81,7 @@ ecole:
     # désignée par X-Tenant-Id. Vide : sous-domaines stricts partout.
     hotes-communs: ${ECOLE_HOTES_COMMUNS:}
   securite:
-    cache-roles-ttl: 5m
+    cache-roles-ttl: 2m
     # Périmètre (affectations) : court ; la base reste la référence, Redis n'est qu'un raccourci.
     cache-perimetre-ttl: 2m
     jeton:
