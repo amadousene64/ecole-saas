@@ -1,0 +1,213 @@
+{
+  "realm": "ecole",
+  "users": [
+    {
+      "id": "01930000-0000-7000-8000-000000000101",
+      "username": "directeur.a",
+      "email": "directeur.a@exemple.test",
+      "firstName": "Directeur",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000102",
+      "username": "enseignant.parent",
+      "email": "enseignant.parent@exemple.test",
+      "firstName": "Enseignant",
+      "lastName": "Parent Fictif",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000103",
+      "username": "surveillant.b",
+      "email": "surveillant.b@exemple.test",
+      "firstName": "Surveillant",
+      "lastName": "Fictif B",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000105",
+      "username": "censeur.a",
+      "email": "censeur.a@exemple.test",
+      "firstName": "Censeur",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000106",
+      "username": "eleve.b",
+      "email": "eleve.b@exemple.test",
+      "firstName": "Élève",
+      "lastName": "Fictif B",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000107",
+      "username": "secretariat.a",
+      "email": "secretariat.a@exemple.test",
+      "firstName": "Secrétariat",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000111",
+      "username": "comptable.a",
+      "email": "comptable.a@exemple.test",
+      "firstName": "Comptable",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000112",
+      "username": "surveillant.a",
+      "email": "surveillant.a@exemple.test",
+      "firstName": "Surveillant",
+      "lastName": "Fictif A",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000113",
+      "username": "parent.demo",
+      "email": "parent.demo@exemple.test",
+      "firstName": "Parent",
+      "lastName": "Démo Fictif",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000121",
+      "username": "secretariat.e2e",
+      "email": "secretariat.e2e@exemple.test",
+      "firstName": "Secrétariat",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000122",
+      "username": "directeur.e2e",
+      "email": "directeur.e2e@exemple.test",
+      "firstName": "Directeur",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000123",
+      "username": "censeur.e2e",
+      "email": "censeur.e2e@exemple.test",
+      "firstName": "Censeur",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000124",
+      "username": "enseignant.e2e",
+      "email": "enseignant.e2e@exemple.test",
+      "firstName": "Enseignant",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
