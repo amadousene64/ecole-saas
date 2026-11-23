@@ -164,7 +164,7 @@ public class AffectationService {
           "AFFECTATION_CREEE", "Affectation", enregistree.getId(), resume(enregistree));
       enregistrees.add(enregistree);
     }
-    invalidation.auCommit(s.utilisateurId());
+    invalidation.auCommitSansRedis(s.utilisateurId());
     return enregistrees;
   }
 
@@ -185,7 +185,7 @@ public class AffectationService {
         "Affectation",
         id,
         Map.of("avant", avant, "apres", resume(modifiee)));
-    invalidation.auCommit(a.getUtilisateurId());
+    invalidation.auCommitSansRedis(a.getUtilisateurId());
     return modifiee;
   }
 
@@ -215,7 +215,7 @@ public class AffectationService {
       affectations.save(a);
       journal.consigner("AFFECTATION_TERMINEE", "Affectation", id, resume(a));
     }
-    invalidation.auCommit(a.getUtilisateurId());
+    invalidation.auCommitSansRedis(a.getUtilisateurId());
   }
 
   /**

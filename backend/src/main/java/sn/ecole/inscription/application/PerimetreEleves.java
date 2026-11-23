@@ -58,6 +58,18 @@ class PerimetreEleves {
     }
   }
 
+  /**
+   * Vrai pour un utilisateur limité à son périmètre (enseignant, surveillant) qui lit cet élève à
+   * ce titre : ni toute l'école, ni sa famille, ni l'élève lui-même.
+   */
+  boolean restreint(UUID eleveId) {
+    if (perimetre.toutLEcole()) {
+      return false;
+    }
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+    return auth == null || !perimetreFamille.autorise(auth, eleveId, "lire");
+  }
+
   void exigerClasse(UUID classeId) {
     perimetre.exigerClasse(classeId);
   }

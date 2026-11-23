@@ -144,7 +144,13 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   public VueInscription lire(UUID inscriptionId) {
     if (!perimetre.toutLEcole()) {
       // Restreint : même refus que l'inscription existe ou non (aucun indice sur l'identifiant).
-      UUID classe = inscriptions.findById(inscriptionId).map(Inscription::getClasseId).orElse(null);
+      // Seulement l'inscription en cours (pas une inscription terminée ni une sortie).
+      UUID classe =
+          inscriptions
+              .findById(inscriptionId)
+              .filter(i -> i.getStatut().actif())
+              .map(Inscription::getClasseId)
+              .orElse(null);
       if (classe == null || perimetre.filtrer(List.of(classe)).isEmpty()) {
         throw sn.ecole.shared.application.PerimetreScolaire.horsPerimetre();
       }
@@ -152,13 +158,28 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     return vue(charger(inscriptionId), List.of());
   }
 
-  /** Historique de l'élève, de la plus récente à la plus ancienne. */
+  /**
+   * Historique de l'élève, de la plus récente à la plus ancienne. Enseignant et surveillant : son
+   * inscription en cours seulement.
+   */
   @PreAuthorize(Droits.SCOLARITE_ELEVE)
   @Transactional(readOnly = true)
   public List<VueInscription> historique(UUID eleveId) {
     perimetre.exigerEleve(eleveId);
     eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
-    return vues(inscriptions.findByEleveIdOrderByDateEntreeDesc(eleveId));
+    List<Inscription> liste = inscriptions.findByEleveIdOrderByDateEntreeDesc(eleveId);
+    if (perimetre.restreint(eleveId)) {
+      // Enseignant, surveillant : l'inscription en cours seulement, dans une classe de leur
+      // périmètre. L'historique et les sorties restent à la direction, au censeur et au
+      // secrétariat.
+      Set<UUID> visibles =
+          perimetre.filtrer(liste.stream().map(Inscription::getClasseId).distinct().toList());
+      liste =
+          liste.stream()
+              .filter(i -> i.getStatut().actif() && visibles.contains(i.getClasseId()))
+              .toList();
+    }
+    return vues(liste);
   }
 
   /**

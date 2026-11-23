@@ -520,6 +520,103 @@ class AffectationsApiTest extends TestInscription {
     }
   }
 
+  @org.springframework.beans.factory.annotation.Autowired
+  sn.ecole.shared.application.RelaisOutbox relais;
+
+  @Test
+  void terminerUneAffectationReussitRedisArreteEtLAccesEstRetire() throws Exception {
+    JsonNode a = affecte(enseignement(ENSEIGNANT, sixiemeA, maths));
+    // Périmètre lu et mis en cache avant la panne.
+    assertThat(get(ENSEIGNANT, A, "/api/v1/classes/" + sixiemeA).statut()).isEqualTo(200);
+
+    var docker = REDIS.getDockerClient();
+    docker.pauseContainerCmd(REDIS.getContainerId()).exec();
+    try {
+      Reponse fin = terminer(DIRECTEUR_A, A, a, null);
+      assertThat(fin.statut()).as(fin.corps().toString()).isEqualTo(204);
+      // Redis arrêté : le périmètre est lu en base, l'accès est déjà retiré.
+      assertThat(get(ENSEIGNANT, A, "/api/v1/classes/" + sixiemeA).code())
+          .isEqualTo("HORS_PERIMETRE");
+    } finally {
+      docker.unpauseContainerCmd(REDIS.getContainerId()).exec();
+    }
+    // Redis revenu : l'invalidation ratée est rejouée par l'outbox, le cache d'avant la panne
+    // ne sert plus.
+    relais.traiterTout();
+    assertThat(get(ENSEIGNANT, A, "/api/v1/classes/" + sixiemeA).code())
+        .isEqualTo("HORS_PERIMETRE");
+    assertThat(
+            superUtilisateur()
+                .queryForObject(
+                    "SELECT count(*) FROM ecole.outbox_event WHERE type_evenement = ?"
+                        + " AND traite_le IS NULL",
+                    Integer.class,
+                    "DROITS_A_INVALIDER"))
+        .isZero();
+  }
+
+  @Test
+  void leSurveillantNeVoitQueLInscriptionEnCoursPasLHistoriqueNiLesSorties() throws Exception {
+    affecte(
+        corps(
+            "type",
+            "SURVEILLANCE",
+            "anneeId",
+            annee,
+            "utilisateurId",
+            SURVEILLANT_A,
+            "cycles",
+            List.of("MOYEN"),
+            "debut",
+            RENTREE.toString()));
+    UUID awa = creerEleve(A, "Awa");
+    inscrire(awa, sixiemeB);
+    JsonNode premiere = get(DIRECTEUR_A, A, ELEVES + "/" + awa + "/inscriptions").corps().get(0);
+    Reponse sortie =
+        executer(
+            MockMvcRequestBuilders.post(
+                    "/api/v1/inscriptions/" + premiere.path("id").asText() + "/sortie")
+                .header("If-Match", "\"" + premiere.path("version").asInt() + "\"")
+                .contentType("application/json")
+                .content(
+                    JSON.writeValueAsString(
+                        corps(
+                            "statut",
+                            "TRANSFERE",
+                            "date",
+                            LocalDate.now().toString(),
+                            "motif",
+                            "Changement fictif"))),
+            SECRETARIAT_A,
+            A);
+    assertThat(sortie.statut()).as(sortie.corps().toString()).isEqualTo(200);
+    inscrire(awa, sixiemeA);
+
+    // Direction, censeur : tout l'historique, sortie comprise.
+    assertThat(get(DIRECTEUR_A, A, ELEVES + "/" + awa + "/inscriptions").corps()).hasSize(2);
+    assertThat(get(CENSEUR_A, A, ELEVES + "/" + awa + "/inscriptions").corps()).hasSize(2);
+    // Surveillant : l'inscription en cours seulement.
+    JsonNode vue = get(SURVEILLANT_A, A, ELEVES + "/" + awa + "/inscriptions").corps();
+    assertThat(vue)
+        .singleElement()
+        .satisfies(
+            i -> {
+              assertThat(i.path("statut").asText()).isEqualTo("INSCRIT");
+              assertThat(i.path("classe").asText()).isEqualTo("6E A");
+            });
+    // La sortie, même lue par son identifiant : même refus qu'un identifiant inconnu.
+    Reponse lueSortie =
+        get(SURVEILLANT_A, A, "/api/v1/inscriptions/" + premiere.path("id").asText());
+    assertThat(empreinte(lueSortie))
+        .isEqualTo(
+            empreinte(
+                get(
+                    SURVEILLANT_A,
+                    A,
+                    "/api/v1/inscriptions/01930000-0000-7000-8000-00000000dead")));
+    assertThat(lueSortie.code()).isEqualTo("HORS_PERIMETRE");
+  }
+
   // --- Surveillant ---
 
   @Test

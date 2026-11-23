@@ -17,9 +17,10 @@ import sn.ecole.personnel.domain.CachePerimetre;
 import sn.ecole.personnel.domain.CachePerimetre.CycleSurveille;
 
 /**
- * Cache Redis du périmètre, en texte simple : {@code ecole:perimetre:<école>:<utilisateur>:
- * <génération>:<jour>} → {@code classes|cycles} (identifiants et codes séparés par des virgules),
- * avec expiration. Une valeur illisible ou une panne Redis = absence de cache.
+ * Cache Redis du périmètre (vie courte, 2 min par défaut), en texte simple : {@code
+ * ecole:perimetre:<école>:<utilisateur>: <génération>:<jour>} → {@code classes|cycles}
+ * (identifiants et codes séparés par des virgules), avec expiration. Une valeur illisible ou une
+ * panne Redis = absence de cache.
  */
 @Component
 class CachePerimetreRedis implements CachePerimetre {
@@ -30,7 +31,8 @@ class CachePerimetreRedis implements CachePerimetre {
   private final Duration duree;
 
   CachePerimetreRedis(
-      StringRedisTemplate redis, @Value("${ecole.securite.cache-roles-ttl:5m}") Duration duree) {
+      StringRedisTemplate redis,
+      @Value("${ecole.securite.cache-perimetre-ttl:2m}") Duration duree) {
     this.redis = redis;
     this.duree = duree;
   }

@@ -82,6 +82,8 @@ ecole:
     hotes-communs: ${ECOLE_HOTES_COMMUNS:}
   securite:
     cache-roles-ttl: 5m
+    # Périmètre (affectations) : court ; la base reste la référence, Redis n'est qu'un raccourci.
+    cache-perimetre-ttl: 2m
     jeton:
       # Clients Keycloak (azp) dont les jetons sont acceptés. dev-cli : profil dev uniquement.
       clients-autorises: [backoffice, parent, vie-scolaire]
