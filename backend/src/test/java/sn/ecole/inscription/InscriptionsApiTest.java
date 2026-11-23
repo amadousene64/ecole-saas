@@ -156,8 +156,13 @@ class InscriptionsApiTest extends TestInscription {
     assertThat(inscrire(SECRETARIAT_A, awa, ci, "INSCRIT", List.of()).statut()).isEqualTo(201);
 
     surveillerToutesLesClasses(SURVEILLANT_A, A, DIRECTEUR_A, annee);
+    // L'historique complet (sortie comprise) : direction, censeur, secrétariat.
+    assertThat(get(SECRETARIAT_A, A, ELEVES + "/" + awa + "/inscriptions").corps()).hasSize(2);
+    // Le surveillant : l'inscription en cours seulement.
     Reponse historique = get(SURVEILLANT_A, A, ELEVES + "/" + awa + "/inscriptions");
-    assertThat(historique.corps()).hasSize(2);
+    assertThat(historique.corps())
+        .singleElement()
+        .satisfies(i -> assertThat(i.path("statut").asText()).isEqualTo("INSCRIT"));
   }
 
   private Reponse sortir(UUID qui, UUID inscription, String statut) throws Exception {
