@@ -54,6 +54,15 @@ export async function seConnecter(
           ' (vérifier E2E_MOT_DE_PASSE).',
       );
     });
+  // L'application consomme l'adresse de retour mémorisée avant la connexion (gardes.ts,
+  // « ecole.retour ») : tant qu'elle est là, un page.goto() immédiat serait ramené à cette adresse.
+  await page.waitForFunction(() => {
+    try {
+      return sessionStorage.getItem('ecole.retour') === null;
+    } catch {
+      return true;
+    }
+  });
 }
 
 export async function choisirEcole(page: Page, nom: string): Promise<void> {
