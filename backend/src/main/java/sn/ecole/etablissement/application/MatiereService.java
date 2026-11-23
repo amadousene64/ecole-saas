@@ -1,6 +1,6 @@
 package sn.ecole.etablissement.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,8 +31,10 @@ public class MatiereService {
 
   private final MatiereRepository matieres;
   private final JournalAudit journal;
+  private final Clock horloge;
 
-  public MatiereService(MatiereRepository matieres, JournalAudit journal) {
+  public MatiereService(MatiereRepository matieres, JournalAudit journal, Clock horloge) {
+    this.horloge = horloge;
     this.matieres = matieres;
     this.journal = journal;
   }
@@ -72,7 +74,7 @@ public class MatiereService {
   @PreAuthorize(Droits.PEDAGOGIE)
   public void supprimer(UUID id) {
     Matiere matiere = charger(id);
-    matiere.supprimer(Instant.now());
+    matiere.supprimer(horloge.instant());
     matieres.save(matiere);
     journal.consigner("MATIERE_SUPPRIMEE", "Matiere", id, resume(matiere));
   }

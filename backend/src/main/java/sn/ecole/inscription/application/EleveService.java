@@ -1,9 +1,8 @@
 package sn.ecole.inscription.application;
 
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +44,6 @@ public class EleveService {
   /** Taille maximale d'une photo d'élève (octets). */
   public static final int TAILLE_PHOTO_MAX = 1_000_000;
 
-  static final ZoneId FUSEAU = ZoneId.of("Africa/Dakar");
-
   /** Saisie de l'identité, telle que reçue de l'API (validée par le domaine). */
   public record Saisie(
       String prenoms,
@@ -76,6 +73,7 @@ public class EleveService {
   private final InscriptionService inscriptions;
   private final PieceService pieces;
   private final PerimetreEleves perimetre;
+  private final Clock horloge;
 
   public EleveService(
       EleveRepository eleves,
@@ -87,7 +85,9 @@ public class EleveService {
       List<UtilisationEleve> utilisations,
       InscriptionService inscriptions,
       PieceService pieces,
-      PerimetreEleves perimetre) {
+      PerimetreEleves perimetre,
+      Clock horloge) {
+    this.horloge = horloge;
     this.eleves = eleves;
     this.recherche = recherche;
     this.compteur = compteur;
@@ -248,7 +248,7 @@ public class EleveService {
           "Cet élève a une inscription ou des responsables : il ne peut pas être supprimé.");
     }
     String photo = eleve.retirerPhoto();
-    eleve.supprimer(Instant.now());
+    eleve.supprimer(horloge.instant());
     eleves.save(eleve);
     if (photo != null) {
       ApresTransaction.siValidee(() -> stockage.supprimer(photo));
@@ -305,7 +305,7 @@ public class EleveService {
     return eleves.findByUtilisateurId(utilisateurId);
   }
 
-  static IdentiteEleve identite(Saisie s) {
+  private IdentiteEleve identite(Saisie s) {
     return IdentiteEleve.valider(
         s.prenoms(),
         s.nom(),
@@ -314,7 +314,7 @@ public class EleveService {
         s.lieuNaissance(),
         s.nationalite(),
         s.identifiantNational(),
-        LocalDate.now(FUSEAU));
+        LocalDate.now(horloge));
   }
 
   private VueEleve vue(Eleve eleve) {
@@ -331,7 +331,7 @@ public class EleveService {
    */
   private String attribuerMatricule() {
     FormatMatricule format = parametres.courants().format();
-    int annee = LocalDate.now(FUSEAU).getYear();
+    int annee = LocalDate.now(horloge).getYear();
     String cle = format.cleSequence(annee);
     for (int essai = 0; essai < 1000; essai++) {
       String matricule = format.generer(annee, compteur.suivant(cle));

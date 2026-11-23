@@ -1,5 +1,6 @@
 package sn.ecole.inscription.application;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -36,13 +37,16 @@ public class PurgeBrouillons {
   private final PieceService pieces;
   private final JournalAudit journal;
   private final boolean actif;
+  private final Clock horloge;
 
   public PurgeBrouillons(
       ExecutionPourTenant execution,
       BrouillonInscriptionRepository brouillons,
       PieceService pieces,
       JournalAudit journal,
-      @Value("${ecole.brouillons.purge.actif:true}") boolean actif) {
+      @Value("${ecole.brouillons.purge.actif:true}") boolean actif,
+      Clock horloge) {
+    this.horloge = horloge;
     this.execution = execution;
     this.brouillons = brouillons;
     this.pieces = pieces;
@@ -54,7 +58,7 @@ public class PurgeBrouillons {
   @Scheduled(cron = "${ecole.brouillons.purge.cron:0 30 3 * * *}", zone = "Africa/Dakar")
   void planifie() {
     if (actif) {
-      purger(Instant.now());
+      purger(horloge.instant());
     }
   }
 
@@ -80,7 +84,7 @@ public class PurgeBrouillons {
         continue;
       }
       pieces.abandonnerDuBrouillon(b.getId());
-      b.clore(Instant.now());
+      b.clore(horloge.instant());
       brouillons.saveAndFlush(b);
       supprimes++;
     }

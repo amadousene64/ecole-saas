@@ -1,6 +1,6 @@
 package sn.ecole.inscription.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,6 +63,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   private final ApplicationEventPublisher evenements;
   private final JournalAudit journal;
   private final PerimetreEleves perimetre;
+  private final Clock horloge;
 
   public InscriptionService(
       InscriptionRepository inscriptions,
@@ -73,7 +74,9 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
       VerrouClasse verrou,
       ApplicationEventPublisher evenements,
       JournalAudit journal,
-      PerimetreEleves perimetre) {
+      PerimetreEleves perimetre,
+      Clock horloge) {
+    this.horloge = horloge;
     this.inscriptions = inscriptions;
     this.choix = choix;
     this.eleves = eleves;
@@ -110,12 +113,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     List<String> avertissements = controlerCapacite(classe);
     Inscription inscription =
         Inscription.creer(
-            eleveId,
-            classeId,
-            classe.anneeId(),
-            statut,
-            redoublant,
-            LocalDate.now(EleveService.FUSEAU));
+            eleveId, classeId, classe.anneeId(), statut, redoublant, LocalDate.now(horloge));
     try {
       inscription = inscriptions.saveAndFlush(inscription);
     } catch (DataIntegrityViolationException e) {
@@ -419,7 +417,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   private void remplacerOptions(UUID inscriptionId, Set<UUID> voulues) {
     for (InscriptionOption actuel : choix.findByInscriptionId(inscriptionId)) {
       if (!voulues.remove(actuel.getOptionId())) {
-        actuel.retirer(Instant.now());
+        actuel.retirer(horloge.instant());
         choix.save(actuel);
       }
     }

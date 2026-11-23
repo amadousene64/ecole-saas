@@ -1,6 +1,6 @@
 package sn.ecole.etablissement.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -20,9 +20,11 @@ public class OptionEnseignementService {
 
   private final OptionEnseignementRepository options;
   private final ClasseOptionRepository classesOptions;
+  private final Clock horloge;
 
   public OptionEnseignementService(
-      OptionEnseignementRepository options, ClasseOptionRepository classesOptions) {
+      OptionEnseignementRepository options, ClasseOptionRepository classesOptions, Clock horloge) {
+    this.horloge = horloge;
     this.options = options;
     this.classesOptions = classesOptions;
   }
@@ -65,7 +67,7 @@ public class OptionEnseignementService {
       throw Erreurs.conflit(
           "OPTION_UTILISEE", "Cette option est proposée par une classe : désactivez-la plutôt.");
     }
-    option.supprimer(Instant.now());
+    option.supprimer(horloge.instant());
     options.save(option);
   }
 

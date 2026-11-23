@@ -1,5 +1,6 @@
 package sn.ecole.etablissement.application;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
@@ -67,6 +68,7 @@ public class MarquePubliqueService {
   private final LimiteurDebit limiteur;
   private final EmpreinteSecrets empreintes;
   private final Map<UUID, Entree> cache = new ConcurrentHashMap<>();
+  private final Clock horloge;
 
   public MarquePubliqueService(
       ExecutionPourTenant execution,
@@ -74,7 +76,9 @@ public class MarquePubliqueService {
       ImageEtablissementRepository images,
       StockageFichiers stockage,
       LimiteurDebit limiteur,
-      EmpreinteSecrets empreintes) {
+      EmpreinteSecrets empreintes,
+      Clock horloge) {
+    this.horloge = horloge;
     this.execution = execution;
     this.etablissements = etablissements;
     this.images = images;
@@ -122,7 +126,7 @@ public class MarquePubliqueService {
   }
 
   private Marque marqueDe(UUID ecole) {
-    Instant maintenant = Instant.now();
+    Instant maintenant = horloge.instant();
     Entree gardee = cache.get(ecole);
     if (gardee != null && gardee.expire().isAfter(maintenant)) {
       return gardee.marque();

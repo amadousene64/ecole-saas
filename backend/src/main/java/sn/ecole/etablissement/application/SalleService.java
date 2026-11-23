@@ -1,6 +1,6 @@
 package sn.ecole.etablissement.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,8 +16,10 @@ public class SalleService {
 
   private final SalleRepository salles;
   private final ClasseRepository classes;
+  private final Clock horloge;
 
-  public SalleService(SalleRepository salles, ClasseRepository classes) {
+  public SalleService(SalleRepository salles, ClasseRepository classes, Clock horloge) {
+    this.horloge = horloge;
     this.salles = salles;
     this.classes = classes;
   }
@@ -57,7 +59,7 @@ public class SalleService {
     if (classes.existsBySalleId(id)) {
       throw Erreurs.conflit("SALLE_UTILISEE", "Des classes utilisent cette salle.");
     }
-    salle.supprimer(Instant.now());
+    salle.supprimer(horloge.instant());
     salles.save(salle);
   }
 

@@ -1,5 +1,6 @@
 package sn.ecole.etablissement.application;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -53,6 +54,7 @@ public class AnneeScolaireService {
   private final ParametresCycleAnneeRepository parametresCycles;
   private final ParametresNiveauAnneeRepository parametresNiveaux;
   private final NiveauRepository niveaux;
+  private final Clock horloge;
 
   public AnneeScolaireService(
       AnneeScolaireRepository annees,
@@ -65,7 +67,9 @@ public class AnneeScolaireService {
       ApplicationEventPublisher evenements,
       ParametresCycleAnneeRepository parametresCycles,
       ParametresNiveauAnneeRepository parametresNiveaux,
-      NiveauRepository niveaux) {
+      NiveauRepository niveaux,
+      Clock horloge) {
+    this.horloge = horloge;
     this.annees = annees;
     this.cycles = cycles;
     this.periodes = periodes;
@@ -142,7 +146,7 @@ public class AnneeScolaireService {
   @PreAuthorize(Droits.ECRITURE)
   public void supprimer(UUID id) {
     AnneeScolaire annee = charger(id);
-    Instant maintenant = Instant.now();
+    Instant maintenant = horloge.instant();
     annee.supprimer(maintenant); // refuse d'abord une année déjà ouverte ou clôturée
     if (!classes.findByAnneeIdOrderByNom(id).isEmpty()) {
       throw Erreurs.conflit("ANNEE_NON_VIDE", "Des classes sont rattachées à cette année.");

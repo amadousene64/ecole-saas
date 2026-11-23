@@ -1,8 +1,8 @@
 package sn.ecole.inscription.application;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -55,6 +55,7 @@ public class PieceService implements UtilisationEleve {
   private final OutboxPublisher outbox;
   private final JournalAudit journal;
   private final TransactionTemplate transaction;
+  private final Clock horloge;
 
   public PieceService(
       PieceDossierRepository pieces,
@@ -63,7 +64,9 @@ public class PieceService implements UtilisationEleve {
       StockageFichiers stockage,
       OutboxPublisher outbox,
       JournalAudit journal,
-      PlatformTransactionManager transactions) {
+      PlatformTransactionManager transactions,
+      Clock horloge) {
+    this.horloge = horloge;
     this.pieces = pieces;
     this.eleves = eleves;
     this.brouillons = brouillons;
@@ -168,7 +171,7 @@ public class PieceService implements UtilisationEleve {
   @PreAuthorize(Droits.ECRITURE)
   public void supprimer(UUID eleveId, UUID pieceId) {
     PieceDossier piece = charger(eleveId, pieceId);
-    piece.supprimer(Instant.now());
+    piece.supprimer(horloge.instant());
     pieces.save(piece);
     String cle = piece.getCle();
     ApresTransaction.siValidee(() -> stockage.supprimer(cle));
@@ -314,7 +317,7 @@ public class PieceService implements UtilisationEleve {
   }
 
   private void retirer(PieceDossier piece) {
-    piece.supprimer(Instant.now());
+    piece.supprimer(horloge.instant());
     pieces.save(piece);
     String cle = piece.getCle();
     ApresTransaction.siValidee(() -> stockage.supprimer(cle));

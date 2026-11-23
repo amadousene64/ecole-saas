@@ -146,7 +146,7 @@ class InscriptionsApiTest extends TestInscription {
                             "statut",
                             "TRANSFERE",
                             "date",
-                            LocalDate.now().toString(),
+                            LocalDate.now(horloge).toString(),
                             "motif",
                             "Déménagement"))),
             SECRETARIAT_A,
@@ -163,6 +163,29 @@ class InscriptionsApiTest extends TestInscription {
     assertThat(historique.corps())
         .singleElement()
         .satisfies(i -> assertThat(i.path("statut").asText()).isEqualTo("INSCRIT"));
+  }
+
+  @Test
+  void lEntreeEstDateeParLHorlogeInjecteeEtLaSortieNePeutLaPreceder() throws Exception {
+    LocalDate jour = LocalDate.of(2026, 11, 4);
+    horloge.fixer(jour);
+    UUID id = inscrit(awa, sixieme);
+    assertThat(get(SECRETARIAT_A, A, INSCRIPTIONS + "/" + id).corps().path("dateEntree").asText())
+        .isEqualTo(jour.toString());
+
+    Reponse lue = get(SECRETARIAT_A, A, INSCRIPTIONS + "/" + id);
+    Reponse veille =
+        executer(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                    INSCRIPTIONS + "/" + id + "/sortie")
+                .header("If-Match", lue.etag())
+                .contentType("application/json")
+                .content(
+                    JSON.writeValueAsString(
+                        Map.of("statut", "TRANSFERE", "date", jour.minusDays(1).toString()))),
+            SECRETARIAT_A,
+            A);
+    assertThat(veille.code()).isEqualTo("DATE_SORTIE_INVALIDE");
   }
 
   private Reponse sortir(UUID qui, UUID inscription, String statut) throws Exception {

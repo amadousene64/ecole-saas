@@ -1,7 +1,7 @@
 package sn.ecole.etablissement.application;
 
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -55,13 +55,16 @@ public class EtablissementService {
   private final StockageFichiers stockage;
   private final JournalAudit journal;
   private final MarquePubliqueService marque;
+  private final Clock horloge;
 
   public EtablissementService(
       EtablissementRepository etablissements,
       ImageEtablissementRepository images,
       StockageFichiers stockage,
       JournalAudit journal,
-      MarquePubliqueService marque) {
+      MarquePubliqueService marque,
+      Clock horloge) {
+    this.horloge = horloge;
     this.etablissements = etablissements;
     this.images = images;
     this.stockage = stockage;
@@ -145,7 +148,7 @@ public class EtablissementService {
             .findByType(type)
             .orElseThrow(() -> Erreurs.introuvable("IMAGE_INTROUVABLE", "Aucune image déposée."));
     String cle = image.getCle();
-    image.retirer(Instant.now());
+    image.retirer(horloge.instant());
     images.save(image);
     ApresTransaction.siValidee(() -> stockage.supprimer(cle));
     oublierMarque();

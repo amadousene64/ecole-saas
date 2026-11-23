@@ -1,7 +1,7 @@
 package sn.ecole.etablissement.application;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
@@ -36,8 +36,11 @@ public class CreneauService {
   private final CreneauRepository creneaux;
   private final CycleRepository cycles;
   private final JournalAudit journal;
+  private final Clock horloge;
 
-  public CreneauService(CreneauRepository creneaux, CycleRepository cycles, JournalAudit journal) {
+  public CreneauService(
+      CreneauRepository creneaux, CycleRepository cycles, JournalAudit journal, Clock horloge) {
+    this.horloge = horloge;
     this.creneaux = creneaux;
     this.cycles = cycles;
     this.journal = journal;
@@ -81,7 +84,7 @@ public class CreneauService {
   @PreAuthorize(Droits.PEDAGOGIE)
   public void supprimer(UUID id) {
     Creneau creneau = charger(id);
-    creneau.supprimer(Instant.now());
+    creneau.supprimer(horloge.instant());
     creneaux.save(creneau);
     journal.consigner("CRENEAU_SUPPRIME", "Creneau", id, resume(creneau));
   }
