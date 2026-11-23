@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import sn.ecole.shared.domain.CacheRoles;
+import sn.ecole.shared.domain.OutboxEventRepository;
 
 /**
  * Invalidation des droits mis en cache pour un utilisateur (rôles, périmètre), au commit de la
@@ -30,16 +31,22 @@ public class InvalidationDroits {
   private final CacheRoles cache;
   private final Counter echecsSecondeInvalidation;
   private final OutboxPublisher outbox;
+  private final OutboxEventRepository evenements;
 
   /** Pour AppartenanceService (invalidation stricte seulement, sans outbox). */
   public InvalidationDroits(CacheRoles cache, MeterRegistry metriques) {
-    this(cache, metriques, null);
+    this(cache, metriques, null, null);
   }
 
   @org.springframework.beans.factory.annotation.Autowired
-  public InvalidationDroits(CacheRoles cache, MeterRegistry metriques, OutboxPublisher outbox) {
+  public InvalidationDroits(
+      CacheRoles cache,
+      MeterRegistry metriques,
+      OutboxPublisher outbox,
+      OutboxEventRepository evenements) {
     this.cache = cache;
     this.outbox = outbox;
+    this.evenements = evenements;
     this.echecsSecondeInvalidation =
         Counter.builder(METRIQUE_ECHEC_INVALIDATION)
             .description("Échecs de l'invalidation du cache des droits après commit")
@@ -68,6 +75,17 @@ public class InvalidationDroits {
             }
           }
         });
+  }
+
+  /**
+   * Vrai tant qu'une invalidation de l'utilisateur attend d'être rejouée (Redis était injoignable)
+   * : ses entrées de cache peuvent être périmées, il faut lire en base. Reste vrai si l'événement a
+   * épuisé ses tentatives (lecture en base, jamais de cache périmé).
+   */
+  public boolean enAttente(UUID utilisateurId) {
+    return evenements != null
+        && evenements.existsByTypeEvenementAndIdAgregatAndTraiteLeIsNull(
+            A_INVALIDER, utilisateurId);
   }
 
   /**

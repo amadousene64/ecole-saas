@@ -540,8 +540,11 @@ class AffectationsApiTest extends TestInscription {
     } finally {
       docker.unpauseContainerCmd(REDIS.getContainerId()).exec();
     }
-    // Redis revenu : l'invalidation ratée est rejouée par l'outbox, le cache d'avant la panne
-    // ne sert plus.
+    // Redis revenu, invalidation pas encore rejouée : l'entrée de cache d'avant la panne n'est
+    // pas lue (une invalidation attend), l'accès reste retiré.
+    assertThat(get(ENSEIGNANT, A, "/api/v1/classes/" + sixiemeA).code())
+        .isEqualTo("HORS_PERIMETRE");
+    // Puis l'outbox rejoue l'invalidation.
     relais.traiterTout();
     assertThat(get(ENSEIGNANT, A, "/api/v1/classes/" + sixiemeA).code())
         .isEqualTo("HORS_PERIMETRE");

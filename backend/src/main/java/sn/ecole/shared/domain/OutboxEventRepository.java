@@ -23,4 +23,7 @@ public interface OutboxEventRepository {
    * un autre relais ({@code SKIP LOCKED}) : deux instances ne le traitent jamais en même temps.
    */
   Optional<OutboxEvent> verrouiller(UUID id);
+
+  /** Un événement de ce type, pour cet agrégat, attend encore d'être traité. */
+  boolean existsByTypeEvenementAndIdAgregatAndTraiteLeIsNull(String typeEvenement, UUID idAgregat);
 }

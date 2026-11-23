@@ -24,6 +24,7 @@ import sn.ecole.personnel.domain.CachePerimetre;
 import sn.ecole.personnel.domain.CachePerimetre.Calcule;
 import sn.ecole.personnel.domain.CachePerimetre.CycleSurveille;
 import sn.ecole.personnel.domain.TypeAffectation;
+import sn.ecole.shared.application.InvalidationDroits;
 import sn.ecole.shared.application.PerimetreScolaire;
 import sn.ecole.shared.domain.CacheRoles;
 import sn.ecole.shared.domain.ContexteTenant;
@@ -51,18 +52,21 @@ class PerimetreScolaireService implements PerimetreScolaire {
   private final CacheRoles generations;
   private final CachePerimetre cache;
   private final Clock horloge;
+  private final InvalidationDroits invalidation;
 
   PerimetreScolaireService(
       AffectationRepository affectations,
       ReferentielScolaire referentiel,
       CacheRoles generations,
       CachePerimetre cache,
-      Clock horloge) {
+      Clock horloge,
+      InvalidationDroits invalidation) {
     this.affectations = affectations;
     this.referentiel = referentiel;
     this.generations = generations;
     this.cache = cache;
     this.horloge = horloge;
+    this.invalidation = invalidation;
   }
 
   @Override
@@ -116,7 +120,10 @@ class PerimetreScolaireService implements PerimetreScolaire {
     UUID moi = utilisateur();
     UUID ecole = ContexteTenant.exiger();
     LocalDate aujourdhui = LocalDate.now(horloge);
-    OptionalLong generation = generations.generation(moi);
+    // Cache utilisable seulement si Redis répond ET qu'aucune invalidation n'attend d'être rejouée
+    // (sinon une entrée d'avant une panne pourrait rendre un accès retiré) : la base fait foi.
+    OptionalLong generation =
+        invalidation.enAttente(moi) ? OptionalLong.empty() : generations.generation(moi);
     if (generation.isPresent()) {
       var enCache = cache.lire(ecole, moi, generation.getAsLong(), aujourdhui);
       if (enCache.isPresent()) {
