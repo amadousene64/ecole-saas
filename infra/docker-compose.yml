@@ -53,7 +53,7 @@ services:
   # Courrier de développement : Keycloak y envoie les e-mails (vérification d'adresse, mot de passe
   # oublié) ; rien ne part sur Internet. Boîte de réception : http://localhost:8025
   mailpit:
-    image: axllent/mailpit:v1.33.1
+    image: axllent/mailpit:v1.34.0
     ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
     healthcheck:
       test: ["CMD", "/mailpit", "readyz"]
@@ -62,7 +62,7 @@ services:
       retries: 10
 
   rabbitmq:
-    image: rabbitmq:4.4.0-management
+    image: rabbitmq:4.4.1-management
     environment:
       RABBITMQ_DEFAULT_USER: ecole
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-rabbit-dev}
