@@ -49,7 +49,7 @@
     },
     "/api/v1/affectations" : {
       "get" : {
-        "operationId" : "lister",
+        "operationId" : "affectation_lister",
         "parameters" : [ {
           "in" : "query",
           "name" : "annee",
@@ -87,7 +87,7 @@
         "tags" : [ "affectation-controller" ]
       },
       "post" : {
-        "operationId" : "creer",
+        "operationId" : "affectation_creer",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -129,7 +129,7 @@
     },
     "/api/v1/affectations/{id}" : {
       "put" : {
-        "operationId" : "changerPeriode",
+        "operationId" : "affectation_changerPeriode",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -176,7 +176,7 @@
     },
     "/api/v1/affectations/{id}/fin" : {
       "post" : {
-        "operationId" : "terminer",
+        "operationId" : "affectation_terminer",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -3634,7 +3634,7 @@
     },
     "/api/v1/moi/affectations" : {
       "get" : {
-        "operationId" : "miennes",
+        "operationId" : "affectation_miennes",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",
@@ -4206,7 +4206,7 @@
     },
     "/api/v1/personnel/affectables" : {
       "get" : {
-        "operationId" : "affectables",
+        "operationId" : "affectation_affectables",
         "parameters" : [ {
           "description" : "École demandée (dev). En production : sous-domaine.",
           "in" : "header",

@@ -144,6 +144,18 @@ export const PAGES: readonly PageDef[] = [
     groupes: { DIRECTEUR: 'Paramètres', SECRETARIAT: "Paramètres de l'école" },
     disponible: true,
   },
+  {
+    id: 'affectations',
+    app: 'backoffice',
+    chemin: '/etablissement/affectations',
+    libelle: 'Affectations',
+    // Enseignants (matière, titulaire) et surveillants (cycles) : la direction et le censeur.
+    // Elles fixent ce que chacun voit (périmètre, contrôlé par le serveur).
+    icone: 'compte',
+    roles: ['DIRECTEUR', 'CENSEUR'],
+    groupes: { DIRECTEUR: 'Paramètres' },
+    disponible: true,
+  },
   // Modules pas encore construits : déclarés pour que la table décrive la cible, mais invisibles.
   {
     id: 'vie-scolaire-direction',
@@ -189,6 +201,16 @@ export const PAGES: readonly PageDef[] = [
     libelle: 'Accueil',
     icone: 'accueil',
     roles: ['SURVEILLANT', 'ENSEIGNANT'],
+    disponible: true,
+  },
+  {
+    id: 'mes-classes',
+    app: 'vie-scolaire',
+    chemin: '/mes-classes',
+    libelle: 'Mes classes',
+    // Classes de ses affectations en cours, et leurs élèves (périmètre contrôlé par le serveur).
+    icone: 'classes',
+    roles: ['ENSEIGNANT'],
     disponible: true,
   },
   // --- Espace parent ---
@@ -266,6 +288,8 @@ export const ACTIONS = {
   'etablissement.direction': ['DIRECTEUR'],
   // Matières et grille horaire (puis emploi du temps) : Droits.PEDAGOGIE côté serveur.
   'enseignements.ecrire': ['DIRECTEUR', 'CENSEUR', 'SECRETARIAT'],
+  // Affecter, modifier la période, terminer (Droits.GESTION du module personnel).
+  'affectations.gerer': ['DIRECTEUR', 'CENSEUR'],
   // Tableau de bord de la direction (accueil du directeur) : effectifs, dossiers, familles.
   'statistiques.voir': ['DIRECTEUR'],
 } as const satisfies Record<string, readonly RoleEcole[]>;

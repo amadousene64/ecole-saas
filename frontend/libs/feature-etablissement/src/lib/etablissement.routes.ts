@@ -30,6 +30,15 @@ export const ROUTES_ETABLISSEMENT: Route[] = [
       ),
   },
   {
+    path: 'affectations',
+    title: 'Affectations',
+    canActivate: [gardePage('affectations')],
+    loadComponent: () =>
+      import('./affectations/page-affectations').then(
+        (m) => m.PageAffectations,
+      ),
+  },
+  {
     path: 'annees',
     title: 'Années scolaires et périodes',
     canActivate: [gardePage('annees')],

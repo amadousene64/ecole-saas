@@ -236,6 +236,7 @@ describe('ajustements demandés', () => {
       'Élèves',
       'Classes',
       'Matières et horaires',
+      'Affectations',
     ]);
     for (const cle of [
       'ClasseService.creer',

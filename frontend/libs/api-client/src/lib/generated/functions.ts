@@ -5,6 +5,18 @@ export type { ActivationActiver$Params as ActivationActiver$Params } from './fn/
 export { activationActiver as activationActiver } from './fn/activation-controller/activation-activer';
 export type { ActivationMesEnfants$Params as ActivationMesEnfants$Params } from './fn/activation-controller/activation-mes-enfants';
 export { activationMesEnfants as activationMesEnfants } from './fn/activation-controller/activation-mes-enfants';
+export type { AffectationLister$Params as AffectationLister$Params } from './fn/affectation-controller/affectation-lister';
+export { affectationLister as affectationLister } from './fn/affectation-controller/affectation-lister';
+export type { AffectationCreer$Params as AffectationCreer$Params } from './fn/affectation-controller/affectation-creer';
+export { affectationCreer as affectationCreer } from './fn/affectation-controller/affectation-creer';
+export type { AffectationChangerPeriode$Params as AffectationChangerPeriode$Params } from './fn/affectation-controller/affectation-changer-periode';
+export { affectationChangerPeriode as affectationChangerPeriode } from './fn/affectation-controller/affectation-changer-periode';
+export type { AffectationTerminer$Params as AffectationTerminer$Params } from './fn/affectation-controller/affectation-terminer';
+export { affectationTerminer as affectationTerminer } from './fn/affectation-controller/affectation-terminer';
+export type { AffectationMiennes$Params as AffectationMiennes$Params } from './fn/affectation-controller/affectation-miennes';
+export { affectationMiennes as affectationMiennes } from './fn/affectation-controller/affectation-miennes';
+export type { AffectationAffectables$Params as AffectationAffectables$Params } from './fn/affectation-controller/affectation-affectables';
+export { affectationAffectables as affectationAffectables } from './fn/affectation-controller/affectation-affectables';
 export type { AnneeScolaireLister$Params as AnneeScolaireLister$Params } from './fn/annee-scolaire-controller/annee-scolaire-lister';
 export { anneeScolaireLister as anneeScolaireLister } from './fn/annee-scolaire-controller/annee-scolaire-lister';
 export type { AnneeScolaireCreer$Params as AnneeScolaireCreer$Params } from './fn/annee-scolaire-controller/annee-scolaire-creer';

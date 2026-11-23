@@ -351,6 +351,22 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "id": "01930000-0000-7000-8000-000000000124",
+      "username": "enseignant.e2e",
+      "email": "enseignant.e2e@exemple.test",
+      "firstName": "Enseignant",
+      "lastName": "Fictif E2E",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passer-2026-dev",
+          "temporary": false
+        }
+      ]
     }
   ],
   "components": {

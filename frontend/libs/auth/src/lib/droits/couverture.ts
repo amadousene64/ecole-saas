@@ -128,6 +128,23 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
     page: 'structure',
     action: 'etablissement.ecrire',
   },
+  // --- Affectations du personnel ---
+  'AffectationService.lister': { page: 'affectations' },
+  'AffectationService.creer': {
+    page: 'affectations',
+    action: 'affectations.gerer',
+  },
+  'AffectationService.changerPeriode': {
+    page: 'affectations',
+    action: 'affectations.gerer',
+  },
+  'AffectationService.terminer': {
+    page: 'affectations',
+    action: 'affectations.gerer',
+  },
+  'AnnuairePersonnel.affectables': { page: 'affectations' },
+  // « Mes classes » de l'enseignant (le surveillant y a droit côté serveur : écran avec l'appel).
+  'AffectationService.miennes': { page: 'mes-classes' },
   // --- Matières et grille horaire des cycles ---
   'MatiereService.lister': { page: 'enseignements' },
   'MatiereService.creer': {
@@ -223,6 +240,8 @@ export const COUVERTURE: Readonly<Record<string, Cible>> = {
   'ReferentielScolaireService.parametresNotation': { exception: INTERNE },
   'ReferentielScolaireService.periodes': { exception: INTERNE },
   'ReferentielScolaireService.niveaux': { exception: INTERNE },
+  'ReferentielScolaireService.anneesEtCyclesDesClasses': { exception: INTERNE },
+  'ReferentielScolaireService.matieres': { exception: INTERNE },
 
   // --- Tableau de bord de la direction (accueil du directeur) ---
   'TableauDeBordService.direction': {

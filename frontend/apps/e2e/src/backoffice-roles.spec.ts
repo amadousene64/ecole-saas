@@ -42,6 +42,7 @@ const PERSONNEL = [
       'Établissement',
       'Structure pédagogique',
       'Matières et horaires',
+      'Affectations',
     ],
   },
   {
@@ -61,7 +62,13 @@ const PERSONNEL = [
   {
     utilisateur: 'censeur.a',
     role: 'Censeur',
-    menu: ['Accueil', 'Élèves', 'Classes', 'Matières et horaires'],
+    menu: [
+      'Accueil',
+      'Élèves',
+      'Classes',
+      'Matières et horaires',
+      'Affectations',
+    ],
   },
   {
     utilisateur: 'comptable.a',
