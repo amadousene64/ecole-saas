@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import sn.ecole.shared.domain.ContexteTenant;
 import sn.ecole.shared.domain.EcoleUtilisateur;
@@ -21,9 +23,11 @@ import sn.ecole.shared.domain.TypeErreur;
 public class ProfilService {
 
   private final EcolesUtilisateurRepository ecoles;
+  private final ApplicationEventPublisher evenements;
 
-  public ProfilService(EcolesUtilisateurRepository ecoles) {
+  public ProfilService(EcolesUtilisateurRepository ecoles, ApplicationEventPublisher evenements) {
     this.ecoles = ecoles;
+    this.evenements = evenements;
   }
 
   /** Profil de l'utilisateur connecté dans l'école courante. */
@@ -38,7 +42,19 @@ public class ProfilService {
         }
       }
     }
-    return new ProfilCourant(UUID.fromString(auth.getName()), ContexteTenant.exiger(), roles);
+    ProfilCourant profil =
+        new ProfilCourant(UUID.fromString(auth.getName()), ContexteTenant.exiger(), roles);
+    // Annuaire du personnel : prénoms et nom du compte, tels que le jeton les porte.
+    if (auth instanceof JwtAuthenticationToken jeton) {
+      evenements.publishEvent(
+          new UtilisateurIdentifie(
+              profil.tenantId(),
+              profil.utilisateurId(),
+              jeton.getToken().getClaimAsString("given_name"),
+              jeton.getToken().getClaimAsString("family_name"),
+              roles));
+    }
+    return profil;
   }
 
   /**

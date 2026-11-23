@@ -4,6 +4,8 @@
 export type { AccesEspaceParentRequete } from './models/acces-espace-parent-requete';
 export type { ActivationDto } from './models/activation-dto';
 export type { ActivationRequete } from './models/activation-requete';
+export type { AffectationDto } from './models/affectation-dto';
+export type { AffectationRequete } from './models/affectation-requete';
 export type { AnneeScolaireDto } from './models/annee-scolaire-dto';
 export type { AnneeScolaireRequete } from './models/annee-scolaire-requete';
 export type { BrouillonFinaliseDto } from './models/brouillon-finalise-dto';
@@ -38,6 +40,7 @@ export type { EtatDonneesSensiblesDto } from './models/etat-donnees-sensibles-dt
 export type { EvenementDto } from './models/evenement-dto';
 export type { EvenementRequete } from './models/evenement-requete';
 export type { FinalisationBrouillon } from './models/finalisation-brouillon';
+export type { FinRequete } from './models/fin-requete';
 export type { InscriptionDto } from './models/inscription-dto';
 export type { InscriptionRequete } from './models/inscription-requete';
 export type { LienParentalDto } from './models/lien-parental-dto';
@@ -46,6 +49,7 @@ export type { LigneImportDto } from './models/ligne-import-dto';
 export type { MarqueDto } from './models/marque-dto';
 export type { MatiereDto } from './models/matiere-dto';
 export type { MatiereRequete } from './models/matiere-requete';
+export type { MembreDto } from './models/membre-dto';
 export type { ModificationInscriptionRequete } from './models/modification-inscription-requete';
 export type { ModifierCycleRequete } from './models/modifier-cycle-requete';
 export type { ModifierEtablissementRequete } from './models/modifier-etablissement-requete';
@@ -62,6 +66,7 @@ export type { ParametresInscriptionDto } from './models/parametres-inscription-d
 export type { ParametresInscriptionRequete } from './models/parametres-inscription-requete';
 export type { PartDto } from './models/part-dto';
 export type { PeriodeDto } from './models/periode-dto';
+export type { PeriodeRequete } from './models/periode-requete';
 export type { PieceDto } from './models/piece-dto';
 export type { RapportImportDto } from './models/rapport-import-dto';
 export type { RechercheElevesRequete } from './models/recherche-eleves-requete';

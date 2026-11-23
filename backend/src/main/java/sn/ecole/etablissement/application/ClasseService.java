@@ -24,6 +24,7 @@ import sn.ecole.etablissement.domain.OptionEnseignement;
 import sn.ecole.etablissement.domain.ReglesClasse;
 import sn.ecole.etablissement.domain.SalleRepository;
 import sn.ecole.etablissement.domain.StatutAnnee;
+import sn.ecole.shared.application.PerimetreScolaire;
 
 /**
  * Classes d'une année : nom unique par année, série obligatoire seulement si le niveau en a. Rien
@@ -46,6 +47,9 @@ public class ClasseService {
   /** Modules qui rattachent des données aux classes (inscription…) : voir issue #3. */
   private final List<VerificateurUtilisationClasse> verificateurs;
 
+  /** Classes que voit l'utilisateur (enseignant, surveillant : selon ses affectations). */
+  private final PerimetreScolaire perimetre;
+
   public ClasseService(
       ClasseRepository classes,
       AnneeScolaireRepository annees,
@@ -54,7 +58,8 @@ public class ClasseService {
       SalleRepository salles,
       ClasseOptionRepository classesOptions,
       OptionEnseignementService options,
-      List<VerificateurUtilisationClasse> verificateurs) {
+      List<VerificateurUtilisationClasse> verificateurs,
+      PerimetreScolaire perimetre) {
     this.classes = classes;
     this.annees = annees;
     this.niveaux = niveaux;
@@ -63,6 +68,7 @@ public class ClasseService {
     this.options = options;
     this.verificateurs = List.copyOf(verificateurs);
     this.salles = salles;
+    this.perimetre = perimetre;
   }
 
   /**
@@ -82,14 +88,21 @@ public class ClasseService {
     } else {
       chargerAnnee(annee);
     }
-    return niveauId == null
-        ? classes.findByAnneeIdOrderByNom(annee)
-        : classes.findByAnneeIdAndNiveauIdOrderByNom(annee, niveauId);
+    List<Classe> liste =
+        niveauId == null
+            ? classes.findByAnneeIdOrderByNom(annee)
+            : classes.findByAnneeIdAndNiveauIdOrderByNom(annee, niveauId);
+    if (perimetre.toutLEcole()) {
+      return liste;
+    }
+    Set<UUID> visibles = perimetre.filtrer(liste.stream().map(Classe::getId).toList());
+    return liste.stream().filter(c -> visibles.contains(c.getId())).toList();
   }
 
   @PreAuthorize(Droits.LECTURE_PERSONNEL)
   @Transactional(readOnly = true)
   public Classe lire(UUID id) {
+    perimetre.exigerClasse(id);
     return charger(id);
   }
 
@@ -164,6 +177,7 @@ public class ClasseService {
   @PreAuthorize(Droits.LECTURE_PERSONNEL)
   @Transactional(readOnly = true)
   public List<OptionEnseignement> options(UUID classeId) {
+    perimetre.exigerClasse(classeId);
     charger(classeId);
     Set<UUID> ids =
         classesOptions.findByClasseId(classeId).stream()

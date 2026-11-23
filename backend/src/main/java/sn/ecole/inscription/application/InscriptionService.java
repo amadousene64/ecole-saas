@@ -62,6 +62,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   private final VerrouClasse verrou;
   private final ApplicationEventPublisher evenements;
   private final JournalAudit journal;
+  private final PerimetreEleves perimetre;
 
   public InscriptionService(
       InscriptionRepository inscriptions,
@@ -71,7 +72,8 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
       ParametresInscriptionService parametres,
       VerrouClasse verrou,
       ApplicationEventPublisher evenements,
-      JournalAudit journal) {
+      JournalAudit journal,
+      PerimetreEleves perimetre) {
     this.inscriptions = inscriptions;
     this.choix = choix;
     this.eleves = eleves;
@@ -80,6 +82,7 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     this.verrou = verrou;
     this.evenements = evenements;
     this.journal = journal;
+    this.perimetre = perimetre;
   }
 
   /**
@@ -139,21 +142,54 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   @PreAuthorize(Droits.SCOLARITE)
   @Transactional(readOnly = true)
   public VueInscription lire(UUID inscriptionId) {
+    if (!perimetre.toutLEcole()) {
+      // Restreint : même refus que l'inscription existe ou non (aucun indice sur l'identifiant).
+      // Seulement l'inscription en cours (pas une inscription terminée ni une sortie).
+      UUID classe =
+          inscriptions
+              .findById(inscriptionId)
+              .filter(i -> i.getStatut().actif())
+              .map(Inscription::getClasseId)
+              .orElse(null);
+      if (classe == null || perimetre.filtrer(List.of(classe)).isEmpty()) {
+        throw sn.ecole.shared.application.PerimetreScolaire.horsPerimetre();
+      }
+    }
     return vue(charger(inscriptionId), List.of());
   }
 
-  /** Historique de l'élève, de la plus récente à la plus ancienne. */
+  /**
+   * Historique de l'élève, de la plus récente à la plus ancienne. Enseignant et surveillant : son
+   * inscription en cours seulement.
+   */
   @PreAuthorize(Droits.SCOLARITE_ELEVE)
   @Transactional(readOnly = true)
   public List<VueInscription> historique(UUID eleveId) {
+    perimetre.exigerEleve(eleveId);
     eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
-    return vues(inscriptions.findByEleveIdOrderByDateEntreeDesc(eleveId));
+    List<Inscription> liste = inscriptions.findByEleveIdOrderByDateEntreeDesc(eleveId);
+    if (perimetre.restreint(eleveId)) {
+      // Enseignant, surveillant : l'inscription en cours seulement, dans une classe de leur
+      // périmètre. L'historique et les sorties restent à la direction, au censeur et au
+      // secrétariat.
+      Set<UUID> visibles =
+          perimetre.filtrer(liste.stream().map(Inscription::getClasseId).distinct().toList());
+      liste =
+          liste.stream()
+              .filter(i -> i.getStatut().actif() && visibles.contains(i.getClasseId()))
+              .toList();
+    }
+    return vues(liste);
   }
 
-  /** Élèves pré-inscrits ou inscrits dans la classe, par nom. */
-  @PreAuthorize(Droits.SCOLARITE)
+  /**
+   * Élèves pré-inscrits ou inscrits dans la classe, par nom. L'enseignant y accède pour ses classes
+   * (« Mes classes ») ; le surveillant pour celles de ses cycles.
+   */
+  @PreAuthorize(Droits.SCOLARITE_CLASSE)
   @Transactional(readOnly = true)
   public List<ResumeEleve> elevesDeLaClasse(UUID classeId) {
+    perimetre.exigerClasse(classeId);
     referentiel.classe(classeId);
     List<UUID> ids =
         inscriptions.findByClasseIdAndStatutIn(classeId, StatutInscription.ACTIFS).stream()
@@ -177,7 +213,13 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
     inscriptions
         .compterParClasse(anneeId, StatutInscription.ACTIFS)
         .forEach(e -> inscrits.put(e.getClasseId(), e.getNombre()));
-    return referentiel.classes(anneeId).stream()
+    List<ClasseScolaire> classes = referentiel.classes(anneeId);
+    Set<UUID> visibles =
+        perimetre.toutLEcole()
+            ? null
+            : perimetre.filtrer(classes.stream().map(ClasseScolaire::id).toList());
+    return classes.stream()
+        .filter(c -> visibles == null || visibles.contains(c.id()))
         .map(c -> new Remplissage(c.id(), inscrits.getOrDefault(c.id(), 0L), c.capacite()))
         .toList();
   }

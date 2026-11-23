@@ -53,6 +53,7 @@ describe('App (back-office)', () => {
       'Établissement',
       'Structure pédagogique',
       'Matières et horaires',
+      'Affectations',
     ]);
     // Sections du menu
     expect(

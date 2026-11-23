@@ -10,5 +10,11 @@ export const appRoutes: Route[] = [
     component: PageAccueil,
     title: 'Accueil · Vie scolaire',
   },
+  {
+    path: 'mes-classes',
+    canActivate: [gardePage('mes-classes')],
+    loadComponent: () => import('./mes-classes').then((m) => m.MesClasses),
+    title: 'Mes classes · Vie scolaire',
+  },
   { path: '**', redirectTo: '' },
 ];

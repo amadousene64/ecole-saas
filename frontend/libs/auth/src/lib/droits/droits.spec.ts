@@ -89,6 +89,7 @@ describe('menus par rôle', () => {
       'Établissement',
       'Structure pédagogique',
       'Matières et horaires',
+      'Affectations',
     ]);
     const sections = menuPour(['DIRECTEUR'], 'backoffice').map((e) => e.groupe);
     expect(sections).toEqual([
@@ -96,6 +97,7 @@ describe('menus par rôle', () => {
       null,
       'Classes et années',
       'Classes et années',
+      'Paramètres',
       'Paramètres',
       'Paramètres',
       'Paramètres',
@@ -133,6 +135,7 @@ describe('menus par rôle', () => {
       'Élèves',
       'Classes',
       'Matières et horaires',
+      'Affectations',
     ]);
   });
 
@@ -143,9 +146,12 @@ describe('menus par rôle', () => {
     ]);
   });
 
-  it('surveillant et enseignant : accueil de la vie scolaire seulement', () => {
+  it('surveillant et enseignant : la vie scolaire, et « Mes classes » pour l’enseignant', () => {
     expect(libelles('SURVEILLANT', 'vie-scolaire')).toEqual(['Accueil']);
-    expect(libelles('ENSEIGNANT', 'vie-scolaire')).toEqual(['Accueil']);
+    expect(libelles('ENSEIGNANT', 'vie-scolaire')).toEqual([
+      'Accueil',
+      'Mes classes',
+    ]);
   });
 
   it("parent et élève : un seul accueil (la barre du bas n'apparaît pas)", () => {

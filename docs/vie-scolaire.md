@@ -62,10 +62,35 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
 - Surveillant limité aux cycles qui lui sont affectés (un, plusieurs ou tous).
 - Enseignant limité à ses classes ; un remplaçant fait l'appel de la séance qu'il remplace.
 
+**Périmètre et données visibles**
+- Le périmètre (module `personnel`, PR 2) dit **quels élèves** chacun voit : toute l'école pour
+  la direction, le censeur, le secrétariat et le comptable ; les classes affectées pour
+  l'enseignant ; les classes des cycles affectés, pour l'année de l'affectation, pour le
+  surveillant ; rien sans affectation. Un refus de périmètre répond `403 HORS_PERIMETRE`, identique
+  pour un identifiant inexistant, hors périmètre ou d'une autre école.
+- Il ne dit pas **quelles données** : chaque PR suivante écrit, pour ses données, ce que chaque rôle
+  voit (ex. : le comptable ne voit ni absences ni justificatifs ; l'enseignant voit « justifiée / non
+  justifiée », jamais la pièce).
+- Déjà acté : enseignant et surveillant ne voient que l'inscription en cours (classe) ;
+  l'historique d'inscriptions et les sorties sont réservés à la direction, au censeur et au
+  secrétariat. La photo et le contact des responsables pour l'enseignant et le surveillant
+  viendront avec l'appel (PR 4).
+- Retirer un accès ne dépend jamais de Redis : la base est la référence, le cache du périmètre vit
+  2 minutes, Redis indisponible = lecture en base, invalidation ratée journalisée et rejouée par
+  l'outbox.
+
 **Appel et emploi du temps**
 - Séance annulée : aucun appel attendu. Enseignant remplaçant : peut faire l'appel.
 - Appel clos : l'enseignant corrige jusqu'à la fin de la journée ; ensuite seule la vie scolaire,
   avec motif et journal d'audit.
+
+**Temps**
+- Toute la logique métier datée (expiration des billets, alerte à 15 minutes, séances du jour,
+  affectations en cours, purges) lit l'heure dans le `java.time.Clock` injecté (bean
+  `HorlogeConfig`, fuseau `Africa/Dakar`) : jamais `now()` ni `CURRENT_DATE` en SQL (les dates
+  sont passées en paramètre), jamais `Instant.now()` / `LocalDate.now()` directement. Une seule
+  source de temps, et des tests qui avancent l'horloge au lieu d'attendre. Les écarts d'horloge
+  entre la JVM et les conteneurs (issue #91) ne touchent plus alors la logique métier.
 
 **Conservation**
 - Détail des absences purgé au plus tôt après la clôture des bulletins de l'année ; les totaux par

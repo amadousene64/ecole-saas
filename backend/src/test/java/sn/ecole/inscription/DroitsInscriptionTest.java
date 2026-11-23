@@ -131,7 +131,10 @@ class DroitsInscriptionTest extends TestInscription {
     cas.add(new Cas("POSTV", i + "/" + X + "/sortie", sortie, ECRITURE));
     cas.add(new Cas("POSTV", i + "/" + X + "/sortie", radiation, DIRECTION));
     cas.add(new Cas("GET", ELEVES + "/" + X + "/inscriptions", null, scolarite));
-    cas.add(new Cas("GET", "/api/v1/classes/" + X + "/eleves", null, scolarite));
+    // L'enseignant y accède aussi (« Mes classes »), dans son périmètre d'affectations.
+    Set<String> scolariteClasse = new java.util.HashSet<>(scolarite);
+    scolariteClasse.add(ENSEIGNANT);
+    cas.add(new Cas("GET", "/api/v1/classes/" + X + "/eleves", null, scolariteClasse));
     cas.add(new Cas("POST", ELEVES + "/" + X + "/codes-activation", null, ECRITURE));
     cas.add(new Cas("GET", "/api/v1/moi/eleve", null, Set.of(ELEVE)));
     String pieces = ELEVES + "/" + X + "/pieces";
@@ -167,10 +170,14 @@ class DroitsInscriptionTest extends TestInscription {
       for (Map.Entry<String, UUID> role : UTILISATEURS.entrySet()) {
         Reponse r = appeler(c, role.getValue());
         boolean autorise = c.autorises().contains(role.getKey());
-        if (autorise && (r.statut() == 403 || r.statut() == 401)) {
+        // 403 HORS_PERIMETRE : le rôle est accepté, l'identifiant (tiré au hasard) est hors du
+        // périmètre d'affectations de l'enseignant ou du surveillant.
+        boolean horsPerimetre = r.statut() == 403 && "HORS_PERIMETRE".equals(r.code());
+        if (autorise && (r.statut() == 403 || r.statut() == 401) && !horsPerimetre) {
           ecarts.add(c + " refusé à " + role.getKey() + " (" + r.statut() + " " + r.code() + ")");
         }
-        if (!autorise && r.statut() != 403) {
+        // Un rôle non autorisé est refusé par son rôle, jamais seulement par le périmètre.
+        if (!autorise && (r.statut() != 403 || horsPerimetre)) {
           ecarts.add(
               c + " non refusé à " + role.getKey() + " (" + r.statut() + " " + r.code() + ")");
         }

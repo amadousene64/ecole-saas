@@ -54,6 +54,15 @@ export async function seConnecter(
           ' (vérifier E2E_MOT_DE_PASSE).',
       );
     });
+  // L'application consomme l'adresse de retour mémorisée avant la connexion (gardes.ts,
+  // « ecole.retour ») : tant qu'elle est là, un page.goto() immédiat serait ramené à cette adresse.
+  await page.waitForFunction(() => {
+    try {
+      return sessionStorage.getItem('ecole.retour') === null;
+    } catch {
+      return true;
+    }
+  });
 }
 
 export async function choisirEcole(page: Page, nom: string): Promise<void> {
@@ -133,6 +142,7 @@ export const COMPTES_E2E = {
   secretariat: 'secretariat.e2e',
   directeur: 'directeur.e2e',
   censeur: 'censeur.e2e',
+  enseignant: 'enseignant.e2e',
 } as const;
 
 export const URL_API = API;
@@ -297,6 +307,16 @@ export const CLASSE_E2E_INSCRIPTION = 'E2E Inscription';
  * leur remplissage (chaque exécution inscrit un élève de plus). Idempotent : une seule classe, jamais
  * de doublon. Utilise le compte directeur.e2e avec le client de dev `dev-cli`.
  */
+/** Matières usuelles de l'école E2E (ajoutées une fois ; sans effet ensuite). */
+export async function garantirMatieresE2E(
+  request: APIRequestContext,
+): Promise<void> {
+  const reponse = await request.post(`${API}/api/v1/matieres/modele`, {
+    headers: await entetesDirecteurE2E(request),
+  });
+  expect(reponse.ok(), 'Matières usuelles').toBe(true);
+}
+
 export async function garantirClasseE2E(
   request: APIRequestContext,
 ): Promise<string> {

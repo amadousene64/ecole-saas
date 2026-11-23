@@ -2,6 +2,7 @@ package sn.ecole.inscription.infrastructure;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +30,7 @@ class RechercheElevesJpa implements RechercheEleves {
   public List<Eleve> rechercher(
       String terme,
       String matricule,
-      UUID classeId,
+      Collection<UUID> classes,
       StatutInscription statut,
       String apresNom,
       UUID apresId,
@@ -45,11 +46,11 @@ class RechercheElevesJpa implements RechercheEleves {
       jpql.append(" and e.matricule = :matriculeExact");
       parametres.put("matriculeExact", matricule.strip().toUpperCase(Locale.ROOT));
     }
-    if (classeId != null) {
+    if (classes != null) {
       jpql.append(
           " and exists (select 1 from Inscription i where i.eleveId = e.id"
-              + " and i.classeId = :classe and i.statut in :actifs)");
-      parametres.put("classe", classeId);
+              + " and i.classeId in :classes and i.statut in :actifs)");
+      parametres.put("classes", classes);
       parametres.put("actifs", StatutInscription.ACTIFS);
     }
     if (statut != null) {

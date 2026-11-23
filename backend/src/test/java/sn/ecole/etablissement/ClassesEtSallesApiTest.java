@@ -371,12 +371,16 @@ class ClassesEtSallesApiTest extends TestEtablissement {
   @Test
   void lePersonnelLitLesClassesMaisPasLesParentsNiLesEleves() throws Exception {
     Reponse c = creerClasse("CP", null, "CPA");
-    for (UUID lecteur :
-        new UUID[] {
-          DIRECTEUR_A, CENSEUR_A, SECRETARIAT_A, SURVEILLANT_A, ENSEIGNANT_A_PARENT_B, COMPTABLE_A
-        }) {
+    for (UUID lecteur : new UUID[] {DIRECTEUR_A, CENSEUR_A, SECRETARIAT_A, COMPTABLE_A}) {
       assertThat(get(lecteur, A, CLASSES).statut()).as("liste par %s", lecteur).isEqualTo(200);
       assertThat(get(lecteur, A, CLASSES + "/" + c.id()).statut()).isEqualTo(200);
+    }
+    // Surveillant et enseignant : leur périmètre d'affectations, vide ici (refus par défaut).
+    for (UUID lecteur : new UUID[] {SURVEILLANT_A, ENSEIGNANT_A_PARENT_B}) {
+      Reponse liste = get(lecteur, A, CLASSES);
+      assertThat(liste.statut()).as("liste par %s", lecteur).isEqualTo(200);
+      assertThat(liste.corps()).as("liste par %s", lecteur).isEmpty();
+      assertThat(get(lecteur, A, CLASSES + "/" + c.id()).statut()).isEqualTo(403);
     }
     for (UUID interdit : new UUID[] {PARENT_A, ELEVE_A}) {
       assertThat(get(interdit, A, CLASSES).statut()).as("liste par %s", interdit).isEqualTo(403);

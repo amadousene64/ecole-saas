@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -21,6 +22,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(HorlogeDeTest.Configuration.class)
 public abstract class TestIntegration {
 
   protected static final PostgreSQLContainer POSTGRES =
@@ -63,8 +65,12 @@ public abstract class TestIntegration {
 
   @Autowired protected StringRedisTemplate redis;
 
+  /** Horloge de l'application : un test la fixe ou l'avance ; heure système sinon. */
+  @Autowired protected HorlogeDeTest horloge;
+
   @BeforeEach
   void installerDonnees() {
+    horloge.reinitialiser();
     Fixtures.installer(superUtilisateur());
     redis.getRequiredConnectionFactory().getConnection().serverCommands().flushAll();
   }
