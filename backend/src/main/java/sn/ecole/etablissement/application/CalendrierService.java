@@ -1,6 +1,6 @@
 package sn.ecole.etablissement.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -21,9 +21,11 @@ public class CalendrierService {
 
   private final AnneeScolaireRepository annees;
   private final EvenementCalendrierRepository evenements;
+  private final Clock horloge;
 
   public CalendrierService(
-      AnneeScolaireRepository annees, EvenementCalendrierRepository evenements) {
+      AnneeScolaireRepository annees, EvenementCalendrierRepository evenements, Clock horloge) {
+    this.horloge = horloge;
     this.annees = annees;
     this.evenements = evenements;
   }
@@ -72,7 +74,7 @@ public class CalendrierService {
   public void supprimer(UUID anneeId, UUID evenementId) {
     charger(anneeId).verifierModifiable();
     EvenementCalendrier evenement = chargerEvenement(anneeId, evenementId);
-    evenement.supprimer(Instant.now());
+    evenement.supprimer(horloge.instant());
     evenements.save(evenement);
   }
 

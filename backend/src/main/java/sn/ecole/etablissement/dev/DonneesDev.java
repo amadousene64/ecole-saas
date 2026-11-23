@@ -44,7 +44,10 @@ import sn.ecole.shared.domain.TenantRepository;
 @Order(0)
 class DonneesDev implements ApplicationRunner {
 
-  /** Directeur fictif de l'école A (voir realm-ecole.json) : agit pour les contrôles de droits. */
+  /**
+   * Directeur fictif de l'école A (voir infra/keycloak/dev/ecole-users-0.json) : agit pour les
+   * contrôles de droits.
+   */
   private static final String DIRECTEUR_DEV = "01930000-0000-7000-8000-000000000101";
 
   private final ExecutionPourTenant execution;

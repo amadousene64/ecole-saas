@@ -38,7 +38,7 @@ class CacheRolesRedis implements CacheRoles {
   private final Duration duree;
 
   CacheRolesRedis(
-      StringRedisTemplate redis, @Value("${ecole.securite.cache-roles-ttl:5m}") Duration duree) {
+      StringRedisTemplate redis, @Value("${ecole.securite.cache-roles-ttl:2m}") Duration duree) {
     this.redis = redis;
     this.duree = duree;
   }

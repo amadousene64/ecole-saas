@@ -1,6 +1,6 @@
 package sn.ecole.inscription.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,13 +48,16 @@ public class LienParentalService implements UtilisationEleve {
   private final EleveRepository eleves;
   private final JournalAudit journal;
   private final InscriptionService inscriptions;
+  private final Clock horloge;
 
   public LienParentalService(
       LienParentalRepository liens,
       ResponsableRepository responsables,
       EleveRepository eleves,
       JournalAudit journal,
-      InscriptionService inscriptions) {
+      InscriptionService inscriptions,
+      Clock horloge) {
+    this.horloge = horloge;
     this.liens = liens;
     this.inscriptions = inscriptions;
     this.responsables = responsables;
@@ -141,7 +144,7 @@ public class LienParentalService implements UtilisationEleve {
     if (lien.isResponsableLegal()) {
       verifierPasDernierResponsableLegal(lien);
     }
-    lien.supprimer(Instant.now());
+    lien.supprimer(horloge.instant());
     liens.save(lien);
     journal.consigner("LIEN_PARENTAL_SUPPRIME", "Eleve", eleveId, Map.of("lien", lienId));
   }

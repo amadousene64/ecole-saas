@@ -2,8 +2,8 @@ package sn.ecole.inscription.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +20,10 @@ import sn.ecole.inscription.domain.ParametresInscription;
 class ParametresInscriptionController {
 
   private final ParametresInscriptionService service;
+  private final Clock horloge;
 
-  ParametresInscriptionController(ParametresInscriptionService service) {
+  ParametresInscriptionController(ParametresInscriptionService service, Clock horloge) {
+    this.horloge = horloge;
     this.service = service;
   }
 
@@ -42,8 +44,8 @@ class ParametresInscriptionController {
         service.modifier(Reponses.version(ifMatch), r.formatMatricule(), r.politiqueCapacite()));
   }
 
-  private static ResponseEntity<ParametresInscriptionDto> reponse(ParametresInscription p) {
-    int annee = LocalDate.now(ZoneId.of("Africa/Dakar")).getYear();
+  private ResponseEntity<ParametresInscriptionDto> reponse(ParametresInscription p) {
+    int annee = LocalDate.now(horloge).getYear();
     return Reponses.ok(
         new ParametresInscriptionDto(
             p.getFormatMatricule(), p.getPolitiqueCapacite(), p.format().generer(annee, 1)),

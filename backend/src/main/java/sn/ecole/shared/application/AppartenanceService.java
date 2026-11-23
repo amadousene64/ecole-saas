@@ -1,7 +1,6 @@
 package sn.ecole.shared.application;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +40,9 @@ public class AppartenanceService {
   private final JournalAudit journal;
   private final InvalidationDroits invalidation;
 
-  /** Métrique : nombre d'échecs de la seconde invalidation (après commit) du cache des rôles. */
+  private final Clock horloge;
+
+  /** Métrique : nombre d'échecs de l'invalidation (après commit) du cache des droits. */
   public static final String METRIQUE_ECHEC_INVALIDATION =
       InvalidationDroits.METRIQUE_ECHEC_INVALIDATION;
 
@@ -51,13 +52,15 @@ public class AppartenanceService {
       CacheRoles cache,
       ExecutionPourTenant execution,
       JournalAudit journal,
-      MeterRegistry metriques) {
+      InvalidationDroits invalidation,
+      Clock horloge) {
     this.appartenances = appartenances;
     this.tenants = tenants;
     this.cache = cache;
     this.execution = execution;
     this.journal = journal;
-    this.invalidation = new InvalidationDroits(cache, metriques);
+    this.invalidation = invalidation;
+    this.horloge = horloge;
   }
 
   /**
@@ -69,9 +72,16 @@ public class AppartenanceService {
   public Set<RoleEcole> rolesPour(UUID tenantId, UUID utilisateurId) {
     Objects.requireNonNull(tenantId);
     Objects.requireNonNull(utilisateurId);
+    // Cache utilisable seulement si aucune invalidation n'attend d'être rejouée (sinon une entrée
+    // d'avant une panne pourrait rendre un rôle retiré) ET si Redis répond : la base fait foi.
+    // Ordre voulu : l'attente est lue AVANT la génération. Le relais incrémente la génération puis
+    // marque l'événement traité ; « plus d'attente » garantit donc une génération déjà nouvelle.
     // La génération est lue AVANT la base : si les droits changent pendant la lecture, ce que
     // l'on écrit porte une génération déjà périmée et ne sera jamais relu.
-    OptionalLong generation = cache.generation(utilisateurId);
+    OptionalLong generation =
+        execution.lire(tenantId, () -> invalidation.enAttente(utilisateurId))
+            ? OptionalLong.empty()
+            : cache.generation(utilisateurId);
     if (generation.isPresent()) {
       Optional<Set<RoleEcole>> enCache =
           cache.lire(tenantId, utilisateurId, generation.getAsLong());
@@ -135,7 +145,7 @@ public class AppartenanceService {
     if (active.isEmpty()) {
       return;
     }
-    active.get().revoquer(Instant.now());
+    active.get().revoquer(horloge.instant());
     journal.consigner(ROLE_RETIRE, CIBLE_UTILISATEUR, utilisateurId, Map.of("role", role));
     changerGenerationAuCommit(utilisateurId);
   }
@@ -154,7 +164,8 @@ public class AppartenanceService {
         });
   }
 
+  /** Ne dépend jamais de Redis : outbox dans la transaction, rejouée jusqu'à réussite. */
   private void changerGenerationAuCommit(UUID utilisateurId) {
-    invalidation.auCommit(utilisateurId);
+    invalidation.auCommitSansRedis(utilisateurId);
   }
 }

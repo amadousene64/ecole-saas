@@ -13,9 +13,7 @@ import sn.ecole.shared.domain.OutboxEventRepository;
 
 /**
  * Invalidation des droits mis en cache pour un utilisateur (rôles, périmètre), au commit de la
- * transaction qui les change. Nouvelle génération juste avant le commit (si Redis est injoignable,
- * l'exception annule la transaction : pas de changement de droits sans invalidation), puis juste
- * après (une lecture concurrente qui aurait mis en cache l'état d'avant le commit devient périmée).
+ * transaction qui les change, sans jamais dépendre de Redis : la base reste la référence.
  */
 @Component
 public class InvalidationDroits {
@@ -33,12 +31,6 @@ public class InvalidationDroits {
   private final OutboxPublisher outbox;
   private final OutboxEventRepository evenements;
 
-  /** Pour AppartenanceService (invalidation stricte seulement, sans outbox). */
-  public InvalidationDroits(CacheRoles cache, MeterRegistry metriques) {
-    this(cache, metriques, null, null);
-  }
-
-  @org.springframework.beans.factory.annotation.Autowired
   public InvalidationDroits(
       CacheRoles cache,
       MeterRegistry metriques,
@@ -83,36 +75,7 @@ public class InvalidationDroits {
    * épuisé ses tentatives (lecture en base, jamais de cache périmé).
    */
   public boolean enAttente(UUID utilisateurId) {
-    return evenements != null
-        && evenements.existsByTypeEvenementAndIdAgregatAndTraiteLeIsNull(
-            A_INVALIDER, utilisateurId);
-  }
-
-  /**
-   * À appeler dans la transaction qui modifie les droits de {@code utilisateurId} : stricte, la
-   * transaction échoue si Redis est injoignable (rôles).
-   */
-  public void auCommit(UUID utilisateurId) {
-    TransactionSynchronizationManager.registerSynchronization(
-        new TransactionSynchronization() {
-          @Override
-          public void beforeCommit(boolean lectureSeule) {
-            cache.nouvelleGeneration(utilisateurId);
-          }
-
-          @Override
-          public void afterCommit() {
-            try {
-              cache.nouvelleGeneration(utilisateurId);
-            } catch (RuntimeException e) {
-              // Pas de reprise (choix assumé) : signalé par journal et par métrique.
-              echecsSecondeInvalidation.increment();
-              LOG.warn(
-                  "Seconde invalidation des droits impossible : une lecture concurrente au commit"
-                      + " peut rester en cache jusqu'à expiration ({})",
-                  e.toString());
-            }
-          }
-        });
+    return evenements.existsByTypeEvenementAndIdAgregatAndTraiteLeIsNull(
+        A_INVALIDER, utilisateurId);
   }
 }

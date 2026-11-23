@@ -1,6 +1,6 @@
 package sn.ecole.inscription.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -31,12 +31,15 @@ class AnalysePieces implements TraitementOutbox {
   private final StockageFichiers stockage;
   private final AntiVirus antivirus;
   private final JournalAudit journal;
+  private final Clock horloge;
 
   AnalysePieces(
       PieceDossierRepository pieces,
       StockageFichiers stockage,
       AntiVirus antivirus,
-      JournalAudit journal) {
+      JournalAudit journal,
+      Clock horloge) {
+    this.horloge = horloge;
     this.pieces = pieces;
     this.stockage = stockage;
     this.antivirus = antivirus;
@@ -56,7 +59,7 @@ class AnalysePieces implements TraitementOutbox {
       return;
     }
     AntiVirus.Resultat resultat = antivirus.analyser(stockage.lire(piece.getCle()));
-    piece.enregistrerAnalyse(resultat.sain(), Instant.now());
+    piece.enregistrerAnalyse(resultat.sain(), horloge.instant());
     pieces.save(piece);
     if (resultat.sain()) {
       journal.consignerSysteme(

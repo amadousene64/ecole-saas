@@ -1,5 +1,6 @@
 package sn.ecole.etablissement.application;
 
+import java.time.Clock;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
 import sn.ecole.etablissement.domain.AnneeScolaire;
@@ -16,15 +17,17 @@ class FabriquePeriodes {
 
   private final CycleRepository cycles;
   private final PeriodeRepository periodes;
+  private final Clock horloge;
 
-  FabriquePeriodes(CycleRepository cycles, PeriodeRepository periodes) {
+  FabriquePeriodes(CycleRepository cycles, PeriodeRepository periodes, Clock horloge) {
+    this.horloge = horloge;
     this.cycles = cycles;
     this.periodes = periodes;
   }
 
   /** Remplace les périodes existantes de l'année par celles générées. */
   void regenerer(AnneeScolaire annee) {
-    Instant maintenant = Instant.now();
+    Instant maintenant = horloge.instant();
     for (Periode ancienne : periodes.findByAnneeId(annee.getId())) {
       ancienne.supprimer(maintenant);
       periodes.saveAndFlush(ancienne);

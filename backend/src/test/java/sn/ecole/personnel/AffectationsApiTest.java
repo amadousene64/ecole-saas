@@ -587,7 +587,7 @@ class AffectationsApiTest extends TestInscription {
                             "statut",
                             "TRANSFERE",
                             "date",
-                            LocalDate.now().toString(),
+                            LocalDate.now(horloge).toString(),
                             "motif",
                             "Changement fictif"))),
             SECRETARIAT_A,

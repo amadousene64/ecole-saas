@@ -1,6 +1,6 @@
 package sn.ecole.etablissement.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -20,9 +20,14 @@ public class SerieService {
   private final SerieRepository series;
   private final NiveauSerieRepository liens;
   private final ClasseRepository classes;
+  private final Clock horloge;
 
   public SerieService(
-      SerieRepository series, NiveauSerieRepository liens, ClasseRepository classes) {
+      SerieRepository series,
+      NiveauSerieRepository liens,
+      ClasseRepository classes,
+      Clock horloge) {
+    this.horloge = horloge;
     this.series = series;
     this.liens = liens;
     this.classes = classes;
@@ -64,7 +69,7 @@ public class SerieService {
       throw Erreurs.conflit(
           "SERIE_UTILISEE", "Cette série est proposée par un niveau ou utilisée par une classe.");
     }
-    serie.supprimer(Instant.now());
+    serie.supprimer(horloge.instant());
     series.save(serie);
   }
 

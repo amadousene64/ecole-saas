@@ -2,6 +2,7 @@ package sn.ecole.inscription.application;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -164,6 +165,7 @@ public class ImportElevesService {
   private final ParametresInscriptionService parametres;
   private final ImportElevesRepository imports;
   private final JournalAudit journal;
+  private final Clock horloge;
 
   public ImportElevesService(
       LecteurTableur lecteur,
@@ -176,7 +178,9 @@ public class ImportElevesService {
       ReferentielScolaire referentiel,
       ParametresInscriptionService parametres,
       ImportElevesRepository imports,
-      JournalAudit journal) {
+      JournalAudit journal,
+      Clock horloge) {
+    this.horloge = horloge;
     this.lecteur = lecteur;
     this.eleves = eleves;
     this.depotEleves = depotEleves;
@@ -305,7 +309,7 @@ public class ImportElevesService {
     Map<String, ClasseScolaire> classes = classesDeLAnnee(anneeId);
     Map<UUID, Long> effectifs = new HashMap<>();
     boolean bloquer = parametres.courants().getPolitiqueCapacite() == PolitiqueCapacite.BLOQUER;
-    LocalDate aujourdhui = LocalDate.now(EleveService.FUSEAU);
+    LocalDate aujourdhui = LocalDate.now(horloge);
 
     Set<String> matricules = new HashSet<>();
     Set<String> identifiants = new HashSet<>();

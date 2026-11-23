@@ -2,7 +2,8 @@
 # Crée dans le realm de dev les comptes fictifs ajoutés après l'import initial du realm
 # (comptable.a, surveillant.a, parent.demo, comptes *.e2e de l'école de test), par l'API
 # d'administration de Keycloak : sans réimporter le realm ni effacer les volumes. Idempotent.
-# Mêmes comptes dans realm-ecole.json pour une installation neuve ; mêmes identifiants que les
+# Mêmes comptes dans infra/keycloak/dev/ecole-users-0.json (importé par le seul docker-compose de
+# dev) pour une installation neuve ; mêmes identifiants que les
 # appartenances de
 # backend/src/main/resources/db/dev/R__dev_donnees_fictives.sql.
 #

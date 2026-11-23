@@ -2,7 +2,7 @@ package sn.ecole.inscription.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -26,8 +26,10 @@ import sn.ecole.inscription.domain.PieceDossier;
 class PieceController {
 
   private final PieceService service;
+  private final Clock horloge;
 
-  PieceController(PieceService service) {
+  PieceController(PieceService service, Clock horloge) {
+    this.horloge = horloge;
     this.service = service;
   }
 
@@ -75,7 +77,7 @@ class PieceController {
     return Reponses.ok(
         new UrlDto(
             service.url(eleveId, pieceId).toString(),
-            Instant.now().plus(PieceService.VALIDITE_URL)));
+            horloge.instant().plus(PieceService.VALIDITE_URL)));
   }
 
   @DeleteMapping("/{pieceId}")

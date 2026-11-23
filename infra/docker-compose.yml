@@ -34,7 +34,11 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin-dev}
     ports: ["127.0.0.1:8180:8180"]
     volumes:
-      - ./keycloak/realm-ecole.json:/opt/keycloak/data/import/realm-ecole.json:ro
+      # Realm sans aucun compte ; nommé <realm>-realm.json pour l'import par répertoire.
+      - ./keycloak/realm-ecole.json:/opt/keycloak/data/import/ecole-realm.json:ro
+      # DEV SEULEMENT : comptes fictifs et leur mot de passe de dev. Jamais monté hors de ce fichier
+      # (docs/mise-en-production.md).
+      - ./keycloak/dev/ecole-users-0.json:/opt/keycloak/data/import/ecole-users-0.json:ro
       # Thème de connexion « ecole » (marque de l'école, deux colonnes), voir realm-ecole.json.
       - ./keycloak/themes/ecole:/opt/keycloak/themes/ecole:ro
     depends_on:

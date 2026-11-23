@@ -1,6 +1,6 @@
 package sn.ecole.etablissement.application;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -50,6 +50,8 @@ public class ClasseService {
   /** Classes que voit l'utilisateur (enseignant, surveillant : selon ses affectations). */
   private final PerimetreScolaire perimetre;
 
+  private final Clock horloge;
+
   public ClasseService(
       ClasseRepository classes,
       AnneeScolaireRepository annees,
@@ -59,7 +61,9 @@ public class ClasseService {
       ClasseOptionRepository classesOptions,
       OptionEnseignementService options,
       List<VerificateurUtilisationClasse> verificateurs,
-      PerimetreScolaire perimetre) {
+      PerimetreScolaire perimetre,
+      Clock horloge) {
+    this.horloge = horloge;
     this.classes = classes;
     this.annees = annees;
     this.niveaux = niveaux;
@@ -170,7 +174,7 @@ public class ClasseService {
           "CLASSE_UTILISEE",
           "Des élèves sont inscrits dans cette classe : elle ne peut pas être supprimée.");
     }
-    classe.supprimer(Instant.now());
+    classe.supprimer(horloge.instant());
     classes.save(classe);
   }
 
@@ -208,7 +212,7 @@ public class ClasseService {
           throw Erreurs.conflit(
               "OPTION_UTILISEE", "Des élèves de cette classe ont choisi cette option.");
         }
-        lien.retirer(Instant.now());
+        lien.retirer(horloge.instant());
         classesOptions.save(lien);
       }
     }

@@ -1,5 +1,6 @@
 package sn.ecole.inscription.application;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
@@ -85,6 +86,7 @@ public class ActivationService {
   private final AppartenanceService appartenances;
   private final JournalAudit journal;
   private final ActivationEleve activationEleve;
+  private final Clock horloge;
 
   public ActivationService(
       CodeActivationRepository codes,
@@ -94,7 +96,9 @@ public class ActivationService {
       LimiteurDebit limiteur,
       AppartenanceService appartenances,
       JournalAudit journal,
-      ActivationEleve activationEleve) {
+      ActivationEleve activationEleve,
+      Clock horloge) {
+    this.horloge = horloge;
     this.codes = codes;
     this.responsables = responsables;
     this.eleves = eleves;
@@ -161,7 +165,7 @@ public class ActivationService {
       throw refus(moi, "INCONNU", null);
     }
     CodeActivation code = trouve.get();
-    Instant maintenant = Instant.now();
+    Instant maintenant = horloge.instant();
     if (!empreintes.correspond(
         lu.get().secret(), contexte(ecole, code.getIdentifiant()), code.getEmpreinte())) {
       code.enregistrerEchec();
@@ -236,7 +240,7 @@ public class ActivationService {
                 cibleId,
                 tire.identifiant(),
                 empreintes.empreinte(tire.secret(), contexte(ecole, tire.identifiant())),
-                Instant.now()));
+                horloge.instant()));
     journal.consigner(
         "CODE_ACTIVATION_EMIS",
         cible == Cible.RESPONSABLE ? "Responsable" : "Eleve",

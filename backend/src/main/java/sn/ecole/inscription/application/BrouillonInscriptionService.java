@@ -1,6 +1,7 @@
 package sn.ecole.inscription.application;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -162,6 +163,7 @@ public class BrouillonInscriptionService {
   private final ChiffrementDonnees chiffrement;
   private final JsonMapper json;
   private final JournalAudit journal;
+  private final Clock horloge;
 
   public BrouillonInscriptionService(
       BrouillonInscriptionRepository brouillons,
@@ -174,7 +176,9 @@ public class BrouillonInscriptionService {
       ActivationService activation,
       ChiffrementDonnees chiffrement,
       JsonMapper json,
-      JournalAudit journal) {
+      JournalAudit journal,
+      Clock horloge) {
+    this.horloge = horloge;
     this.brouillons = brouillons;
     this.referentiel = referentiel;
     this.eleves = eleves;
@@ -286,7 +290,7 @@ public class BrouillonInscriptionService {
     BrouillonInscription b = verrouiller(id);
     Erreurs.verifierVersion(version, b);
     pieces.abandonnerDuBrouillon(id);
-    b.clore(Instant.now());
+    b.clore(horloge.instant());
     brouillons.saveAndFlush(b);
     journal.consigner("BROUILLON_ABANDONNE", "BrouillonInscription", id, Map.of());
   }
@@ -354,7 +358,7 @@ public class BrouillonInscriptionService {
     InscriptionService.VueInscription inscription =
         inscriptions.inscrire(eleveId, s.classeId(), statut, s.redoublant(), s.options());
     pieces.rattacherAuDossier(id, eleveId);
-    b.clore(Instant.now());
+    b.clore(horloge.instant());
     brouillons.saveAndFlush(b);
     journal.consigner(
         "BROUILLON_FINALISE",

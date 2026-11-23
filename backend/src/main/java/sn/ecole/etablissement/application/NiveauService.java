@@ -1,5 +1,6 @@
 package sn.ecole.etablissement.application;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,6 +46,7 @@ public class NiveauService {
   private final AnneeScolaireRepository annees;
   private final ParametresCycleAnneeRepository parametresCycles;
   private final ParametresNiveauAnneeRepository parametresNiveaux;
+  private final Clock horloge;
 
   public NiveauService(
       NiveauRepository niveaux,
@@ -55,7 +57,9 @@ public class NiveauService {
       JournalAudit journal,
       AnneeScolaireRepository annees,
       ParametresCycleAnneeRepository parametresCycles,
-      ParametresNiveauAnneeRepository parametresNiveaux) {
+      ParametresNiveauAnneeRepository parametresNiveaux,
+      Clock horloge) {
+    this.horloge = horloge;
     this.annees = annees;
     this.parametresCycles = parametresCycles;
     this.parametresNiveaux = parametresNiveaux;
@@ -145,7 +149,7 @@ public class NiveauService {
     if (classes.existsByNiveauId(id)) {
       throw Erreurs.conflit("NIVEAU_UTILISE", "Des classes utilisent ce niveau.");
     }
-    Instant maintenant = Instant.now();
+    Instant maintenant = horloge.instant();
     for (NiveauSerie lien : liens.findByNiveauId(id)) {
       lien.retirer(maintenant);
       liens.save(lien);
@@ -171,7 +175,7 @@ public class NiveauService {
           "NIVEAU_UTILISE",
           "Des classes utilisent ce niveau : leurs séries seraient incohérentes.");
     }
-    Instant maintenant = Instant.now();
+    Instant maintenant = horloge.instant();
     for (NiveauSerie lien : actuels) {
       if (!serieIds.contains(lien.getSerieId())) {
         if (classes.existsByNiveauIdAndSerieId(id, lien.getSerieId())) {

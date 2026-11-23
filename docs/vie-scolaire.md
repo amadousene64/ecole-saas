@@ -75,9 +75,11 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
   l'historique d'inscriptions et les sorties sont réservés à la direction, au censeur et au
   secrétariat. La photo et le contact des responsables pour l'enseignant et le surveillant
   viendront avec l'appel (PR 4).
-- Retirer un accès ne dépend jamais de Redis : la base est la référence, le cache du périmètre vit
-  2 minutes, Redis indisponible = lecture en base, invalidation ratée journalisée et rejouée par
-  l'outbox.
+- Retirer un accès (affectation ou rôle) ne dépend jamais de Redis : la base est la référence, les
+  caches du périmètre et des rôles vivent 2 minutes, Redis indisponible = lecture en base,
+  invalidation écrite dans l'outbox avec le changement, tentée après le commit et rejouée jusqu'à
+  réussite ; tant qu’elle attend (jusqu’au prochain passage du relais, toutes les 5 s, si Redis
+  répond), le cache de cet utilisateur est ignoré.
 
 **Appel et emploi du temps**
 - Séance annulée : aucun appel attendu. Enseignant remplaçant : peut faire l'appel.
@@ -91,6 +93,8 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
   sont passées en paramètre), jamais `Instant.now()` / `LocalDate.now()` directement. Une seule
   source de temps, et des tests qui avancent l'horloge au lieu d'attendre. Les écarts d'horloge
   entre la JVM et les conteneurs (issue #91) ne touchent plus alors la logique métier.
+- Hors de cette règle, seulement le technique : délais de reprise du relais de l'outbox et
+  compteur de génération du cache Redis.
 
 **Conservation**
 - Détail des absences purgé au plus tôt après la clôture des bulletins de l'année ; les totaux par
