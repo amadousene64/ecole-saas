@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import sn.ecole.personnel.domain.MembrePersonnel;
 import sn.ecole.personnel.domain.MembrePersonnelRepository;
+import sn.ecole.shared.application.JournalAudit;
 import sn.ecole.shared.application.UtilisateurIdentifie;
 import sn.ecole.shared.domain.Appartenance;
 import sn.ecole.shared.domain.AppartenanceRepository;
@@ -52,17 +53,20 @@ public class AnnuairePersonnel {
   private final AppartenanceRepository appartenances;
   private final TransactionTemplate nouvelleTransaction;
   private final Clock horloge;
+  private final JournalAudit journal;
 
   public AnnuairePersonnel(
       MembrePersonnelRepository membres,
       AppartenanceRepository appartenances,
       PlatformTransactionManager transactions,
-      Clock horloge) {
+      Clock horloge,
+      JournalAudit journal) {
     this.membres = membres;
     this.appartenances = appartenances;
     this.nouvelleTransaction = new TransactionTemplate(transactions);
     this.nouvelleTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     this.horloge = horloge;
+    this.journal = journal;
   }
 
   /** Enseignants et surveillants de l'école, par nom (les comptes jamais connectés en dernier). */
@@ -118,7 +122,15 @@ public class AnnuairePersonnel {
                     m -> {
                       // Une écriture par jour au plus, ou dès que le compte change de nom.
                       if (!m.aJour(evenement.prenoms(), evenement.nom(), maintenant)) {
-                        m.renseigner(evenement.prenoms(), evenement.nom(), maintenant);
+                        if (m.renseigner(evenement.prenoms(), evenement.nom(), maintenant)) {
+                          // Un compte qui change de nom est tracé (jamais le nom lui-même) : la
+                          // direction choisit les personnes à affecter d'après ces noms.
+                          journal.consigner(
+                              "ANNUAIRE_NOM_MODIFIE",
+                              "Utilisateur",
+                              evenement.utilisateurId(),
+                              Map.of());
+                        }
                         membres.save(m);
                       }
                     },

@@ -102,9 +102,8 @@ public class ClasseService {
   @PreAuthorize(Droits.LECTURE_PERSONNEL)
   @Transactional(readOnly = true)
   public Classe lire(UUID id) {
-    Classe classe = charger(id);
     perimetre.exigerClasse(id);
-    return classe;
+    return charger(id);
   }
 
   @PreAuthorize(Droits.ECRITURE)
@@ -178,8 +177,8 @@ public class ClasseService {
   @PreAuthorize(Droits.LECTURE_PERSONNEL)
   @Transactional(readOnly = true)
   public List<OptionEnseignement> options(UUID classeId) {
-    charger(classeId);
     perimetre.exigerClasse(classeId);
+    charger(classeId);
     Set<UUID> ids =
         classesOptions.findByClasseId(classeId).stream()
             .map(ClasseOption::getOptionId)

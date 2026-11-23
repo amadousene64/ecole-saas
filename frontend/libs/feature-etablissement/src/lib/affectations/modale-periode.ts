@@ -76,7 +76,10 @@ let suivant = 0;
               formControlName="fin"
               data-testid="champ-periode-fin"
             />
-            <mat-hint>Premier jour où elle ne vaut plus</mat-hint>
+            <mat-hint
+              >Premier jour où elle ne vaut plus ; vide : fin de
+              l'année</mat-hint
+            >
           </mat-form-field>
         </ecole-champ>
       </form>

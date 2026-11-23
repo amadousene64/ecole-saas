@@ -187,9 +187,9 @@ public class EleveService {
   @PreAuthorize(Droits.IDENTITE_ELEVE)
   @Transactional(readOnly = true)
   public VueEleve lire(UUID eleveId) {
-    Eleve eleve = charger(eleveId);
+    // Périmètre d'abord : hors périmètre, 403 que l'élève existe ou non (aucun indice).
     perimetre.exigerEleve(eleveId);
-    return vue(eleve);
+    return vue(charger(eleveId));
   }
 
   /** Crée l'élève et lui attribue le prochain matricule selon le format de l'école. */

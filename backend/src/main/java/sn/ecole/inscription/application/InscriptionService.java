@@ -151,8 +151,8 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   @PreAuthorize(Droits.SCOLARITE_ELEVE)
   @Transactional(readOnly = true)
   public List<VueInscription> historique(UUID eleveId) {
-    eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
     perimetre.exigerEleve(eleveId);
+    eleves.findById(eleveId).orElseThrow(Erreurs::eleveIntrouvable);
     return vues(inscriptions.findByEleveIdOrderByDateEntreeDesc(eleveId));
   }
 
@@ -163,8 +163,8 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   @PreAuthorize(Droits.SCOLARITE_CLASSE)
   @Transactional(readOnly = true)
   public List<ResumeEleve> elevesDeLaClasse(UUID classeId) {
-    referentiel.classe(classeId);
     perimetre.exigerClasse(classeId);
+    referentiel.classe(classeId);
     List<UUID> ids =
         inscriptions.findByClasseIdAndStatutIn(classeId, StatutInscription.ACTIFS).stream()
             .map(Inscription::getEleveId)

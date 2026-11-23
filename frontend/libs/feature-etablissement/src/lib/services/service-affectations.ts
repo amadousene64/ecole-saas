@@ -54,12 +54,16 @@ export class ServiceAffectations {
   }
 }
 
-/** « DIOP Awa », ou « Compte jamais connecté · …1f2e » tant que le compte ne s'est pas présenté. */
+/**
+ * « DIOP Awa · …1f2e », ou « Compte jamais connecté · …1f2e ». La fin de l'identifiant distingue
+ * deux homonymes : le nom vient du compte, que son titulaire peut modifier.
+ */
 export function nomMembre(m: MembreDto | undefined, id?: string): string {
-  if (m?.nom || m?.prenoms) {
-    return [m.nom?.toUpperCase(), m.prenoms].filter(Boolean).join(' ');
-  }
   const ident = (m?.utilisateurId ?? id ?? '').slice(-4);
+  if (m?.nom || m?.prenoms) {
+    const nom = [m.nom?.toUpperCase(), m.prenoms].filter(Boolean).join(' ');
+    return `${nom} · …${ident}`;
+  }
   return `Compte jamais connecté · …${ident}`;
 }
 

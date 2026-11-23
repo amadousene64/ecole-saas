@@ -319,6 +319,90 @@ class AffectationsApiTest extends TestInscription {
         .doesNotContain("Fictif");
   }
 
+  @Test
+  void uneAffectationNeSurvitPasASonAnnee() throws Exception {
+    // Sans fin saisie : elle prend fin le lendemain du dernier jour de l'année (2 juillet 2027).
+    JsonNode a = affecte(enseignement(ENSEIGNANT, sixiemeA, maths));
+    assertThat(a.path("fin").asText()).isEqualTo("2027-07-03");
+    Map<String, Object> auDela = enseignement(ENSEIGNANT, sixiemeA, svt);
+    auDela.put("fin", "2027-09-01");
+    assertThat(affecter(DIRECTEUR_A, auDela).code()).isEqualTo("PERIODE_INVALIDE");
+
+    horloge.fixer(LocalDate.of(2027, 7, 2));
+    assertThat(nomsClasses(ENSEIGNANT)).containsExactly("6E A");
+    // L'année suivante : plus rien, même pour une classe et un élève de l'année passée.
+    UUID awa = creerEleve(A, "Awa");
+    horloge.fixer(JOUR);
+    inscrire(awa, sixiemeA);
+    affecte(
+        corps(
+            "type",
+            "SURVEILLANCE",
+            "anneeId",
+            annee,
+            "utilisateurId",
+            SURVEILLANT_A,
+            "cycles",
+            List.of("MOYEN"),
+            "debut",
+            RENTREE.toString()));
+    horloge.fixer(LocalDate.of(2027, 7, 3));
+    assertThat(get(ENSEIGNANT, A, "/api/v1/classes/" + sixiemeA).statut()).isEqualTo(403);
+    assertThat(get(SURVEILLANT_A, A, ELEVES + "/" + awa).statut()).isEqualTo(403);
+  }
+
+  @Test
+  void desAffectationsSimultaneesNePrennentPasDeuxFoisLaMemePlace() throws Exception {
+    java.util.concurrent.ExecutorService pool =
+        java.util.concurrent.Executors.newFixedThreadPool(6);
+    try {
+      List<java.util.concurrent.Future<Reponse>> envois = new ArrayList<>();
+      for (int i = 0; i < 6; i++) {
+        UUID qui = i % 2 == 0 ? ENSEIGNANT : REMPLACANT;
+        envois.add(pool.submit(() -> affecter(DIRECTEUR_A, enseignement(qui, sixiemeA, maths))));
+      }
+      int acceptees = 0;
+      for (var envoi : envois) {
+        Reponse r = envoi.get();
+        if (r.statut() == 201) {
+          acceptees++;
+        } else {
+          assertThat(r.code()).isEqualTo("AFFECTATION_EN_CONFLIT");
+        }
+      }
+      assertThat(acceptees).isEqualTo(1);
+    } finally {
+      pool.shutdown();
+    }
+    assertThat(get(DIRECTEUR_A, A, AFFECTATIONS + "?annee=" + annee).corps()).hasSize(1);
+  }
+
+  @Test
+  void uneFinAvantLeDebutDUneAffectationCommenceeEstRefuseeSansRienEffacer() throws Exception {
+    JsonNode a = affecte(enseignement(ENSEIGNANT, sixiemeA, maths));
+    Reponse fin = terminer(DIRECTEUR_A, A, a, RENTREE.minusDays(1).toString());
+    assertThat(fin.code()).isEqualTo("PERIODE_INVALIDE");
+    assertThat(get(DIRECTEUR_A, A, AFFECTATIONS + "?annee=" + annee).corps()).hasSize(1);
+    assertThat(nomsClasses(ENSEIGNANT)).containsExactly("6E A");
+  }
+
+  @Test
+  void lEcoleBNeModifiePasLaPeriodeDUneAffectationDeLEcoleA() throws Exception {
+    JsonNode a = affecte(enseignement(ENSEIGNANT, sixiemeA, maths));
+    Reponse r =
+        executer(
+            MockMvcRequestBuilders.put(AFFECTATIONS + "/" + a.path("id").asText())
+                .header("If-Match", "\"" + a.path("version").asInt() + "\"")
+                .contentType("application/json")
+                .content(
+                    JSON.writeValueAsString(
+                        corps("debut", RENTREE.toString(), "fin", "2026-11-05"))),
+            DIRECTEUR_B,
+            B);
+    assertThat(r.statut()).isEqualTo(404);
+    assertThat(nomsClasses(ENSEIGNANT)).containsExactly("6E A");
+  }
+
   // --- Surveillant ---
 
   @Test
@@ -439,6 +523,21 @@ class AffectationsApiTest extends TestInscription {
               assertThat(m.path("prenoms").asText()).isEqualTo("Moussa");
               assertThat(m.path("nom").asText()).isEqualTo("Remplaçant Fictif");
             });
+    // Un changement de nom du compte est journalisé, sans le nom lui-même.
+    mockMvc.perform(
+        MockMvcRequestBuilders.get("/api/v1/moi")
+            .header("X-Tenant-Id", A.toString())
+            .with(
+                jwt()
+                    .jwt(
+                        j ->
+                            j.subject(REMPLACANT.toString())
+                                .claim("azp", "backoffice")
+                                .claim("given_name", "Moussa")
+                                .claim("family_name", "Autre Nom Fictif"))));
+    assertThat(journal("ANNUAIRE_NOM_MODIFIE"))
+        .singleElement()
+        .satisfies(j -> assertThat(j.get("details").toString()).doesNotContain("Fictif"));
     // Le surveillant figure aussi ; le directeur, non (rien à lui affecter).
     assertThat(apres)
         .anySatisfy(

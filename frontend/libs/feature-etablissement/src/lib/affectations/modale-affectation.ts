@@ -177,7 +177,7 @@ let suivant = 0;
               formControlName="fin"
               data-testid="champ-fin"
             />
-            <mat-hint>Vide : jusqu'à nouvel ordre</mat-hint>
+            <mat-hint>Vide : jusqu'à la fin de l'année</mat-hint>
           </mat-form-field>
         </ecole-champ>
       </form>

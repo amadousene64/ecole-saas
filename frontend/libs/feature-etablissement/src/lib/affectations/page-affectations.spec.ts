@@ -83,7 +83,7 @@ describe('libellés des affectations', () => {
   it('nomme la personne, ou son compte tant qu’il ne s’est pas connecté', () => {
     expect(
       nomMembre({ utilisateurId: 'u1', prenoms: 'Moussa', nom: 'Fictif' }),
-    ).toBe('FICTIF Moussa');
+    ).toBe('FICTIF Moussa · …u1');
     expect(nomMembre(undefined, '0000-abcd')).toBe(
       'Compte jamais connecté · …abcd',
     );

@@ -23,6 +23,7 @@ import sn.ecole.etablissement.ReferentielScolaire.MatiereScolaire;
 import sn.ecole.personnel.domain.Affectation;
 import sn.ecole.personnel.domain.AffectationRepository;
 import sn.ecole.personnel.domain.TypeAffectation;
+import sn.ecole.personnel.domain.VerrouAffectations;
 import sn.ecole.shared.application.AppartenanceService;
 import sn.ecole.shared.application.InvalidationDroits;
 import sn.ecole.shared.application.JournalAudit;
@@ -55,6 +56,7 @@ public class AffectationService {
       LocalDate fin) {}
 
   private final AffectationRepository affectations;
+  private final VerrouAffectations verrou;
   private final ReferentielScolaire referentiel;
   private final AppartenanceService appartenances;
   private final InvalidationDroits invalidation;
@@ -63,12 +65,14 @@ public class AffectationService {
 
   public AffectationService(
       AffectationRepository affectations,
+      VerrouAffectations verrou,
       ReferentielScolaire referentiel,
       AppartenanceService appartenances,
       InvalidationDroits invalidation,
       JournalAudit journal,
       Clock horloge) {
     this.affectations = affectations;
+    this.verrou = verrou;
     this.referentiel = referentiel;
     this.appartenances = appartenances;
     this.invalidation = invalidation;
@@ -109,7 +113,7 @@ public class AffectationService {
     if (annee.cloturee()) {
       throw Erreurs.conflit("ANNEE_CLOTUREE", "L'année " + annee.libelle() + " est clôturée.");
     }
-    verifierDansLAnnee(annee, s.debut(), s.fin());
+    LocalDate fin = finDansLAnnee(annee, s.debut(), s.fin());
     List<Affectation> creees = new ArrayList<>();
     switch (s.type()) {
       case ENSEIGNEMENT -> {
@@ -126,7 +130,7 @@ public class AffectationService {
         }
         creees.add(
             Affectation.enseignement(
-                s.anneeId(), s.utilisateurId(), classe.id(), matiere.id(), s.debut(), s.fin()));
+                s.anneeId(), s.utilisateurId(), classe.id(), matiere.id(), s.debut(), fin));
       }
       case TITULAIRE -> {
         exigerRole(s.utilisateurId(), RoleEcole.ENSEIGNANT);
@@ -138,7 +142,7 @@ public class AffectationService {
                   + " secondaire, affectez une matière.");
         }
         creees.add(
-            Affectation.titulaire(s.anneeId(), s.utilisateurId(), classe.id(), s.debut(), s.fin()));
+            Affectation.titulaire(s.anneeId(), s.utilisateurId(), classe.id(), s.debut(), fin));
       }
       case SURVEILLANCE -> {
         exigerRole(s.utilisateurId(), RoleEcole.SURVEILLANT);
@@ -147,12 +151,13 @@ public class AffectationService {
         }
         for (CodeCycle cycle : Set.copyOf(s.cycles())) {
           creees.add(
-              Affectation.surveillance(s.anneeId(), s.utilisateurId(), cycle, s.debut(), s.fin()));
+              Affectation.surveillance(s.anneeId(), s.utilisateurId(), cycle, s.debut(), fin));
         }
       }
     }
     List<Affectation> enregistrees = new ArrayList<>();
     for (Affectation a : creees) {
+      verrou.verrouiller(clePlace(a));
       verifierPlaceLibre(a, a.getDebut(), a.getFin());
       Affectation enregistree = affectations.save(a);
       journal.consigner(
@@ -169,10 +174,11 @@ public class AffectationService {
     Affectation a = charger(id);
     Erreurs.verifierVersion(version, a);
     AnneeScolaireInfo annee = referentiel.annee(a.getAnneeId());
-    verifierDansLAnnee(annee, debut, fin);
+    LocalDate finBornee = finDansLAnnee(annee, debut, fin);
     Map<String, Object> avant = resume(a);
-    verifierPlaceLibre(a, debut, fin);
-    a.changerPeriode(debut, fin);
+    verrou.verrouiller(clePlace(a));
+    verifierPlaceLibre(a, debut, finBornee);
+    a.changerPeriode(debut, finBornee);
     Affectation modifiee = affectations.save(a);
     journal.consigner(
         "AFFECTATION_MODIFIEE",
@@ -185,18 +191,26 @@ public class AffectationService {
 
   /**
    * Termine l'affectation à {@code fin} (aujourd'hui par défaut : effet immédiat). Une affectation
-   * qui n'a pas encore commencé à cette date est annulée : elle n'a jamais valu.
+   * qui commence aujourd'hui ou plus tard est annulée : elle n'a pas servi. Une fin qui précéderait
+   * le début d'une affectation déjà commencée est refusée (jamais d'effacement).
    */
   @PreAuthorize(Droits.GESTION)
   public void terminer(UUID id, int version, LocalDate fin) {
     Affectation a = charger(id);
     Erreurs.verifierVersion(version, a);
-    LocalDate date = fin != null ? fin : aujourdhui();
-    if (!date.isAfter(a.getDebut())) {
+    LocalDate aujourdhui = aujourdhui();
+    LocalDate date = fin != null ? fin : aujourdhui;
+    // Pas encore commencée, ou commencée aujourd'hui seulement : elle n'a pas servi, on l'annule.
+    if (!aujourdhui.isAfter(a.getDebut())) {
       a.marquerAnnulee(Instant.now(horloge));
       affectations.save(a);
       journal.consigner("AFFECTATION_ANNULEE", "Affectation", id, resume(a));
     } else {
+      if (!date.isAfter(a.getDebut())) {
+        throw Erreurs.invalide(
+            "PERIODE_INVALIDE",
+            "Cette affectation a commencé le " + a.getDebut() + " : sa fin doit suivre ce jour.");
+      }
       a.terminer(date);
       affectations.save(a);
       journal.consigner("AFFECTATION_TERMINEE", "Affectation", id, resume(a));
@@ -204,7 +218,11 @@ public class AffectationService {
     invalidation.auCommit(a.getUtilisateurId());
   }
 
-  private void verifierDansLAnnee(AnneeScolaireInfo annee, LocalDate debut, LocalDate fin) {
+  /**
+   * Contrôle la période et renvoie sa fin, bornée à l'année : une affectation ne survit jamais à
+   * son année scolaire (sans fin saisie, elle prend fin le lendemain du dernier jour de l'année).
+   */
+  private LocalDate finDansLAnnee(AnneeScolaireInfo annee, LocalDate debut, LocalDate fin) {
     if (debut == null) {
       throw Erreurs.invalide("PERIODE_INVALIDE", "La date de début est obligatoire.");
     }
@@ -219,9 +237,26 @@ public class AffectationService {
               + annee.dateFin()
               + ").");
     }
-    if (fin != null && !fin.isAfter(debut)) {
+    LocalDate finAnnee = annee.dateFin().plusDays(1);
+    if (fin == null) {
+      return finAnnee;
+    }
+    if (!fin.isAfter(debut)) {
       throw Erreurs.invalide("PERIODE_INVALIDE", "La fin doit suivre le début de l'affectation.");
     }
+    if (fin.isAfter(finAnnee)) {
+      throw Erreurs.invalide(
+          "PERIODE_INVALIDE",
+          "Une affectation prend fin au plus tard le " + finAnnee + ", lendemain de l'année.");
+    }
+    return fin;
+  }
+
+  /** Clé de verrou d'une place : la classe (enseignement, titulaire), le surveillant (cycles). */
+  private static String clePlace(Affectation a) {
+    return a.getType() == TypeAffectation.SURVEILLANCE
+        ? "surveillant:" + a.getUtilisateurId()
+        : "classe:" + a.getClasseId();
   }
 
   /** Une matière dans une classe, un titulaire par classe, un cycle par surveillant, à la fois. */
