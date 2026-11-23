@@ -170,10 +170,14 @@ class DroitsInscriptionTest extends TestInscription {
       for (Map.Entry<String, UUID> role : UTILISATEURS.entrySet()) {
         Reponse r = appeler(c, role.getValue());
         boolean autorise = c.autorises().contains(role.getKey());
-        if (autorise && (r.statut() == 403 || r.statut() == 401)) {
+        // 403 HORS_PERIMETRE : le rôle est accepté, l'identifiant (tiré au hasard) est hors du
+        // périmètre d'affectations de l'enseignant ou du surveillant.
+        boolean horsPerimetre = r.statut() == 403 && "HORS_PERIMETRE".equals(r.code());
+        if (autorise && (r.statut() == 403 || r.statut() == 401) && !horsPerimetre) {
           ecarts.add(c + " refusé à " + role.getKey() + " (" + r.statut() + " " + r.code() + ")");
         }
-        if (!autorise && r.statut() != 403) {
+        // Un rôle non autorisé est refusé par son rôle, jamais seulement par le périmètre.
+        if (!autorise && (r.statut() != 403 || horsPerimetre)) {
           ecarts.add(
               c + " non refusé à " + role.getKey() + " (" + r.statut() + " " + r.code() + ")");
         }

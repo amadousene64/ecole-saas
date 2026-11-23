@@ -3,7 +3,6 @@ package sn.ecole.inscription.application;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import sn.ecole.etablissement.ReferentielScolaire;
@@ -55,7 +54,7 @@ class PerimetreEleves {
             .map(Inscription::getClasseId)
             .toList();
     if (perimetre.filtrer(classes).isEmpty()) {
-      throw new AccessDeniedException("Élève hors de votre périmètre.");
+      throw PerimetreScolaire.horsPerimetre();
     }
   }
 

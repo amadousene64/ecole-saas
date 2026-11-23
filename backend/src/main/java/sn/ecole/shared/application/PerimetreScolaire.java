@@ -3,7 +3,8 @@ package sn.ecole.shared.application;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.security.access.AccessDeniedException;
+import sn.ecole.shared.domain.ErreurMetier;
+import sn.ecole.shared.domain.TypeErreur;
 
 /**
  * Périmètre de l'utilisateur connecté dans l'école courante : quelles classes il voit, aujourd'hui.
@@ -31,10 +32,22 @@ public interface PerimetreScolaire {
   /** Les classes de {@code classeIds} que l'utilisateur voit, dans l'ordre reçu. */
   Set<UUID> filtrer(Collection<UUID> classeIds);
 
-  /** Refus (403) si l'utilisateur ne voit pas la classe. */
+  /**
+   * Refus (403 HORS_PERIMETRE) si l'utilisateur ne voit pas la classe. Même réponse pour une classe
+   * inexistante, d'une autre école ou hors périmètre : rien ne laisse deviner qu'elle existe.
+   */
   default void exigerClasse(UUID classeId) {
     if (!voitClasse(classeId)) {
-      throw new AccessDeniedException("Classe hors de votre périmètre.");
+      throw horsPerimetre();
     }
+  }
+
+  /**
+   * Le refus de périmètre, identique partout (classe, élève) : 403, code HORS_PERIMETRE, message
+   * fixe sans identifiant. Distinct d'ACCES_REFUSE (rôle insuffisant).
+   */
+  static ErreurMetier horsPerimetre() {
+    return new ErreurMetier(
+        "HORS_PERIMETRE", TypeErreur.INTERDIT, "Hors de votre périmètre d'affectations.");
   }
 }

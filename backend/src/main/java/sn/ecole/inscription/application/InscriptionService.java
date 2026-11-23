@@ -142,9 +142,14 @@ public class InscriptionService implements VerificateurUtilisationClasse, Utilis
   @PreAuthorize(Droits.SCOLARITE)
   @Transactional(readOnly = true)
   public VueInscription lire(UUID inscriptionId) {
-    Inscription inscription = charger(inscriptionId);
-    perimetre.exigerClasse(inscription.getClasseId());
-    return vue(inscription, List.of());
+    if (!perimetre.toutLEcole()) {
+      // Restreint : même refus que l'inscription existe ou non (aucun indice sur l'identifiant).
+      UUID classe = inscriptions.findById(inscriptionId).map(Inscription::getClasseId).orElse(null);
+      if (classe == null || perimetre.filtrer(List.of(classe)).isEmpty()) {
+        throw sn.ecole.shared.application.PerimetreScolaire.horsPerimetre();
+      }
+    }
+    return vue(charger(inscriptionId), List.of());
   }
 
   /** Historique de l'élève, de la plus récente à la plus ancienne. */

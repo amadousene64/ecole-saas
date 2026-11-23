@@ -403,6 +403,123 @@ class AffectationsApiTest extends TestInscription {
     assertThat(nomsClasses(ENSEIGNANT)).containsExactly("6E A");
   }
 
+  /** Statut, code, titre et message : tout ce qui pourrait trahir l'existence d'un identifiant. */
+  private static String empreinte(Reponse r) {
+    return r.statut()
+        + " | "
+        + r.code()
+        + " | "
+        + r.corps().path("title").asText()
+        + " | "
+        + r.corps().path("detail").asText();
+  }
+
+  @Test
+  void horsPerimetreLaReponseNeTrahitPasLExistenceDUnIdentifiant() throws Exception {
+    // Enseignant : 6E A seulement. Surveillant : l'élémentaire seulement (6E B lui est étrangère).
+    affecte(enseignement(ENSEIGNANT, sixiemeA, maths));
+    affecte(
+        corps(
+            "type",
+            "SURVEILLANCE",
+            "anneeId",
+            annee,
+            "utilisateurId",
+            SURVEILLANT_A,
+            "cycles",
+            List.of("ELEMENTAIRE"),
+            "debut",
+            RENTREE.toString()));
+    UUID eleveA = creerEleve(A, "Binta");
+    inscrire(eleveA, sixiemeB);
+    UUID inscriptionA =
+        UUID.fromString(
+            get(DIRECTEUR_A, A, ELEVES + "/" + eleveA + "/inscriptions")
+                .corps()
+                .get(0)
+                .path("id")
+                .asText());
+
+    // Mêmes objets dans l'école B.
+    UUID anneeB = creerEtOuvrirAnnee(DIRECTEUR_B, B);
+    Reponse classeB =
+        post(
+            DIRECTEUR_B,
+            B,
+            "/api/v1/classes",
+            corps(
+                "anneeId",
+                anneeB,
+                "niveauId",
+                niveau(DIRECTEUR_B, B, "6E"),
+                "nom",
+                "6E Z",
+                "capacite",
+                30));
+    assertThat(classeB.statut()).as(classeB.corps().toString()).isEqualTo(201);
+    UUID eleveB = creerEleve(B, "Coumba");
+    Reponse inscriptionB =
+        post(
+            DIRECTEUR_B,
+            B,
+            "/api/v1/inscriptions",
+            corps(
+                "eleveId",
+                eleveB,
+                "classeId",
+                classeB.id(),
+                "statut",
+                "INSCRIT",
+                "redoublant",
+                false));
+    assertThat(inscriptionB.statut()).as(inscriptionB.corps().toString()).isEqualTo(201);
+
+    UUID inexistant = UUID.fromString("01930000-0000-7000-8000-00000000dead");
+    // Pour chaque modèle d'URL : identifiant inexistant, hors périmètre dans l'école, autre école.
+    Map<String, List<UUID>> cas =
+        Map.of(
+            "/api/v1/classes/%s",
+            List.of(inexistant, sixiemeB, classeB.id()),
+            "/api/v1/classes/%s/options",
+            List.of(inexistant, sixiemeB, classeB.id()),
+            "/api/v1/classes/%s/eleves",
+            List.of(inexistant, sixiemeB, classeB.id()),
+            ELEVES + "/%s",
+            List.of(inexistant, eleveA, eleveB),
+            ELEVES + "/%s/inscriptions",
+            List.of(inexistant, eleveA, eleveB),
+            "/api/v1/inscriptions/%s",
+            List.of(inexistant, inscriptionA, inscriptionB.id()));
+    for (UUID qui : List.of(ENSEIGNANT, SURVEILLANT_A)) {
+      for (var modele : cas.entrySet()) {
+        List<String> empreintes = new ArrayList<>();
+        for (UUID id : modele.getValue()) {
+          empreintes.add(empreinte(get(qui, A, String.format(modele.getKey(), id))));
+        }
+        String libelle = qui.equals(ENSEIGNANT) ? "enseignant" : "surveillant";
+        if (modele.getKey().startsWith(ELEVES)
+            || modele.getKey().startsWith("/api/v1/inscriptions")) {
+          if (qui.equals(ENSEIGNANT)) {
+            // L'enseignant n'a pas ces lectures par rôle : refus par rôle, identique lui aussi.
+            assertThat(empreintes)
+                .as("%s %s", libelle, modele.getKey())
+                .allMatch(e -> e.startsWith("403 | ACCES_REFUSE"));
+            assertThat(empreintes)
+                .as("%s %s", libelle, modele.getKey())
+                .containsOnly(empreintes.get(0));
+            continue;
+          }
+        }
+        assertThat(empreintes.get(0))
+            .as("%s %s", libelle, modele.getKey())
+            .startsWith("403 | HORS_PERIMETRE |");
+        assertThat(empreintes)
+            .as("%s %s : inexistant, hors périmètre, autre école", libelle, modele.getKey())
+            .containsOnly(empreintes.get(0));
+      }
+    }
+  }
+
   // --- Surveillant ---
 
   @Test
