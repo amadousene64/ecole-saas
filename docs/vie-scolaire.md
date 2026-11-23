@@ -78,7 +78,8 @@ notifications), maquettes 13 (tableau de bord du censeur), 17 (poste de surveill
 - Retirer un accès (affectation ou rôle) ne dépend jamais de Redis : la base est la référence, les
   caches du périmètre et des rôles vivent 2 minutes, Redis indisponible = lecture en base,
   invalidation écrite dans l'outbox avec le changement, tentée après le commit et rejouée jusqu'à
-  réussite ; tant qu'elle attend (≤ 5 s si Redis répond), le cache de cet utilisateur est ignoré.
+  réussite ; tant qu’elle attend (jusqu’au prochain passage du relais, toutes les 5 s, si Redis
+  répond), le cache de cet utilisateur est ignoré.
 
 **Appel et emploi du temps**
 - Séance annulée : aucun appel attendu. Enseignant remplaçant : peut faire l'appel.

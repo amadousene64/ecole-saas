@@ -21,8 +21,12 @@ l'infrastructure. Chaque ligne se vérifie, elle ne se suppose pas.
       `FORCER_DEV=1` contre la production.
 - [ ] **Profil `dev` désactivé** côté backend : ni `DonneesDev`, ni `DonneesDevInscription`, ni la
       migration répétable `db/dev/R__dev_donnees_fictives.sql` (écoles et appartenances fictives).
-- [ ] Client Keycloak `dev-cli` absent ou désactivé ; `clients-autorises` limité à `backoffice`,
-      `parent`, `vie-scolaire`.
+- [ ] **Realm de production distinct** : `infra/keycloak/realm-ecole.json` est le realm de *dev*
+      (adresses de redirection `localhost`, client `dev-cli` à mot de passe direct, SMTP Mailpit,
+      nom « (dev) ») ; il ne s'importe jamais tel quel. Le realm de production en dérive avec :
+      client `dev-cli` absent, adresses de redirection et origines de production seulement, SMTP
+      réel, secret du client `ecole-api` régénéré, protection contre la force brute active.
+- [ ] `clients-autorises` limité à `backoffice`, `parent`, `vie-scolaire` (profil `dev` inactif).
 - [ ] Clés de chiffrement et HMAC propres à la production, hors dépôt, sauvegardées (les perdre rend
       les données sensibles illisibles) ; jamais celles d'un `cles-dev.env`.
 

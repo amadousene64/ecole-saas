@@ -72,15 +72,16 @@ public class AppartenanceService {
   public Set<RoleEcole> rolesPour(UUID tenantId, UUID utilisateurId) {
     Objects.requireNonNull(tenantId);
     Objects.requireNonNull(utilisateurId);
+    // Cache utilisable seulement si aucune invalidation n'attend d'être rejouée (sinon une entrée
+    // d'avant une panne pourrait rendre un rôle retiré) ET si Redis répond : la base fait foi.
+    // Ordre voulu : l'attente est lue AVANT la génération. Le relais incrémente la génération puis
+    // marque l'événement traité ; « plus d'attente » garantit donc une génération déjà nouvelle.
     // La génération est lue AVANT la base : si les droits changent pendant la lecture, ce que
     // l'on écrit porte une génération déjà périmée et ne sera jamais relu.
-    OptionalLong generation = cache.generation(utilisateurId);
-    // Cache utilisable seulement si Redis répond ET qu'aucune invalidation n'attend d'être rejouée
-    // (sinon une entrée d'avant une panne pourrait rendre un rôle retiré) : la base fait foi.
-    if (generation.isPresent()
-        && execution.lire(tenantId, () -> invalidation.enAttente(utilisateurId))) {
-      generation = OptionalLong.empty();
-    }
+    OptionalLong generation =
+        execution.lire(tenantId, () -> invalidation.enAttente(utilisateurId))
+            ? OptionalLong.empty()
+            : cache.generation(utilisateurId);
     if (generation.isPresent()) {
       Optional<Set<RoleEcole>> enCache =
           cache.lire(tenantId, utilisateurId, generation.getAsLong());
